@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -22,7 +21,7 @@ import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 type Message = {
-  id: number;
+  id: string | number;
   sender: 'user' | 'team';
   content: string;
   status?: 'sent' | 'delivered' | 'read';
@@ -51,6 +50,8 @@ export default function ChatInterface() {
   const [showFinalOptions, setShowFinalOptions] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  const generateId = () => Math.random().toString(36).substr(2, 9) + Date.now();
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
@@ -68,46 +69,66 @@ Descrição do ocorrido:
 "${searchParams.get('banDescription') || 'Nenhuma descrição fornecida.'}"
 `;
 
-    const userMessage: Message = { id: 1, sender: 'user', content: initialMessageContent, status: 'read', type: 'text' };
+    // Reseta as mensagens ao iniciar para evitar duplicatas em re-renders
+    const userMessage: Message = { id: 'initial-user', sender: 'user', content: initialMessageContent, status: 'read', type: 'text' };
     setMessages([userMessage]);
 
-    setTimeout(() => {
+    const timeouts: NodeJS.Timeout[] = [];
+
+    const t1 = setTimeout(() => {
         setIsTyping(true);
-        setTimeout(() => {
+        const t2 = setTimeout(() => {
             const teamResponse: Message = {
-                id: 2, sender: 'team',
+                id: 'team-1', sender: 'team',
                 content: '👋 Olá! Recebemos suas informações. Após uma análise preliminar, identificamos que seu caso tem características de um banimento automático, o que significa que existem chances reais de recuperação. Nossa equipe pode preparar uma defesa técnica detalhada para você. 📄',
                 type: 'text',
             };
-            setMessages((prev) => [...prev, teamResponse]);
+            setMessages((prev) => {
+              if (prev.find(m => m.id === 'team-1')) return prev;
+              return [...prev, teamResponse];
+            });
             setIsTyping(false);
-            setTimeout(() => {
+            const t3 = setTimeout(() => {
               setIsTyping(true);
-              setTimeout(() => {
+              const t4 = setTimeout(() => {
                 const teamResponse2: Message = {
-                  id: 3, sender: 'team',
+                  id: 'team-2', sender: 'team',
                   content: `🤔 Muitos banimentos acontecem sem análise humana detalhada.\nQuando o caso é apresentado da forma certa, a plataforma pode reavaliar a decisão.💡\n\nÉ exatamente nesse ponto que a Equipe Zephyrus atua. 💪`,
                    type: 'text',
                 };
-                setMessages((prev) => [...prev, teamResponse2]);
+                setMessages((prev) => {
+                  if (prev.find(m => m.id === 'team-2')) return prev;
+                  return [...prev, teamResponse2];
+                });
                 setIsTyping(false);
-                 setTimeout(() => {
+                 const t5 = setTimeout(() => {
                     setIsTyping(true);
-                    setTimeout(() => {
+                    const t6 = setTimeout(() => {
                         const teamResponse3: Message = {
-                            id: 4, sender: 'team',
+                            id: 'team-3', sender: 'team',
                             content: 'Você deseja que a Equipe Zephyrus inicie a análise completa do seu caso? 🤔',
                             type: 'text',
                         };
-                        setMessages((prev) => [...prev, teamResponse3]);
+                        setMessages((prev) => {
+                          if (prev.find(m => m.id === 'team-3')) return prev;
+                          return [...prev, teamResponse3];
+                        });
                         setIsTyping(false);
                         setShowOptions(true);
                     }, 3000); 
+                    timeouts.push(t6);
                 }, 6000); 
+                timeouts.push(t5);
               }, 3000);
+              timeouts.push(t4);
             }, 6000);
+            timeouts.push(t3);
         }, 3000); 
+        timeouts.push(t2);
     }, 6000); 
+    timeouts.push(t1);
+
+    return () => timeouts.forEach(t => clearTimeout(t));
   }, [searchParams]);
 
   const handleTrackCheckout = (url: string) => {
@@ -121,7 +142,7 @@ Descrição do ocorrido:
 
   const handleOptionClick = (option: 'sim' | 'nao') => {
     const userMessage: Message = {
-        id: Date.now(),
+        id: generateId(),
         sender: 'user',
         content: option === 'sim' ? 'Sim, quero tentar recuperar minha conta 👍' : 'Não, apenas estou me informando',
         status: 'read',
@@ -135,36 +156,36 @@ Descrição do ocorrido:
         setTimeout(() => {
             setIsTyping(true);
             setTimeout(() => {
-                setMessages(prev => [...prev, { id: Date.now(), sender: 'team', content: 'Ótima escolha. ✅\n\nVocê está dando o passo que a maioria não dá: recorrer da forma correta. 🚀', type: 'text' }]);
+                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Ótima escolha. ✅\n\nVocê está dando o passo que a maioria não dá: recorrer da forma correta. 🚀', type: 'text' }]);
                 setIsTyping(false);
                 setTimeout(() => {
                     setShowImportantNotice(true);
                     setTimeout(() => {
                         setIsTyping(true);
                         setTimeout(() => {
-                            setMessages(prev => [...prev, { id: Date.now(), sender: 'team', content: 'Agora é o seguinte 👇\nSeu caso não é comum. Ele apresenta sinais claros de banimento automático: e esses são exatamente os casos que ainda valem a tentativa. ⚠️', type: 'text' }]);
+                            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Agora é o seguinte 👇\nSeu caso não é comum. Ele apresenta sinais claros de banimento automático: e esses são exatamente os casos que ainda valem a tentativa. ⚠️', type: 'text' }]);
                             setIsTyping(false);
                             setTimeout(() => {
                               setIsTyping(true);
                               setTimeout(() => {
-                                setMessages(prev => [...prev, { id: Date.now(), sender: 'team', content: 'Várias pessoas chegaram até nós com o mesmo problema, achando que tinham perdido tudo.\nApós a análise e o processo feito pela Equipe Zephyrus, muitas conseguiram recuperar suas contas. ✨', type: 'text' }]);
+                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Várias pessoas chegaram até nós com o mesmo problema, achando que tinham perdido tudo.\nApós a análise e o processo feito pela Equipe Zephyrus, muitas conseguiram recuperar suas contas. ✨', type: 'text' }]);
                                 setIsTyping(false);
                                 setTimeout(() => {
                                     setIsTyping(true);
                                     setTimeout(() => {
-                                        setMessages(prev => [...prev, { id: Date.now(), sender: 'team', content: 'Veja alguns feedbacks 👇', type: 'feedback' }]);
+                                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: '', type: 'feedback' }]);
                                         setIsTyping(false);
                                         setTimeout(() => {
-                                            setMessages(prev => [...prev, { id: Date.now(), sender: 'team', content: '', type: 'feedback' }]);
+                                            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: '', type: 'feedback' }]);
                                             setTimeout(() => {
                                                 setIsTyping(true);
                                                 setTimeout(() => {
-                                                    setMessages(prev => [...prev, { id: Date.now(), sender: 'team', content: 'A diferença não foi sorte.\nFoi recorrer do jeito certo, com quem sabe o que está fazendo. 💪', type: 'text' }]);
+                                                    setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'A diferença não foi sorte.\nFoi recorrer do jeito certo, com quem sabe o que está fazendo. 💪', type: 'text' }]);
                                                     setIsTyping(false);
                                                     setTimeout(() => {
                                                         setIsTyping(true);
                                                         setTimeout(() => {
-                                                            setMessages(prev => [...prev, { id: Date.now(), sender: 'team', content: 'Se você quer tentar recuperar sua conta enquanto ainda existe chance, esse é o momento. ⏳', type: 'text' }]);
+                                                            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Se você quer tentar recuperar sua conta enquanto ainda existe chance, esse é o momento. ⏳', type: 'text' }]);
                                                             setIsTyping(false);
                                                             setShowPurchaseButton(true);
                                                         }, 3000);
@@ -185,17 +206,17 @@ Descrição do ocorrido:
         setTimeout(() => {
             setIsTyping(true);
             setTimeout(() => {
-                setMessages(prev => [...prev, { id: Date.now(), sender: 'team', content: 'Você tem certeza? Essa pode ser uma decisão irreversível. É crucial que você entenda uma coisa: banimentos automáticos são como uma sentença de culpa.', type: 'text' }]);
+                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Você tem certeza? Essa pode ser uma decisão irreversível. É crucial que você entenda uma coisa: banimentos automáticos são como uma sentença de culpa.', type: 'text' }]);
                 setIsTyping(false);
                 setTimeout(() => {
                     setIsTyping(true);
                     setTimeout(() => {
-                        setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'team', content: 'Quando você NÃO RECORRE, o sistema entende que você está ACEITANDO A PUNIÇÃO. Ele marca seu caso como "resolvido", e suas chances de recuperação despencam para quase ZERO.', type: 'text' }]);
+                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Quando você NÃO RECORRE, o sistema entende que você está ACEITANDO A PUNIÇÃO. Ele marca seu caso como "resolvido", e suas chances de recuperação despencam para quase ZERO.', type: 'text' }]);
                         setIsTyping(false);
                         setTimeout(() => {
                             setIsTyping(true);
                             setTimeout(() => {
-                                setMessages(prev => [...prev, { id: Date.now() + 2, sender: 'team', content: 'Não agir é a pior escolha. O tempo corre contra você. Esta é sua última chance real.', type: 'text' }]);
+                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Não agir é a pior escolha. O tempo corre contra você. Esta é sua última chance real.', type: 'text' }]);
                                 setIsTyping(false);
                                 setShowFinalOptions(true);
                             }, 3000);
