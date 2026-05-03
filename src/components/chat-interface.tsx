@@ -69,8 +69,10 @@ Descrição do ocorrido:
 "${searchParams.get('banDescription') || 'Nenhuma descrição fornecida.'}"
 `;
 
-    const userMessage: Message = { id: 'initial-user', sender: 'user', content: initialMessageContent, status: 'read', type: 'text' };
-    setMessages([userMessage]);
+    setMessages(prev => {
+        if (prev.length > 0) return prev;
+        return [{ id: 'initial-user', sender: 'user', content: initialMessageContent, status: 'read', type: 'text' }];
+    });
 
     const timeouts: NodeJS.Timeout[] = [];
 
@@ -172,26 +174,30 @@ Descrição do ocorrido:
                                 setTimeout(() => {
                                     setIsTyping(true);
                                     setTimeout(() => {
-                                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: '', type: 'feedback' }]);
+                                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: '/feedback1.jpg', type: 'feedback' }]);
                                         setIsTyping(false);
                                         setTimeout(() => {
-                                            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: '', type: 'feedback' }]);
+                                            setIsTyping(true);
                                             setTimeout(() => {
-                                                setIsTyping(true);
+                                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: '/feedback2.jpg', type: 'feedback' }]);
+                                                setIsTyping(false);
                                                 setTimeout(() => {
-                                                    setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'A diferença não foi sorte.\nFoi recorrer do jeito certo, com quem sabe o que está fazendo. 💪', type: 'text' }]);
-                                                    setIsTyping(false);
+                                                    setIsTyping(true);
                                                     setTimeout(() => {
-                                                        setIsTyping(true);
+                                                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'A diferença não foi sorte.\nFoi recorrer do jeito certo, com quem sabe o que está fazendo. 💪', type: 'text' }]);
+                                                        setIsTyping(false);
                                                         setTimeout(() => {
-                                                            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Se você quer tentar recuperar sua conta enquanto ainda existe chance, esse é o momento. ⏳', type: 'text' }]);
-                                                            setIsTyping(false);
-                                                            setShowPurchaseButton(true);
-                                                        }, 3000);
-                                                    }, 6000);
-                                                }, 3000)
-                                            }, 6000)
-                                        }, 3000);
+                                                            setIsTyping(true);
+                                                            setTimeout(() => {
+                                                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Se você quer tentar recuperar sua conta enquanto ainda existe chance, esse é o momento. ⏳', type: 'text' }]);
+                                                                setIsTyping(false);
+                                                                setShowPurchaseButton(true);
+                                                            }, 3000);
+                                                        }, 6000);
+                                                    }, 3000)
+                                                }, 3000);
+                                            }, 3000);
+                                        }, 6000);
                                     }, 3000)
                                 }, 6000)
                               }, 3000);
@@ -256,8 +262,7 @@ Descrição do ocorrido:
                       if (msg.type === 'feedback') {
                         return (
                             <div key={msg.id} className="ml-10 pt-2 flex flex-col items-start space-y-4 animate-in fade-in-50 duration-500">
-                                <Image src="/feedback1.jpg" alt="Feedback 1" width={300} height={600} className="rounded-lg shadow-md" />
-                                <Image src="/feedback2.jpg" alt="Feedback 2" width={300} height={600} className="rounded-lg shadow-md" />
+                                <Image src={msg.content} alt="Feedback" width={300} height={600} className="rounded-lg shadow-md" />
                             </div>
                         )
                       }
