@@ -69,7 +69,6 @@ Descrição do ocorrido:
 "${searchParams.get('banDescription') || 'Nenhuma descrição fornecida.'}"
 `;
 
-    // Reseta as mensagens ao iniciar para evitar duplicatas em re-renders
     const userMessage: Message = { id: 'initial-user', sender: 'user', content: initialMessageContent, status: 'read', type: 'text' };
     setMessages([userMessage]);
 
@@ -282,7 +281,20 @@ Descrição do ocorrido:
           </div>
           <div className="bg-card border-t p-4">
               {showOptions && (<div className="flex flex-col sm:flex-row gap-2 max-w-4xl mx-auto animate-in fade-in-50 duration-500"><Button onClick={() => handleOptionClick('sim')} className="flex-1 font-bold">Sim, quero tentar recuperar minha conta 👍</Button><Button onClick={() => handleOptionClick('nao')} variant="secondary" className="flex-1 font-semibold">Não, apenas estou me informando</Button></div>)}
-              {showPurchaseButton && (<div className="flex justify-center max-w-4xl mx-auto animate-in fade-in-50 duration-500"><Button asChild size="lg" onClick={() => handleTrackCheckout('https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6')} className="w-full sm:w-auto font-bold animate-shine bg-primary text-primary-foreground"><Link href="https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6" target="_blank">Quero Recuperar Minha Conta <ArrowRight className="ml-2 h-5 w-5" /></Link></Button></div>)}
+              {showPurchaseButton && (
+                <div className="flex justify-center max-w-4xl mx-auto animate-in fade-in-50 duration-500">
+                  <Button 
+                    asChild 
+                    size="lg" 
+                    onClick={() => handleTrackCheckout('https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6')} 
+                    className="w-full sm:w-auto font-bold relative overflow-hidden bg-primary text-primary-foreground before:absolute before:inset-0 before:-translate-x-full before:animate-shine before:bg-gradient-to-r before:from-transparent before:via-white/50 before:to-transparent"
+                  >
+                    <Link href="https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6" target="_blank">
+                      Quero Recuperar Minha Conta <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
                {showFinalOptions && (<div className="flex flex-col sm:flex-row gap-2 max-w-4xl mx-auto animate-in fade-in-50 duration-500"><Button onClick={() => handleOptionClick('sim')} className="font-bold flex-1">Me Arrependi, quero recuperar! <ArrowRight className="ml-2 h-5 w-5" /></Button><Button asChild variant="outline" className="flex-1"><Link href="/"><Home className="mr-2 h-4 w-4" /> Desistir e Perder a Conta</Link></Button></div>)}
           </div>
       </div>

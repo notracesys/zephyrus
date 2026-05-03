@@ -35,12 +35,7 @@ export default function Landing() {
           <DialogTrigger asChild>
             <Button
               size="lg"
-              className="font-bold relative overflow-hidden
-                         before:absolute before:inset-0
-                         before:-translate-x-full
-                         before:animate-shine
-                         before:bg-gradient-to-r
-                         before:from-transparent before:via-white/50 before:to-transparent"
+              className="font-bold relative overflow-hidden bg-primary text-primary-foreground before:absolute before:inset-0 before:-translate-x-full before:animate-shine before:bg-gradient-to-r before:from-transparent before:via-white/50 before:to-transparent"
             >
               Adquirir Método
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -61,7 +56,7 @@ export default function Landing() {
                 <span className="block">O CONTRATADO não realiza, em nenhuma hipótese, acesso direto ou indireto, autorizado ou não, a sistemas internos, servidores, bancos de dados, códigos-fonte ou mecanismos de segurança de terceiros. Os serviços prestados limitam-se à análise das informações fornecidas pelo CONTRATANTE, organização de dados e orientação quanto a procedimentos formais de solicitação de revisão, sempre em conformidade com os termos de uso da plataforma.</span>
                 <span className="block">O CONTRATANTE declara que todas as informações fornecidas são verdadeiras, assumindo integral responsabilidade por eventuais inconsistências, omissões ou declarações inverídicas que possam comprometer o resultado do procedimento.</span>
                 <span className="block">O CONTRATADO não se responsabiliza por danos diretos, indiretos, incidentais, consequenciais, lucros cessantes ou perda de chance decorrentes de decisões adotadas pela plataforma do jogo, tampouco por suspensões, banimentos adicionais ou definitivos.</span>
-                <span className="block">Este site não incentiva, apoia, promove ou compactua com o uso de trapaças, programas ilegais, hacks, exploits, engenharia reversa ou qualquer prática que viole os termos de uso, políticas internas ou legislação vigente.</span>
+                <span className="block">Este site não incentiva, apoia, promove ou compactua com o uso de trapaças, programas ileguis, hacks, exploits, engenharia reversa ou qualquer prática que viole os termos de uso, políticas internas ou legislação vigente.</span>
                 <span className="block">Ao utilizar este site ou contratar quaisquer serviços nele oferecidos, o CONTRATANTE declara ter lido, compreendido e concordado integralmente com os presentes termos, que possuem caráter vinculante e irrevogável.</span>
               </p>
             </ScrollArea>
