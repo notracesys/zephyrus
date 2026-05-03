@@ -36,8 +36,8 @@ export default function OfertaRecusadaPage() {
                     <p className="text-foreground text-base leading-relaxed">Quando você <span className="font-bold text-destructive">NÃO RECORRE</span>, o sistema entende que você está <span className="font-bold text-destructive">ACEITANDO A PUNIÇÃO</span>.</p>
                     <p className="font-bold text-lg text-primary animate-pulse">Não agir é a pior escolha. O tempo corre contra você.</p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                        <Button asChild className="font-bold" onClick={() => handleTrackCheckout('https://chk.eduzz.com/60EEGON303')}>
-                           <Link href="https://chk.eduzz.com/60EEGON303" target="_blank">
+                        <Button asChild className="font-bold" onClick={() => handleTrackCheckout('https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6')}>
+                           <Link href="https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6" target="_blank">
                                 Me Arrependi, quero recuperar!
                                <ArrowRight className="ml-2 h-5 w-5" />
                            </Link>
