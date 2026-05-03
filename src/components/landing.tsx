@@ -23,7 +23,7 @@ export default function Landing() {
   const [agreed, setAgreed] = useState(false);
 
   return (
-    <div className="animate-in fade-in-50 duration-1000">
+    <div className="animate-in fade-in-50 duration-1000 pb-20">
       <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight uppercase">
         Sua conta foi banida? Nem tudo está perdido.
       </h1>
@@ -86,18 +86,6 @@ export default function Landing() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
-
-      <div className="mt-12 mb-12 text-center">
-        <p className="text-muted-foreground mb-4">
-          Sua conta não foi banida, mas você perdeu o acesso e quer recuperá-la?
-        </p>
-        <Button asChild variant="outline">
-          <Link href="/recuperar">
-            Clique aqui para recuperar
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
       </div>
     </div>
   );
