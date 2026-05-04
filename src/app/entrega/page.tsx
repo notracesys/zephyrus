@@ -15,6 +15,7 @@ function EntregaContent() {
   const searchParams = useSearchParams();
   const firestore = useFirestore();
   const [status, setStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
+  const [retryCount, setRetryCount] = useState(0);
   const purchaseId = searchParams.get('id');
 
   useEffect(() => {
@@ -30,16 +31,14 @@ function EntregaContent() {
 
         if (docSnap.exists()) {
           setStatus('authorized');
+        } else if (retryCount < 3) {
+          // Se não encontrar, tenta mais 3 vezes a cada 3 segundos
+          // Isso resolve o problema de o cliente ser mais rápido que o webhook
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+          }, 3000);
         } else {
-          // Pequeno delay para evitar frustração em caso de webhook lento
-          setTimeout(async () => {
-             const retrySnap = await getDoc(docRef);
-             if (retrySnap.exists()) {
-                setStatus('authorized');
-             } else {
-                setStatus('unauthorized');
-             }
-          }, 2000);
+          setStatus('unauthorized');
         }
       } catch (error) {
         console.error("Erro ao verificar compra:", error);
@@ -48,10 +47,10 @@ function EntregaContent() {
     }
 
     verifyPurchase();
-  }, [purchaseId, firestore]);
+  }, [purchaseId, firestore, retryCount]);
 
   const handleDownload = () => {
-    // Aqui você pode colocar o link direto do seu arquivo (ex: Drive, Dropbox, ou pasta public)
+    // Link do seu arquivo PDF ou ferramenta
     window.open('https://notracesys.github.io/zephyrus/METODO_ZEPHYRUS.pdf', '_blank');
   };
 
@@ -60,6 +59,7 @@ function EntregaContent() {
       <div className="flex flex-col items-center justify-center py-20">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
         <p className="text-muted-foreground animate-pulse font-medium">Validando sua licença VIP...</p>
+        <p className="text-[10px] text-muted-foreground/50 mt-2 uppercase tracking-widest">Aguardando confirmação do servidor</p>
       </div>
     );
   }
@@ -102,7 +102,7 @@ function EntregaContent() {
         </p>
       </section>
 
-      <Card className="border-primary/20 bg-card/50 shadow-2xl shadow-primary/5 overflow-hidden">
+      <Card className="border-primary/20 bg-card/50 backdrop-blur-sm shadow-2xl shadow-primary/5 overflow-hidden">
         <CardHeader className="bg-primary/5 border-b border-primary/10 text-center py-8">
           <div className="mx-auto bg-primary text-primary-foreground p-4 rounded-full w-fit mb-4">
             <Download className="h-10 w-10" />
