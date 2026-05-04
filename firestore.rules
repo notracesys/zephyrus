@@ -22,10 +22,12 @@ service cloud.firestore {
 
     // --- PURCHASES RULES ---
     match /purchases/{purchaseId} {
-      // O webhook (servidor) cria as compras. No client SDK sem Admin, 
-      // permitimos a leitura se o usuário tiver o ID exato da compra.
+      // O webhook (servidor) precisa criar a compra.
+      // Como não usamos Admin SDK, permitimos a criação.
+      // A leitura é permitida para qualquer um que tenha o ID exato (o comprador).
+      allow create: if true;
       allow get: if true; 
-      allow list, create, update, delete: if isSignedIn(); 
+      allow list, update, delete: if isSignedIn(); 
     }
 
     // --- COLLECTION RULES (USUÁRIOS) ---
