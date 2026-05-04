@@ -12,31 +12,34 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Log para depuração (Remova em produção se necessário)
-    console.log('Webhook recebido do PushinPay:', body);
+    // Log para depuração no console do servidor
+    console.log('Webhook PushinPay Recebido:', JSON.stringify(body, null, 2));
 
     /**
-     * IMPORTANTE: Verifique a documentação do PushinPay para validar o Token/Assinatura
-     * e o status da transação (ex: 'paid' ou 'approved').
+     * Captura o ID da transação e o Status.
+     * Gateways variam os nomes, então buscamos nos campos mais comuns.
      */
-    const status = body.status;
-    const transactionId = body.id || body.transaction_id;
+    const transactionId = body.id || body.transaction_id || (body.data && body.data.id);
+    const status = (body.status || (body.data && body.data.status))?.toLowerCase();
 
-    if (status === 'paid' || status === 'approved' || status === 'succeeded') {
+    // Lista de status que consideramos como "Aprovado/Pago"
+    const approvedStatuses = ['paid', 'approved', 'succeeded', 'completed', 'pago', 'aprovado'];
+
+    if (transactionId && approvedStatuses.includes(status)) {
       const purchaseRef = doc(db, 'purchases', String(transactionId));
       
       await setDoc(purchaseRef, {
         id: transactionId,
         status: status,
-        email: body.customer?.email || 'N/A',
+        email: body.customer?.email || body.email || 'N/A',
         timestamp: serverTimestamp(),
         rawData: body
       }, { merge: true });
 
-      return NextResponse.json({ received: true, status: 'Purchase Recorded' }, { status: 200 });
+      return NextResponse.json({ success: true, message: 'Purchase Recorded' }, { status: 200 });
     }
 
-    return NextResponse.json({ received: true, status: 'Ignored (Not Paid)' }, { status: 200 });
+    return NextResponse.json({ success: true, message: 'Webhook processed (no action taken)' }, { status: 200 });
   } catch (error) {
     console.error('Erro no Webhook:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
