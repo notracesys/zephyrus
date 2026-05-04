@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
@@ -6,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Header from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, ShieldCheck, CheckCircle2, Lock, Loader2 } from 'lucide-react';
+import { Download, ShieldCheck, CheckCircle2, Lock, Loader2, RefreshCcw } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import Link from 'next/link';
@@ -16,7 +15,12 @@ function EntregaContent() {
   const firestore = useFirestore();
   const [status, setStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
   const [retryCount, setRetryCount] = useState(0);
-  const purchaseId = searchParams.get('id');
+  
+  // Tenta pegar o ID de várias chaves comuns
+  const purchaseId = searchParams.get('id') || 
+                     searchParams.get('transaction_id') || 
+                     searchParams.get('tid') || 
+                     searchParams.get('ref');
 
   useEffect(() => {
     async function verifyPurchase() {
@@ -31,9 +35,8 @@ function EntregaContent() {
 
         if (docSnap.exists()) {
           setStatus('authorized');
-        } else if (retryCount < 3) {
-          // Se não encontrar, tenta mais 3 vezes a cada 3 segundos
-          // Isso resolve o problema de o cliente ser mais rápido que o webhook
+        } else if (retryCount < 5) {
+          // Tenta mais vezes se não encontrar (o webhook pode demorar uns segundos)
           setTimeout(() => {
             setRetryCount(prev => prev + 1);
           }, 3000);
@@ -50,7 +53,6 @@ function EntregaContent() {
   }, [purchaseId, firestore, retryCount]);
 
   const handleDownload = () => {
-    // Link do seu arquivo PDF ou ferramenta
     window.open('https://notracesys.github.io/zephyrus/METODO_ZEPHYRUS.pdf', '_blank');
   };
 
@@ -58,8 +60,10 @@ function EntregaContent() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground animate-pulse font-medium">Validando sua licença VIP...</p>
-        <p className="text-[10px] text-muted-foreground/50 mt-2 uppercase tracking-widest">Aguardando confirmação do servidor</p>
+        <p className="text-muted-foreground animate-pulse font-medium">Sincronizando com o servidor de pagamento...</p>
+        <p className="text-[10px] text-muted-foreground/50 mt-2 uppercase tracking-widest">
+          Tentativa {retryCount + 1} de 6
+        </p>
       </div>
     );
   }
@@ -72,15 +76,31 @@ function EntregaContent() {
             <div className="mx-auto bg-destructive text-destructive-foreground p-4 rounded-full w-fit mb-4">
               <Lock className="h-10 w-10" />
             </div>
-            <CardTitle className="text-2xl font-bold">Acesso não identificado</CardTitle>
+            <CardTitle className="text-2xl font-bold tracking-tight">Acesso Não Autorizado</CardTitle>
           </CardHeader>
           <CardContent className="p-8 text-center space-y-6">
-            <p className="text-muted-foreground">
-              Ainda não recebemos a confirmação do seu pagamento ou o ID da transação é inválido. Se você acabou de pagar, aguarde 30 segundos e atualize a página.
-            </p>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/">Voltar para o Início</Link>
-            </Button>
+            <div className="space-y-2">
+                <p className="text-foreground font-semibold">Não encontramos uma compra aprovada para este link.</p>
+                <p className="text-muted-foreground text-sm">
+                  Se você acabou de pagar, o sistema pode levar até 1 minuto para processar. Tente atualizar a página.
+                </p>
+            </div>
+            
+            <div className="flex flex-col gap-3">
+                <Button onClick={() => window.location.reload()} variant="default" className="w-full font-bold">
+                    <RefreshCcw className="mr-2 h-4 w-4" />
+                    Tentar Novamente
+                </Button>
+                <Button asChild variant="outline" className="w-full">
+                    <Link href="/">Voltar para o Início</Link>
+                </Button>
+            </div>
+            
+            {purchaseId && (
+                <p className="text-[10px] text-muted-foreground uppercase pt-4">
+                    Ref: <span className="font-mono">{purchaseId}</span>
+                </p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -98,7 +118,7 @@ function EntregaContent() {
           ACESSO <span className="text-primary">LIBERADO!</span>
         </h1>
         <p className="text-muted-foreground text-lg">
-          Sua licença foi validada com sucesso. Baixe o conteúdo abaixo.
+          Sua licença foi validada com sucesso. Clique abaixo para baixar.
         </p>
       </section>
 
@@ -110,7 +130,7 @@ function EntregaContent() {
           <CardTitle className="text-2xl font-bold uppercase tracking-tighter">Guia Completo Zephyrus</CardTitle>
         </CardHeader>
         <CardContent className="p-8 flex flex-col items-center gap-6">
-          <p className="text-center text-muted-foreground text-sm">
+          <p className="text-center text-muted-foreground text-sm leading-relaxed">
             O arquivo PDF contém o passo a passo detalhado, os códigos de contestação e as ferramentas recomendadas.
           </p>
           
@@ -124,7 +144,7 @@ function EntregaContent() {
 
           <div className="flex items-center gap-2 text-[10px] text-green-500 font-bold uppercase tracking-widest">
             <CheckCircle2 className="h-3 w-3" />
-            Certificado de Autenticidade Ativo
+            Licença Digital Ativa
           </div>
         </CardContent>
       </Card>
