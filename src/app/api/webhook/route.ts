@@ -10,39 +10,41 @@ const db = getFirestore(app);
 
 export async function POST(request: Request) {
   try {
-    const contentType = request.headers.get('content-type') || '';
+    // Lemos o corpo como texto bruto primeiro para evitar o erro de parsing automático
+    const rawText = await request.text();
     let body: any = {};
 
-    // Detecta o formato do corpo da requisição (JSON ou Form Data)
-    if (contentType.includes('application/json')) {
-      body = await request.json();
-    } else {
-      const text = await request.text();
-      const params = new URLSearchParams(text);
+    if (!rawText) {
+      return NextResponse.json({ success: false, error: 'Empty body' }, { status: 200 });
+    }
+
+    // Tenta converter para JSON. Se falhar (que era o erro anterior), trata como Form Data.
+    try {
+      body = JSON.parse(rawText);
+    } catch (e) {
+      // Se cair aqui, é porque o corpo é "id=XXX&status=YYY"
+      const params = new URLSearchParams(rawText);
       body = Object.fromEntries(params.entries());
     }
 
-    console.log('Webhook Payload Recebido:', JSON.stringify(body, null, 2));
+    console.log('Webhook Capturado com Sucesso:', JSON.stringify(body, null, 2));
 
     /**
-     * No PushinPay, o ID da transação pode vir em diversos campos.
-     * Tentamos capturar o ID de todas as formas possíveis.
+     * Mapeamento flexível de campos para suportar qualquer versão da API do PushinPay
      */
     const transactionId = body.transaction_id || body.id || (body.data && body.data.id);
-    
-    // Pegamos o status e limpamos espaços
     const rawStatus = body.status || (body.data && body.data.status) || '';
     const status = String(rawStatus).toLowerCase().trim();
 
-    // Lista de status que liberam o acesso
+    // Status que liberam o acesso na hora
     const approvedStatuses = ['paid', 'approved', 'succeeded', 'completed', 'pago', 'aprovado'];
 
     if (!transactionId) {
-      console.warn('Webhook ignorado: Nenhum ID de transação encontrado no corpo.');
-      return NextResponse.json({ success: false, error: 'No transaction ID found' }, { status: 200 });
+      console.warn('Webhook ignorado: Nenhum ID identificado no corpo da requisição.');
+      return NextResponse.json({ success: true, message: 'Received but no ID found' }, { status: 200 });
     }
 
-    // Se o status for aprovado, registramos no Firestore para liberar o acesso
+    // Se o status for de aprovação, salvamos no Firestore
     if (approvedStatuses.includes(status)) {
       const purchaseRef = doc(db, 'purchases', String(transactionId));
       
@@ -52,24 +54,20 @@ export async function POST(request: Request) {
         email: body.customer?.email || body.email || 'N/A',
         timestamp: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        // Guardamos o corpo original para auditoria se necessário
-        raw_payload: JSON.stringify(body)
+        raw_payload: rawText // Guardamos o original para conferência
       };
 
       await setDoc(purchaseRef, purchaseData, { merge: true });
-      
-      console.log(`ACESSO LIBERADO: Transação ${transactionId} marcada como PAGA.`);
-      return NextResponse.json({ success: true, message: 'Purchase recorded and access granted' }, { status: 200 });
+      console.log(`ACESSO LIBERADO: Transação ${transactionId} confirmada.`);
     }
 
-    // Se o status não for de aprovação, apenas confirmamos o recebimento sem erro
-    console.log(`LOG: Transação ${transactionId} recebida com status: ${status}. Nenhuma ação tomada.`);
-    return NextResponse.json({ success: true, message: 'Status processed' }, { status: 200 });
+    // Sempre retornamos 200 para o gateway saber que recebemos a mensagem
+    return NextResponse.json({ success: true, message: 'Processed' }, { status: 200 });
 
   } catch (error: any) {
-    console.error('ERRO NO WEBHOOK:', error.message);
+    console.error('ERRO NO PROCESSAMENTO DO WEBHOOK:', error.message);
     
-    // Retornamos 200 com erro no corpo para evitar retentativas infinitas do gateway se for erro de parsing
+    // Retornamos 200 mesmo no erro para evitar que o gateway fique reenviando o erro original infinitamente
     return NextResponse.json({ 
       success: false,
       error: 'Processing Error', 
