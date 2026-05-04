@@ -9,87 +9,79 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 
 export async function POST(request: Request) {
-  console.log('--- INÍCIO DO PROCESSAMENTO DE WEBHOOK ---');
+  console.log('--- PROCESSANDO WEBHOOK PUSHINPAY ---');
   
   try {
-    // 1. Lemos o corpo bruto como texto para evitar erro de parsing automático do NextJS
+    // 1. Lemos o corpo bruto como texto para evitar o erro "Unexpected token" do NextJS
     const rawText = await request.text();
-    console.log('Corpo bruto recebido:', rawText);
+    console.log('Dados Brutos Recebidos:', rawText);
 
     if (!rawText || rawText.trim() === '') {
-      console.log('Webhook ignorado: Corpo vazio.');
       return NextResponse.json({ success: true, message: 'Empty body' }, { status: 200 });
     }
 
     let body: any = {};
 
-    // 2. Decidimos se é JSON ou Form Data de forma manual e segura
-    const looksLikeJson = rawText.trim().startsWith('{') || rawText.trim().startsWith('[');
+    // 2. Detectamos o formato: Se começar com { é JSON, caso contrário é Formulário (x-www-form-urlencoded)
+    const looksLikeJson = rawText.trim().startsWith('{');
 
     if (looksLikeJson) {
       try {
         body = JSON.parse(rawText);
-        console.log('Processado como JSON');
+        console.log('Formato identificado: JSON');
       } catch (e) {
-        console.log('Falha ao processar como JSON, tentando como Formulário...');
+        console.log('Falha ao parsear JSON, tentando como Formulário...');
         const params = new URLSearchParams(rawText);
         body = Object.fromEntries(params.entries());
       }
     } else {
-      console.log('Processado como Formulário (URL Encoded)');
+      console.log('Formato identificado: Formulário (URL Encoded)');
       const params = new URLSearchParams(rawText);
       body = Object.fromEntries(params.entries());
     }
 
     /**
-     * 3. Extração Robusta de Dados
-     * O PushinPay pode enviar o ID em diferentes campos dependendo da versão ou configuração.
+     * 3. Extração Robusta do ID e Status
+     * O PushinPay envia o ID da transação em 'transaction_id' ou 'id'
      */
-    const transactionId = body.transaction_id || body.id || body.reference || body.tid || (body.data && body.data.id);
+    const transactionId = body.transaction_id || body.id || body.reference || (body.data && body.data.id);
     const rawStatus = body.status || (body.data && body.data.status) || '';
     const status = String(rawStatus).toLowerCase().trim();
 
-    console.log(`Transação ID: ${transactionId} | Status: ${status}`);
+    console.log(`Transação: ${transactionId} | Status: ${status}`);
 
     if (!transactionId) {
-      console.warn('Webhook ignorado: Nenhum ID de transação identificado.');
-      return NextResponse.json({ success: true, message: 'Received but no ID found' }, { status: 200 });
+      console.warn('Nenhum ID de transação encontrado no corpo da requisição.');
+      return NextResponse.json({ success: true, message: 'No ID found' }, { status: 200 });
     }
 
-    // 4. Mapeamento de status de aprovação
+    // 4. Lista de status que liberam a entrega
     const approvedStatuses = ['paid', 'approved', 'succeeded', 'completed', 'pago', 'aprovado', 'paga'];
 
     if (approvedStatuses.includes(status)) {
-      console.log(`LIBERANDO ACESSO: Gravando transação ${transactionId} no Firestore.`);
+      console.log(`PAGAMENTO APROVADO! Gravando liberação para o ID: ${transactionId}`);
       
       const purchaseRef = doc(db, 'purchases', String(transactionId));
       
-      const purchaseData = {
+      await setDoc(purchaseRef, {
         id: String(transactionId),
         status: status,
         email: body.email || body.customer?.email || 'N/A',
         timestamp: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        raw_payload_debug: rawText // Guardamos o original para auditoria se necessário
-      };
-
-      await setDoc(purchaseRef, purchaseData, { merge: true });
-      console.log('Gravação no Firestore concluída com sucesso.');
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      
+      console.log('Acesso liberado no Firestore com sucesso.');
     } else {
-      console.log(`Status "${status}" não requer liberação de acesso.`);
+      console.log(`Status "${status}" não libera acesso.`);
     }
 
     // 5. SEMPRE retornamos 200 para o gateway parar de tentar reenviar
-    return NextResponse.json({ success: true, message: 'Processed' }, { status: 200 });
+    return NextResponse.json({ success: true }, { status: 200 });
 
   } catch (error: any) {
-    console.error('ERRO CRÍTICO NO WEBHOOK:', error.message);
-    
-    // Retornamos 200 mesmo em erro fatal para não "travar" a fila do gateway do cliente
-    return NextResponse.json({ 
-      success: false,
-      error: 'Processing Internal Error', 
-      details: error.message 
-    }, { status: 200 });
+    console.error('ERRO NO WEBHOOK:', error.message);
+    // Retornamos 200 mesmo em erro para não "travar" a fila do gateway
+    return NextResponse.json({ success: true, error: error.message }, { status: 200 });
   }
 }

@@ -17,7 +17,7 @@ function EntregaContent() {
   const [status, setStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
   const [retryCount, setRetryCount] = useState(0);
   
-  // Tenta pegar o ID de várias chaves possíveis enviadas por diferentes gateways
+  // Captura o ID de várias formas possíveis (id, transaction_id, tid, etc)
   const purchaseId = searchParams.get('id') || 
                      searchParams.get('transaction_id') || 
                      searchParams.get('tid') || 
@@ -26,7 +26,6 @@ function EntregaContent() {
 
   useEffect(() => {
     async function verifyPurchase() {
-      // Se não tem ID nenhum na URL, já nega o acesso
       if (!purchaseId) {
         setStatus('unauthorized');
         return;
@@ -40,8 +39,7 @@ function EntregaContent() {
 
         if (docSnap.exists()) {
           setStatus('authorized');
-        } else if (retryCount < 5) {
-          // O webhook pode levar uns segundos. Tentamos novamente automaticamente.
+        } else if (retryCount < 8) { // Aumentado para 8 tentativas (24 segundos total)
           const timer = setTimeout(() => {
             setRetryCount(prev => prev + 1);
           }, 3000);
@@ -59,7 +57,6 @@ function EntregaContent() {
   }, [purchaseId, firestore, retryCount]);
 
   const handleDownload = () => {
-    // Novo link do entregável via Google Drive
     window.open('https://drive.google.com/file/d/14GPvzQOzMsub7hMpUdD-9blZ3WUVavJH/view?usp=sharing', '_blank');
   };
 
@@ -67,9 +64,9 @@ function EntregaContent() {
     return (
       <div className="flex flex-col items-center justify-center py-20 animate-in fade-in duration-500">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground animate-pulse font-medium">Validando sua licença...</p>
+        <p className="text-muted-foreground animate-pulse font-medium">Sincronizando com o banco de dados...</p>
         <p className="text-[10px] text-muted-foreground/40 mt-2 uppercase tracking-widest">
-          Sincronizando com gateway (Tentativa {retryCount + 1}/6)
+          Tentativa {retryCount + 1}/9
         </p>
       </div>
     );
@@ -83,16 +80,16 @@ function EntregaContent() {
             <div className="mx-auto bg-destructive text-destructive-foreground p-3 rounded-full w-fit mb-4">
               <Lock className="h-8 w-8" />
             </div>
-            <CardTitle className="text-xl font-bold">Acesso Restrito</CardTitle>
+            <CardTitle className="text-xl font-bold">Acesso Pendente</CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-6 pb-8">
             <p className="text-sm text-muted-foreground">
-              Não identificamos uma compra aprovada para este link. Se você acabou de pagar, aguarde 1 minuto e atualize a página.
+              Ainda não identificamos a aprovação do seu pagamento. Se você já pagou, aguarde 1 minuto e atualize a página.
             </p>
             <div className="flex flex-col gap-2">
                 <Button onClick={() => window.location.reload()} variant="default" className="w-full font-bold">
                     <RefreshCcw className="mr-2 h-4 w-4" />
-                    Verificar Novamente
+                    Verificar Agora
                 </Button>
                 <Button asChild variant="outline" className="w-full">
                     <Link href="/">Voltar para o Início</Link>
@@ -100,7 +97,7 @@ function EntregaContent() {
             </div>
             {purchaseId && (
                 <p className="text-[10px] text-muted-foreground font-mono uppercase pt-4 opacity-50">
-                    REF: {purchaseId}
+                    ID: {purchaseId}
                 </p>
             )}
           </CardContent>
@@ -117,10 +114,10 @@ function EntregaContent() {
           <span className="text-sm font-bold uppercase tracking-wider">Acesso Vitalício Liberado</span>
         </div>
         <h1 className="text-3xl md:text-5xl font-black tracking-tighter mb-4">
-          O MÉTODO ESTÁ <span className="text-primary italic">PRONTO!</span>
+          ACESSO <span className="text-primary italic">CONCEDIDO!</span>
         </h1>
         <p className="text-muted-foreground text-lg">
-          Sua licença foi validada. Baixe os arquivos abaixo para começar.
+          Clique no botão abaixo para baixar o seu método agora.
         </p>
       </section>
 
@@ -129,13 +126,9 @@ function EntregaContent() {
           <div className="mx-auto bg-primary text-primary-foreground p-5 rounded-full w-fit mb-4 shadow-lg shadow-primary/20">
             <Download className="h-10 w-10" />
           </div>
-          <CardTitle className="text-2xl font-bold uppercase tracking-tighter">Guia Completo Zephyrus</CardTitle>
+          <CardTitle className="text-2xl font-bold uppercase tracking-tighter">Download do Método</CardTitle>
         </CardHeader>
         <CardContent className="p-8 flex flex-col items-center gap-6">
-          <p className="text-center text-muted-foreground text-sm leading-relaxed max-w-sm">
-            Clique no botão abaixo para iniciar o download do manual PDF com todas as estratégias de desbanimento.
-          </p>
-          
           <Button 
             onClick={handleDownload}
             size="lg" 
