@@ -59,8 +59,8 @@ function EntregaContent() {
   }, [purchaseId, firestore, retryCount]);
 
   const handleDownload = () => {
-    // URL do seu PDF hospedado
-    window.open('https://notracesys.github.io/zephyrus/METODO_ZEPHYRUS.pdf', '_blank');
+    // Novo link do entregável via Google Drive
+    window.open('https://drive.google.com/file/d/14GPvzQOzMsub7hMpUdD-9blZ3WUVavJH/view?usp=sharing', '_blank');
   };
 
   if (status === 'loading') {
