@@ -24,6 +24,19 @@
         "url": { "type": "string", "description": "URL do checkout clicado" }
       },
       "required": ["id", "timestamp"]
+    },
+    "Purchase": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Purchase",
+      "type": "object",
+      "description": "Representa uma compra confirmada via webhook.",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "status": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "status", "timestamp"]
     }
   },
   "auth": {
@@ -45,6 +58,14 @@
           "entityName": "CheckoutClick",
           "schema": { "$ref": "#/backend/entities/CheckoutClick" },
           "description": "Registra cada clique em botões de checkout."
+        }
+      },
+      {
+        "path": "/purchases/{purchaseId}",
+        "definition": {
+          "entityName": "Purchase",
+          "schema": { "$ref": "#/backend/entities/Purchase" },
+          "description": "Compras confirmadas pelo webhook do PushinPay."
         }
       }
     ]
