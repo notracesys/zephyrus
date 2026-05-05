@@ -44,7 +44,6 @@ export default function PortalDoChefe() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [timeRange, setTimeRange] = useState<'7d' | '30d'>('7d');
   
-  // Busca específica de ID
   const [searchId, setSearchId] = useState('');
   const [searchResult, setSearchResult] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -115,7 +114,7 @@ export default function PortalDoChefe() {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setSearchResult({ ...docSnap.data(), id: docSnap.id });
-        toast({ title: "ID encontrado no banco!" });
+        toast({ title: "ID encontrado!" });
       } else {
         setSearchResult('not_found');
         toast({ variant: "destructive", title: "ID não encontrado." });
@@ -128,23 +127,33 @@ export default function PortalDoChefe() {
   };
 
   if (!mounted) return null;
-  if (isUserLoading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>;
+  if (isUserLoading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
 
   if (!user) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
         <main className="flex-grow flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <Lock className="mx-auto h-8 w-8 text-primary mb-2" />
-              <CardTitle>Portal do Chefe</CardTitle>
+          <Card className="w-full max-w-md shadow-2xl border-primary/20">
+            <CardHeader className="text-center space-y-2">
+              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
+                <Lock className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl font-black italic">PORTAL DO CHEFE</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2"><Label>E-mail</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
-                <div className="space-y-2"><Label>Senha</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
-                <Button type="submit" className="w-full" disabled={isLoggingIn}>Entrar</Button>
+                <div className="space-y-2">
+                  <Label>E-mail</Label>
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="seu@email.com" className="bg-muted/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Senha</Label>
+                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" className="bg-muted/50" />
+                </div>
+                <Button type="submit" className="w-full font-bold h-12" disabled={isLoggingIn}>
+                  {isLoggingIn ? <Loader2 className="animate-spin" /> : 'ACESSAR DASHBOARD'}
+                </Button>
               </form>
             </CardContent>
           </Card>
@@ -156,53 +165,137 @@ export default function PortalDoChefe() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8 space-y-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold flex items-center gap-2">Dashboard <Activity className="text-primary" /></h1>
-          <Button variant="outline" size="sm" onClick={() => signOut(auth)}><LogOut className="h-4 w-4 mr-2" /> Sair</Button>
+      <main className="flex-grow container mx-auto px-4 py-6 md:py-8 space-y-6 md:space-y-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-xl md:text-2xl font-black italic flex items-center gap-2 tracking-tighter uppercase">
+            Dashboard <Activity className="text-primary h-5 w-5" />
+          </h1>
+          <Button variant="outline" size="sm" onClick={() => signOut(auth)} className="w-full sm:w-auto border-destructive/50 text-destructive hover:bg-destructive/10">
+            <LogOut className="h-4 w-4 mr-2" /> Sair do Painel
+          </Button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-card/50"><CardContent className="pt-6"><div className="flex justify-between"><p className="text-xs font-bold uppercase text-muted-foreground">Visitas</p><Eye className="h-4 w-4" /></div><div className="text-2xl font-black">{visitsLoading ? '...' : visitsData?.length}</div></CardContent></Card>
-          <Card className="bg-card/50"><CardContent className="pt-6"><div className="flex justify-between"><p className="text-xs font-bold uppercase text-muted-foreground">Checkouts</p><ShoppingCart className="h-4 w-4" /></div><div className="text-2xl font-black">{clicksLoading ? '...' : clicksData?.length}</div></CardContent></Card>
-          <Card className="bg-card/50"><CardContent className="pt-6"><div className="flex justify-between"><p className="text-xs font-bold uppercase text-muted-foreground">Vendas</p><Package className="h-4 w-4 text-green-500" /></div><div className="text-2xl font-black">{salesLoading ? '...' : salesData?.length}</div></CardContent></Card>
-          <Card className="bg-card/50"><CardContent className="pt-6"><div className="flex justify-between"><p className="text-xs font-bold uppercase text-muted-foreground">Conversão</p><TrendingUp className="h-4 w-4" /></div><div className="text-2xl font-black">{!visitsData?.length ? '0%' : `${((salesData?.length || 0) / (visitsData.length || 1) * 100).toFixed(1)}%`}</div></CardContent></Card>
+        {/* Estatísticas Rápidas - Responsivo em 2 colunas no mobile */}
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+          <Card className="bg-card/40 border-border/50">
+            <CardContent className="pt-6">
+              <div className="flex justify-between items-center mb-1">
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Visitas</p>
+                <Eye className="h-3 w-3 text-muted-foreground" />
+              </div>
+              <div className="text-xl md:text-2xl font-black">{visitsLoading ? '...' : visitsData?.length}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card/40 border-border/50">
+            <CardContent className="pt-6">
+              <div className="flex justify-between items-center mb-1">
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Checkouts</p>
+                <ShoppingCart className="h-3 w-3 text-muted-foreground" />
+              </div>
+              <div className="text-xl md:text-2xl font-black">{clicksLoading ? '...' : clicksData?.length}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card/40 border-border/50">
+            <CardContent className="pt-6">
+              <div className="flex justify-between items-center mb-1">
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Vendas</p>
+                <Package className="h-3 w-3 text-green-500" />
+              </div>
+              <div className="text-xl md:text-2xl font-black text-green-500">{salesLoading ? '...' : salesData?.length}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card/40 border-border/50">
+            <CardContent className="pt-6">
+              <div className="flex justify-between items-center mb-1">
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Conversão</p>
+                <TrendingUp className="h-3 w-3 text-primary" />
+              </div>
+              <div className="text-xl md:text-2xl font-black text-primary">
+                {!visitsData?.length ? '0%' : `${((salesData?.length || 0) / (visitsData.length || 1) * 100).toFixed(1)}%`}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-3">
-          {/* Gráfico de Tráfego - Mantido conforme original */}
-          <Card className="bg-card/50 md:col-span-2">
-            <CardHeader className="flex flex-row items-center justify-between"><CardTitle className="text-lg">Tráfego</CardTitle><Tabs defaultValue="7d" onValueChange={(v) => setTimeRange(v as any)}><TabsList className="bg-background"><TabsTrigger value="7d" className="text-xs">7d</TabsTrigger><TabsTrigger value="30d" className="text-xs">30d</TabsTrigger></TabsList></Tabs></CardHeader>
-            <CardContent className="h-[300px]"><ChartContainer config={chartConfig} className="h-full w-full"><ResponsiveContainer><BarChart data={chartData}><CartesianGrid vertical={false} strokeOpacity={0.1} /><XAxis dataKey="name" fontSize={10} /><YAxis fontSize={9} /><ChartTooltip content={<ChartTooltipContent />} /><Bar dataKey="visits" radius={[4, 4, 0, 0]}>{chartData.map((e, i) => (<Cell key={i} fill={e.isToday ? 'hsl(var(--primary))' : 'rgba(255,204,0,0.15)'} />))}</Bar></BarChart></ResponsiveContainer></ChartContainer></CardContent>
+        <div className="grid gap-6 md:grid-cols-3">
+          {/* Gráfico de Tráfego - Otimizado para Mobile */}
+          <Card className="bg-card/40 border-border/50 md:col-span-2 overflow-hidden">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 md:p-6">
+              <CardTitle className="text-lg font-bold flex items-center gap-2">
+                Tráfego por Período
+              </CardTitle>
+              <Tabs defaultValue="7d" onValueChange={(v) => setTimeRange(v as any)} className="w-full sm:w-auto">
+                <TabsList className="grid grid-cols-2 w-full bg-background/50">
+                  <TabsTrigger value="7d" className="text-xs h-8">7 Dias</TabsTrigger>
+                  <TabsTrigger value="30d" className="text-xs h-8">30 Dias</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </CardHeader>
+            <CardContent className="p-2 md:p-6 pt-0">
+              <div className="h-[250px] md:h-[300px] w-full">
+                <ChartContainer config={chartConfig} className="h-full w-full">
+                  <ResponsiveContainer>
+                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid vertical={false} strokeOpacity={0.05} />
+                      <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
+                      <YAxis fontSize={8} axisLine={false} tickLine={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="visits" radius={[2, 2, 0, 0]} barSize={timeRange === '7d' ? 30 : 10}>
+                        {chartData.map((e, i) => (
+                          <Cell key={i} fill={e.isToday ? 'hsl(var(--primary))' : 'rgba(255,204,0,0.1)'} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </div>
+            </CardContent>
           </Card>
 
-          {/* Nova Busca de ID */}
-          <Card className="bg-card/50">
-            <CardHeader><CardTitle className="text-lg flex items-center gap-2">Verificar ID <Search className="h-4 w-4" /></CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <form onSubmit={handleSearchId} className="flex gap-2">
-                <Input placeholder="Cole o ID da transação..." value={searchId} onChange={(e) => setSearchId(e.target.value)} className="h-9 text-xs" />
-                <Button type="submit" size="sm" disabled={isSearching}>{isSearching ? <Loader2 className="animate-spin h-4 w-4" /> : 'Verificar'}</Button>
+          {/* Verificar ID - Otimizado para Mobile */}
+          <Card className="bg-card/40 border-border/50 h-fit">
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="text-lg font-bold flex items-center gap-2 uppercase italic tracking-tighter">
+                <Search className="h-5 w-5 text-primary" /> Verificar ID
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 md:p-6 pt-0 space-y-4">
+              <form onSubmit={handleSearchId} className="flex flex-col gap-2">
+                <Input 
+                  placeholder="Cole o ID da transação aqui..." 
+                  value={searchId} 
+                  onChange={(e) => setSearchId(e.target.value)} 
+                  className="h-11 text-sm bg-background/50 font-mono" 
+                />
+                <Button type="submit" className="w-full font-bold h-11" disabled={isSearching}>
+                  {isSearching ? <Loader2 className="animate-spin h-5 w-5" /> : 'CONSULTAR STATUS'}
+                </Button>
               </form>
               
               {searchResult === 'not_found' && (
-                <div className="p-4 rounded-lg border border-destructive/50 bg-destructive/10 text-center">
-                  <XCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
-                  <p className="text-xs font-bold uppercase">Não encontrado</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Este ID não foi registrado pelo webhook ainda.</p>
+                <div className="p-4 rounded-xl border border-destructive/50 bg-destructive/10 text-center animate-in fade-in zoom-in duration-300">
+                  <XCircle className="h-10 w-10 text-destructive mx-auto mb-2" />
+                  <p className="text-xs font-black uppercase tracking-widest text-destructive">Não encontrado</p>
+                  <p className="text-[10px] text-muted-foreground mt-1 leading-tight">Este ID não foi registrado pelo webhook no banco de dados ainda.</p>
                 </div>
               )}
 
               {searchResult && searchResult !== 'not_found' && (
-                <div className="p-4 rounded-lg border border-green-500/50 bg-green-500/10 space-y-2">
+                <div className="p-4 rounded-xl border border-green-500/50 bg-green-500/10 space-y-3 animate-in fade-in zoom-in duration-300">
                   <div className="flex items-center gap-2 text-green-500">
                     <CheckCircle2 className="h-5 w-5" />
-                    <p className="text-xs font-bold uppercase tracking-tighter">ID Ativo no Banco</p>
+                    <p className="text-xs font-black uppercase tracking-widest">Transação Encontrada</p>
                   </div>
-                  <div className="text-[10px] space-y-1 pt-2 border-t border-green-500/20">
-                    <p><span className="text-muted-foreground">E-mail:</span> {searchResult.email}</p>
-                    <p><span className="text-muted-foreground">Acesso:</span> {searchResult.accessed ? '✅ JÁ UTILIZADO' : '⏳ AINDA NÃO USOU'}</p>
-                    <p><span className="text-muted-foreground">Data:</span> {searchResult.timestamp?.toDate ? format(searchResult.timestamp.toDate(), 'dd/MM/yyyy HH:mm') : 'N/A'}</p>
+                  <div className="text-[10px] space-y-2 pt-2 border-t border-green-500/20">
+                    <p className="flex justify-between"><span className="text-muted-foreground font-bold">E-MAIL:</span> <span className="font-mono">{searchResult.email}</span></p>
+                    <p className="flex justify-between">
+                      <span className="text-muted-foreground font-bold">ACESSO:</span> 
+                      {searchResult.accessed ? 
+                        <span className="text-destructive font-bold uppercase">✅ JÁ UTILIZADO</span> : 
+                        <span className="text-green-500 font-bold uppercase animate-pulse">⏳ DISPONÍVEL</span>
+                      }
+                    </p>
+                    <p className="flex justify-between"><span className="text-muted-foreground font-bold">CRIADO EM:</span> <span>{searchResult.timestamp?.toDate ? format(searchResult.timestamp.toDate(), 'dd/MM/yy HH:mm') : 'N/A'}</span></p>
                   </div>
                 </div>
               )}
@@ -210,38 +303,55 @@ export default function PortalDoChefe() {
           </Card>
         </div>
 
-        {/* Lista de Vendas e Acessos */}
-        <Card className="bg-card/50">
-          <CardHeader><CardTitle className="text-lg flex items-center gap-2">Vendas Recentes e Controle de Acesso <Package className="h-4 w-4" /></CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {salesLoading ? <Loader2 className="h-6 w-6 animate-spin mx-auto col-span-full" /> : 
-               salesData?.length === 0 ? <p className="text-center text-muted-foreground py-10 col-span-full">Nenhuma venda registrada.</p> :
-               salesData?.map((sale) => (
-                <div key={sale.id} className="flex flex-col p-4 rounded-xl border bg-background/30 hover:bg-background/50 transition-colors">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-black truncate max-w-[150px]">{sale.email}</p>
-                      <p className="text-[9px] font-mono text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">ID: {sale.id}</p>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <div className="text-[9px] font-bold text-primary uppercase">APROVADO</div>
-                      <div className="flex items-center gap-1 text-[8px] text-muted-foreground"><Clock className="h-2 w-2" /> {sale.timestamp?.toDate ? format(sale.timestamp.toDate(), 'HH:mm') : '--:--'}</div>
-                    </div>
-                  </div>
-                  <div className="mt-2 pt-2 border-t border-border/50">
-                    {sale.accessed ? (
-                      <Badge variant="default" className="w-full justify-center bg-green-600 text-[9px] h-5">
-                        <CheckCircle2 className="h-3 w-3 mr-1" /> ACESSOU A ENTREGA
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="w-full justify-center text-[9px] h-5 text-muted-foreground">
-                        <Loader2 className="h-3 w-3 mr-1" /> NÃO ACESSOU AINDA
-                      </Badge>
-                    )}
-                  </div>
+        {/* Lista de Vendas Recentes */}
+        <Card className="bg-card/40 border-border/50">
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-lg font-bold flex items-center gap-2 uppercase italic tracking-tighter">
+              <Package className="h-5 w-5 text-primary" /> Vendas e Controle de Acesso
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 md:p-6 pt-0">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {salesLoading ? (
+                <div className="flex justify-center items-center py-12 col-span-full">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
-              ))}
+              ) : salesData?.length === 0 ? (
+                <div className="text-center text-muted-foreground py-12 col-span-full border-2 border-dashed rounded-xl border-border/50">
+                  <ShoppingCart className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                  <p className="text-sm font-bold uppercase tracking-widest">Nenhuma venda encontrada</p>
+                </div>
+              ) : (
+                salesData?.map((sale) => (
+                  <div key={sale.id} className="flex flex-col p-4 rounded-xl border border-border/50 bg-background/20 hover:bg-background/40 transition-all group">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="space-y-1">
+                        <p className="text-xs font-black truncate max-w-[140px] md:max-w-[200px] text-foreground">{sale.email}</p>
+                        <div className="text-[9px] font-mono text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full inline-block border border-border/50">
+                          ID: {sale.id}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <Badge className="bg-green-500/10 text-green-500 border-green-500/20 text-[8px] font-black uppercase px-1.5 py-0">PAGO</Badge>
+                        <div className="flex items-center gap-1 text-[8px] text-muted-foreground mt-1 font-bold">
+                          <Clock className="h-2 w-2" /> {sale.timestamp?.toDate ? format(sale.timestamp.toDate(), 'HH:mm') : '--:--'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-auto pt-3 border-t border-border/50">
+                      {sale.accessed ? (
+                        <div className="flex items-center justify-center gap-2 w-full bg-green-500/10 text-green-500 text-[9px] font-black uppercase h-7 rounded-lg border border-green-500/20">
+                          <CheckCircle2 className="h-3 w-3" /> ACESSOU A ENTREGA
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2 w-full bg-muted/50 text-muted-foreground text-[9px] font-black uppercase h-7 rounded-lg border border-border/50">
+                          <Loader2 className="h-3 w-3" /> AGUARDANDO ACESSO
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
