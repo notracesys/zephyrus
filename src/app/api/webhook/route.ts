@@ -25,7 +25,6 @@ export async function POST(request: Request) {
     }
 
     // O PushinPay envia vários campos que podem ser o ID da transação
-    // Buscamos em todos os campos possíveis para não haver falhas
     const transactionId = body.transaction_id || body.reference || body.id || (body.data && body.data.id);
     const notificationId = body.id;
     
@@ -41,10 +40,10 @@ export async function POST(request: Request) {
         status: status,
         email: body.email || body.customer?.email || 'N/A',
         timestamp: serverTimestamp(),
-        accessed: false
+        accessed: false // Inicializa como falso para permitir o primeiro acesso
       };
 
-      // Grava a venda usando o ID da transação (o que o cliente geralmente tem)
+      // Grava a venda usando o ID da transação
       if (transactionId) {
         await setDoc(doc(db, 'purchases', String(transactionId)), purchaseData, { merge: true });
       }
@@ -55,10 +54,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Sempre retornamos 200 para o gateway considerar como sucesso e não travar a fila
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error: any) {
-    // Retorna 200 mas loga o erro internamente para não alertar o gateway desnecessariamente
     return NextResponse.json({ success: true, error: error.message }, { status: 200 });
   }
 }

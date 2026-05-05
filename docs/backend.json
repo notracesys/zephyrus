@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserSession": {
@@ -34,7 +33,9 @@
         "id": { "type": "string" },
         "email": { "type": "string" },
         "status": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
+        "timestamp": { "type": "string", "format": "date-time" },
+        "accessed": { "type": "boolean", "description": "Se o cliente já acessou a página de entrega." },
+        "lastAccess": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "status", "timestamp"]
     }
