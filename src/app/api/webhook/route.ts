@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
     const rawText = await request.text();
     let body: any = {};
     
-    // Tenta processar como JSON ou Form Data de forma robusta
+    // Processamento robusto do corpo da requisição
     if (rawText.trim().startsWith('{')) {
       try {
         body = JSON.parse(rawText);
@@ -24,14 +25,15 @@ export async function POST(request: Request) {
       body = Object.fromEntries(params.entries());
     }
 
-    // O PushinPay envia vários campos que podem ser o ID da transação
+    // Mapeamento exaustivo de IDs possíveis enviados pelo PushinPay
     const transactionId = body.transaction_id || body.reference || body.id || (body.data && body.data.id);
     const notificationId = body.id;
+    const externalId = body.external_reference || body.external_id;
     
     const rawStatus = body.status || (body.data && body.data.status) || '';
     const status = String(rawStatus).toLowerCase().trim();
 
-    // Aceitamos qualquer variação de "pago" ou "aprovado"
+    // Lista de status que consideramos como "Aprovado"
     const approvedStatuses = ['paid', 'approved', 'succeeded', 'completed', 'pago', 'aprovado', 'paga'];
 
     if (approvedStatuses.includes(status)) {
@@ -40,22 +42,23 @@ export async function POST(request: Request) {
         status: status,
         email: body.email || body.customer?.email || 'N/A',
         timestamp: serverTimestamp(),
-        accessed: false // Inicializa como falso para permitir o primeiro acesso
+        accessed: false, // Inicialmente liberado para o primeiro acesso
+        rawBody: rawText // Guardamos o log bruto para auditoria se necessário
       };
 
-      // Grava a venda usando o ID da transação
-      if (transactionId) {
-        await setDoc(doc(db, 'purchases', String(transactionId)), purchaseData, { merge: true });
-      }
+      // Grava em todos os IDs possíveis para garantir que qualquer um funcione na busca
+      const idsToSave = [transactionId, notificationId, externalId].filter(id => id && typeof id === 'string' || typeof id === 'number');
+      
+      const savePromises = idsToSave.map(id => 
+        setDoc(doc(db, 'purchases', String(id).trim()), purchaseData, { merge: true })
+      );
 
-      // Se o ID da notificação for diferente, gravamos nele também para garantir o acesso automático via URL
-      if (notificationId && notificationId !== transactionId) {
-        await setDoc(doc(db, 'purchases', String(notificationId)), purchaseData, { merge: true });
-      }
+      await Promise.all(savePromises);
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error: any) {
+    // Sempre retorna 200 para o gateway para evitar retentativas infinitas se for erro de lógica
     return NextResponse.json({ success: true, error: error.message }, { status: 200 });
   }
 }
