@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
@@ -16,7 +17,8 @@ function EntregaContent() {
   const [status, setStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
   const [retryCount, setRetryCount] = useState(0);
   
-  const purchaseId = searchParams.get('id') || searchParams.get('transaction_id') || searchParams.get('ref');
+  // Pega qualquer ID que venha na URL
+  const purchaseId = searchParams.get('id') || searchParams.get('transaction_id') || searchParams.get('ref') || searchParams.get('tid');
 
   useEffect(() => {
     async function verifyPurchase() {
@@ -29,20 +31,25 @@ function EntregaContent() {
         const docRef = doc(firestore, 'purchases', purchaseId);
         const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
+        if (docSnap.exists() && docSnap.data().status) {
           setStatus('authorized');
-          // Marca no banco que o cliente acessou a página de entrega
+          // Marca acesso
           updateDoc(docRef, { 
             accessed: true, 
             lastAccess: serverTimestamp() 
           }).catch(() => {});
-        } else if (retryCount < 10) {
+        } else if (retryCount < 15) { // Tenta por mais tempo (aprox 45 segundos)
           setTimeout(() => setRetryCount(prev => prev + 1), 3000);
         } else {
           setStatus('unauthorized');
         }
       } catch (error) {
-        setStatus('unauthorized');
+        // Em caso de erro de rede, tenta de novo
+        if (retryCount < 15) {
+            setTimeout(() => setRetryCount(prev => prev + 1), 3000);
+        } else {
+            setStatus('unauthorized');
+        }
       }
     }
 
@@ -58,6 +65,7 @@ function EntregaContent() {
       <div className="flex flex-col items-center justify-center py-20">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
         <p className="text-muted-foreground font-medium">Validando seu acesso...</p>
+        <p className="text-[10px] text-muted-foreground/50 mt-2 italic">Aguardando confirmação do servidor</p>
       </div>
     );
   }
@@ -70,8 +78,9 @@ function EntregaContent() {
           <CardTitle>Acesso Pendente</CardTitle>
         </CardHeader>
         <CardContent className="text-center space-y-4">
-          <p className="text-sm text-muted-foreground">Não identificamos o seu pagamento. Se acabou de pagar, aguarde 1 minuto e atualize.</p>
-          <Button onClick={() => window.location.reload()} className="w-full"><RefreshCcw className="mr-2 h-4 w-4" /> Atualizar</Button>
+          <p className="text-sm text-muted-foreground leading-relaxed">Não identificamos o seu pagamento ainda. Se você acabou de pagar, pode levar até 1 minuto para o sistema processar.</p>
+          <Button onClick={() => window.location.reload()} className="w-full h-12 font-bold"><RefreshCcw className="mr-2 h-4 w-4" /> Atualizar agora</Button>
+          <p className="text-[10px] text-muted-foreground">ID consultado: {purchaseId || 'nenhum'}</p>
         </CardContent>
       </Card>
     );
@@ -93,7 +102,7 @@ function EntregaContent() {
           <CardTitle>Download do Método</CardTitle>
         </CardHeader>
         <CardContent className="p-8">
-          <Button onClick={handleDownload} size="lg" className="w-full h-16 text-lg font-bold uppercase tracking-widest shadow-xl shadow-primary/20">
+          <Button onClick={handleDownload} size="lg" className="w-full h-16 text-lg font-bold uppercase tracking-widest shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
             Baixar Agora
           </Button>
           <div className="mt-6 flex items-center justify-center gap-2 text-[10px] text-green-500 font-bold uppercase">
