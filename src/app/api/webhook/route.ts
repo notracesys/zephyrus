@@ -12,10 +12,10 @@ export async function POST(request: Request) {
   
   try {
     const rawText = await request.text();
-    console.log('Dados Brutos:', rawText);
+    console.log('Dados Brutos Recebidos:', rawText);
 
     if (!rawText || rawText.trim() === '') {
-      return NextResponse.json({ success: true, message: 'Empty body' }, { status: 200 });
+      return NextResponse.json({ success: true, message: 'Corpo vazio' }, { status: 200 });
     }
 
     let body: any = {};
@@ -25,50 +25,53 @@ export async function POST(request: Request) {
       try {
         body = JSON.parse(rawText);
       } catch (e) {
+        // Se falhar o parse do JSON, tenta como form data
         const params = new URLSearchParams(rawText);
         body = Object.fromEntries(params.entries());
       }
     } else {
+      // Formato formulário: id=xxx&status=pago
       const params = new URLSearchParams(rawText);
       body = Object.fromEntries(params.entries());
     }
 
-    // Capturamos todos os IDs possíveis para garantir
-    const transactionId = body.transaction_id || body.reference || (body.data && body.data.id);
+    // Capturamos todos os IDs possíveis para garantir a liberação
+    const transactionId = body.transaction_id || body.reference || (body.data && body.data.id) || body.id;
     const notificationId = body.id;
     const rawStatus = body.status || (body.data && body.data.status) || '';
     const status = String(rawStatus).toLowerCase().trim();
 
-    console.log(`IDs detectados -> Transação: ${transactionId} | Notificação: ${notificationId}`);
+    console.log(`IDs detectados -> Transação: ${transactionId} | Notificação: ${notificationId} | Status: ${status}`);
 
     const approvedStatuses = ['paid', 'approved', 'succeeded', 'completed', 'pago', 'aprovado', 'paga'];
 
     if (approvedStatuses.includes(status)) {
       const purchaseData = {
+        id: String(transactionId),
         status: status,
         email: body.email || body.customer?.email || 'N/A',
         timestamp: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        rawBody: body // Guardamos para debug se necessário
+        accessed: false // Marcamos como não acessado inicialmente
       };
 
-      // Grava no ID da transação
+      // Grava no ID da transação (o que vem na URL do redirect)
       if (transactionId) {
-        await setDoc(doc(db, 'purchases', String(transactionId)), { ...purchaseData, id: String(transactionId) }, { merge: true });
-        console.log(`Acesso liberado para ID de Transação: ${transactionId}`);
+        await setDoc(doc(db, 'purchases', String(transactionId)), purchaseData, { merge: true });
+        console.log(`Acesso liberado para ID: ${transactionId}`);
       }
 
-      // Grava também no ID da notificação (alguns gateways usam esse no redirect)
+      // Garante que se o gateway enviar IDs diferentes, ambos funcionem
       if (notificationId && notificationId !== transactionId) {
         await setDoc(doc(db, 'purchases', String(notificationId)), { ...purchaseData, id: String(notificationId) }, { merge: true });
-        console.log(`Acesso liberado para ID de Notificação: ${notificationId}`);
       }
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
 
   } catch (error: any) {
-    console.error('ERRO NO WEBHOOK:', error.message);
+    console.error('ERRO CRÍTICO NO WEBHOOK:', error.message);
+    // Retornamos 200 para evitar que o gateway fique tentando reenviar infinitamente se for erro de lógica
     return NextResponse.json({ success: true, error: error.message }, { status: 200 });
   }
 }

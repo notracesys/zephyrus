@@ -19,9 +19,9 @@ import {
   ChartTooltipContent 
 } from '@/components/ui/chart';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useAuth } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { Eye, TrendingUp, Activity, ShoppingCart, Lock, LogIn, Loader2, LogOut, Calendar } from 'lucide-react';
+import { Eye, TrendingUp, Activity, ShoppingCart, Lock, LogIn, Loader2, LogOut, Calendar, Package, UserCheck, Clock } from 'lucide-react';
 import { format, isSameDay, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Input } from '@/components/ui/input';
@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 const chartConfig = {
   visits: {
@@ -48,19 +49,25 @@ export default function PortalDoChefe() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
+  // Queries para métricas
   const visitsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return collection(firestore, 'visits');
   }, [firestore, user]);
-  
   const { data: visitsData, isLoading: visitsLoading } = useCollection(visitsQuery);
 
   const clicksQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return collection(firestore, 'checkoutClicks');
   }, [firestore, user]);
-  
   const { data: clicksData, isLoading: clicksLoading } = useCollection(clicksQuery);
+
+  // Query para Vendas Recentes
+  const salesQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(collection(firestore, 'purchases'), orderBy('timestamp', 'desc'), limit(10));
+  }, [firestore, user]);
+  const { data: salesData, isLoading: salesLoading } = useCollection(salesQuery);
 
   useEffect(() => {
     setMounted(true);
@@ -68,11 +75,9 @@ export default function PortalDoChefe() {
 
   const chartData = useMemo(() => {
     if (!visitsData) return [];
-
     const daysCount = timeRange === '7d' ? 7 : 30;
     const data = [];
     const today = startOfDay(new Date());
-
     for (let i = daysCount - 1; i >= 0; i--) {
       const currentDay = subDays(today, i);
       const count = visitsData.filter(visit => {
@@ -80,22 +85,8 @@ export default function PortalDoChefe() {
         const visitDate = visit.timestamp.toDate ? visit.timestamp.toDate() : new Date(visit.timestamp);
         return isSameDay(visitDate, currentDay);
       }).length;
-
-      let name = '';
-      if (timeRange === '7d') {
-        name = format(currentDay, 'EEE', { locale: ptBR })
-          .replace('.', '')
-          .slice(0, 3)
-          .toUpperCase();
-      } else {
-        name = format(currentDay, 'dd/MM');
-      }
-
-      data.push({
-        name,
-        visits: count,
-        isToday: isSameDay(currentDay, today)
-      });
+      let name = timeRange === '7d' ? format(currentDay, 'EEE', { locale: ptBR }).replace('.', '').slice(0, 3).toUpperCase() : format(currentDay, 'dd/MM');
+      data.push({ name, visits: count, isToday: isSameDay(currentDay, today) });
     }
     return data;
   }, [visitsData, timeRange]);
@@ -105,38 +96,16 @@ export default function PortalDoChefe() {
     setIsLoggingIn(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast({
-        title: "Bem-vindo de volta!",
-        description: "Acesso autorizado ao Portal do Chefe.",
-      });
+      toast({ title: "Bem-vindo!", description: "Acesso autorizado." });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Falha na autenticação",
-        description: "E-mail ou senha incorretos.",
-      });
+      toast({ variant: "destructive", title: "Erro", description: "Credenciais inválidas." });
     } finally {
       setIsLoggingIn(false);
     }
   };
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    toast({
-      title: "Sessão encerrada",
-      description: "Você saiu do Portal do Chefe.",
-    });
-  };
-
   if (!mounted) return null;
-
-  if (isUserLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (isUserLoading) return <div className="flex min-h-screen items-center justify-center bg-background"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
 
   if (!user) {
     return (
@@ -144,42 +113,15 @@ export default function PortalDoChefe() {
         <Header />
         <main className="flex-grow flex items-center justify-center px-4">
           <Card className="w-full max-w-md border-primary/20 bg-card/50 backdrop-blur-sm shadow-2xl">
-            <CardHeader className="text-center space-y-1">
-              <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-2">
-                <Lock className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="text-2xl font-bold tracking-tight">Portal do Chefe</CardTitle>
-              <p className="text-sm text-muted-foreground">Identifique-se para acessar as métricas.</p>
+            <CardHeader className="text-center">
+              <Lock className="mx-auto h-8 w-8 text-primary mb-2" />
+              <CardTitle>Portal do Chefe</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="admin@exemplo.com" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="bg-background/50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Senha</Label>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="bg-background/50"
-                  />
-                </div>
-                <Button type="submit" className="w-full font-bold" disabled={isLoggingIn}>
-                  {isLoggingIn ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <LogIn className="h-4 w-4 mr-2" />}
-                  Entrar no Portal
-                </Button>
+                <div className="space-y-2"><Label>E-mail</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
+                <div className="space-y-2"><Label>Senha</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
+                <Button type="submit" className="w-full font-bold" disabled={isLoggingIn}>{isLoggingIn ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <LogIn className="h-4 w-4 mr-2" />}Entrar</Button>
               </form>
             </CardContent>
           </Card>
@@ -189,112 +131,51 @@ export default function PortalDoChefe() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground overflow-x-hidden">
+    <div className="flex min-h-screen flex-col bg-background">
       <Header />
-      <main className="flex-grow container mx-auto px-4 md:px-6 py-6 md:py-10">
-        <div className="flex flex-col gap-6 animate-in fade-in duration-700 max-w-full">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
-            <div className="space-y-1">
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
-                Portal do Chefe
-                <Activity className="h-6 w-6 text-primary animate-pulse" />
-              </h1>
-              <p className="text-xs md:text-sm text-muted-foreground">Logado como: <span className="text-foreground font-medium">{user.email}</span></p>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="w-fit border-primary/20 hover:bg-primary/10">
-              <LogOut className="h-4 w-4 mr-2" />
-              Sair
-            </Button>
-          </div>
+      <main className="flex-grow container mx-auto px-4 py-8 space-y-8">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-primary flex items-center gap-2">Dashboard <Activity /></h1>
+          <Button variant="outline" size="sm" onClick={() => signOut(auth)}><LogOut className="h-4 w-4 mr-2" />Sair</Button>
+        </div>
 
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-            <Card className="border-primary/20 bg-card/50 backdrop-blur-sm shadow-xl">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Visitas (Real)</p>
-                <Eye className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl md:text-4xl font-black text-primary tracking-tighter">
-                  {visitsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : (visitsData?.length || 0).toLocaleString('pt-BR')}
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-1">Acessos únicos registrados</p>
-              </CardContent>
-            </Card>
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card className="bg-card/50"><CardContent className="pt-6"><div className="flex justify-between items-start"><p className="text-xs text-muted-foreground font-bold uppercase">Visitas</p><Eye className="h-4 w-4 text-primary" /></div><div className="text-3xl font-black">{visitsLoading ? '...' : visitsData?.length}</div></CardContent></Card>
+          <Card className="bg-card/50"><CardContent className="pt-6"><div className="flex justify-between items-start"><p className="text-xs text-muted-foreground font-bold uppercase">Checkouts</p><ShoppingCart className="h-4 w-4 text-primary" /></div><div className="text-3xl font-black">{clicksLoading ? '...' : clicksData?.length}</div></CardContent></Card>
+          <Card className="bg-card/50"><CardContent className="pt-6"><div className="flex justify-between items-start"><p className="text-xs text-muted-foreground font-bold uppercase">Vendas</p><Package className="h-4 w-4 text-green-500" /></div><div className="text-3xl font-black">{salesLoading ? '...' : salesData?.length}</div></CardContent></Card>
+          <Card className="bg-card/50"><CardContent className="pt-6"><div className="flex justify-between items-start"><p className="text-xs text-muted-foreground font-bold uppercase">Conv. Geral</p><TrendingUp className="h-4 w-4 text-primary" /></div><div className="text-3xl font-black">{!visitsData?.length ? '0%' : `${((salesData?.length || 0) / visitsData.length * 100).toFixed(1)}%`}</div></CardContent></Card>
+        </div>
 
-            <Card className="border-primary/20 bg-card/50 backdrop-blur-sm shadow-xl">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Intenção de Compra</p>
-                <ShoppingCart className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl md:text-4xl font-black text-primary tracking-tighter">
-                  {clicksLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : (clicksData?.length || 0).toLocaleString('pt-BR')}
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-1">Cliques no botão de checkout</p>
-              </CardContent>
-            </Card>
+        <div className="grid gap-8 md:grid-cols-2">
+          {/* Gráfico de Tráfego */}
+          <Card className="bg-card/50">
+            <CardHeader className="flex flex-row items-center justify-between"><CardTitle className="text-lg">Tráfego</CardTitle><Tabs defaultValue="7d" onValueChange={(v) => setTimeRange(v as any)}><TabsList className="bg-background"><TabsTrigger value="7d" className="text-xs">7d</TabsTrigger><TabsTrigger value="30d" className="text-xs">30d</TabsTrigger></TabsList></Tabs></CardHeader>
+            <CardContent className="h-[300px]"><ChartContainer config={chartConfig} className="h-full w-full"><ResponsiveContainer><BarChart data={chartData}><CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" /><XAxis dataKey="name" fontSize={10} /><YAxis fontSize={9} /><ChartTooltip content={<ChartTooltipContent />} /><Bar dataKey="visits" radius={[4, 4, 0, 0]}>{chartData.map((e, i) => (<Cell key={i} fill={e.isToday ? 'hsl(var(--primary))' : 'rgba(255,204,0,0.15)'} />))}</Bar></BarChart></ResponsiveContainer></ChartContainer></CardContent>
+          </Card>
 
-            <Card className="border-primary/20 bg-card/50 backdrop-blur-sm shadow-xl">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Conversão Checkout</p>
-                <TrendingUp className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl md:text-4xl font-black text-primary tracking-tighter">
-                  {(!visitsData?.length || !clicksData?.length) ? '0%' : 
-                    `${((clicksData.length / visitsData.length) * 100).toFixed(1)}%`
-                  }
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-1">Visitas vs Cliques no Botão</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="border-primary/20 bg-card/50 backdrop-blur-sm shadow-xl">
-            <CardHeader className="pb-4 flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-              <CardTitle className="text-sm md:text-lg flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-primary" />
-                Tráfego por Período
-              </CardTitle>
-              <Tabs defaultValue="7d" className="w-full md:w-auto" onValueChange={(v) => setTimeRange(v as any)}>
-                <TabsList className="grid w-full grid-cols-2 bg-background/50">
-                  <TabsTrigger value="7d" className="text-xs">7 dias</TabsTrigger>
-                  <TabsTrigger value="30d" className="text-xs">30 dias</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </CardHeader>
-            <CardContent className="h-[250px] md:h-[350px] pt-4 px-0">
-              <ChartContainer config={chartConfig} className="h-full w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis 
-                      dataKey="name" 
-                      stroke="#666" 
-                      fontSize={10} 
-                      tickLine={false} 
-                      axisLine={false} 
-                      interval={timeRange === '30d' ? 4 : 0}
-                    />
-                    <YAxis 
-                      stroke="#666" 
-                      fontSize={9} 
-                      tickLine={false} 
-                      axisLine={false} 
-                      allowDecimals={false} 
-                    />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="visits" radius={[4, 4, 0, 0]} barSize={timeRange === '30d' ? 8 : 32}>
-                      {chartData.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={entry.isToday ? 'hsl(var(--primary))' : 'rgba(255, 204, 0, 0.15)'} 
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
+          {/* Lista de Vendas Recentes */}
+          <Card className="bg-card/50">
+            <CardHeader><CardTitle className="text-lg flex items-center gap-2">Vendas Recentes <Package className="h-4 w-4" /></CardTitle></CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {salesLoading ? <Loader2 className="h-6 w-6 animate-spin mx-auto" /> : 
+                 salesData?.length === 0 ? <p className="text-center text-muted-foreground py-10">Nenhuma venda registrada.</p> :
+                 salesData?.map((sale) => (
+                  <div key={sale.id} className="flex items-center justify-between p-3 rounded-lg border bg-background/30">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[10px] text-muted-foreground">{sale.id.slice(0, 8)}...</span>
+                        {sale.accessed ? <Badge variant="default" className="bg-green-600 text-[8px] h-4">ACESSOU</Badge> : <Badge variant="outline" className="text-[8px] h-4 text-muted-foreground">PENDENTE</Badge>}
+                      </div>
+                      <p className="text-xs font-medium truncate max-w-[150px]">{sale.email}</p>
+                    </div>
+                    <div className="text-right space-y-1">
+                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground justify-end"><Clock className="h-3 w-3" /> {sale.timestamp?.toDate ? format(sale.timestamp.toDate(), 'HH:mm') : '--:--'}</div>
+                      <div className="flex items-center gap-1 text-[10px] text-primary font-bold justify-end uppercase"><UserCheck className="h-3 w-3" /> APROVADO</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>

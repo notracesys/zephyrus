@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, ShieldCheck, CheckCircle2, Lock, Loader2, RefreshCcw } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import Link from 'next/link';
 
 function EntregaContent() {
@@ -17,7 +17,7 @@ function EntregaContent() {
   const [status, setStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
   const [retryCount, setRetryCount] = useState(0);
   
-  // Pegamos o ID de qualquer lugar da URL
+  // Captura o ID de qualquer parâmetro comum enviado por gateways
   const purchaseId = searchParams.get('id') || 
                      searchParams.get('transaction_id') || 
                      searchParams.get('tid') || 
@@ -39,7 +39,12 @@ function EntregaContent() {
 
         if (docSnap.exists()) {
           setStatus('authorized');
-        } else if (retryCount < 10) { // Tentamos por 30 segundos
+          // Marca no banco que o cliente acessou a página
+          updateDoc(docRef, { 
+            accessed: true, 
+            lastAccess: serverTimestamp() 
+          }).catch(() => {}); // Falha silenciosa se não conseguir atualizar o log
+        } else if (retryCount < 8) { // Tenta por aproximadamente 24 segundos
           const timer = setTimeout(() => {
             setRetryCount(prev => prev + 1);
           }, 3000);
@@ -66,7 +71,7 @@ function EntregaContent() {
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
         <p className="text-muted-foreground animate-pulse font-medium">Validando sua licença...</p>
         <p className="text-[10px] text-muted-foreground/40 mt-2 uppercase tracking-widest">
-          Verificando ID: {purchaseId}
+          ID: {purchaseId}
         </p>
       </div>
     );
@@ -84,7 +89,7 @@ function EntregaContent() {
           </CardHeader>
           <CardContent className="text-center space-y-6 pb-8">
             <p className="text-sm text-muted-foreground">
-              Ainda não identificamos a aprovação do pagamento para este ID. Se você já pagou, aguarde 1 minuto e clique no botão abaixo.
+              Ainda não identificamos a aprovação do pagamento para este ID. Se você já pagou, aguarde 1 minuto para o sistema processar.
             </p>
             <div className="flex flex-col gap-2">
                 <Button onClick={() => window.location.reload()} variant="default" className="w-full font-bold">
@@ -132,7 +137,7 @@ function EntregaContent() {
           <Button 
             onClick={handleDownload}
             size="lg" 
-            className="w-full h-16 text-lg font-black uppercase tracking-widest relative overflow-hidden bg-primary text-primary-foreground before:absolute before:inset-0 before:-translate-x-full before:animate-shine before:bg-gradient-to-r before:from-transparent before:via-white/50 before:to-transparent"
+            className="w-full h-16 text-lg font-bold uppercase tracking-widest relative overflow-hidden bg-primary text-primary-foreground transition-all hover:scale-105 active:scale-95 shadow-xl shadow-primary/20"
           >
             Baixar Agora
           </Button>
