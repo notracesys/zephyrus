@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -25,13 +24,15 @@ export async function POST(request: Request) {
       body = Object.fromEntries(params.entries());
     }
 
-    // O PushinPay envia vários campos que podem ser o ID
-    const transactionId = body.transaction_id || body.reference || body.id;
+    // O PushinPay envia vários campos que podem ser o ID da transação
+    // Buscamos em todos os campos possíveis para não haver falhas
+    const transactionId = body.transaction_id || body.reference || body.id || (body.data && body.data.id);
     const notificationId = body.id;
     
     const rawStatus = body.status || (body.data && body.data.status) || '';
     const status = String(rawStatus).toLowerCase().trim();
 
+    // Aceitamos qualquer variação de "pago" ou "aprovado"
     const approvedStatuses = ['paid', 'approved', 'succeeded', 'completed', 'pago', 'aprovado', 'paga'];
 
     if (approvedStatuses.includes(status)) {
@@ -43,20 +44,21 @@ export async function POST(request: Request) {
         accessed: false
       };
 
-      // Grava no ID da transação (global)
+      // Grava a venda usando o ID da transação (o que o cliente geralmente tem)
       if (transactionId) {
         await setDoc(doc(db, 'purchases', String(transactionId)), purchaseData, { merge: true });
       }
 
-      // Se o ID da notificação for diferente, grava nele também para garantir o redirecionamento
+      // Se o ID da notificação for diferente, gravamos nele também para garantir o acesso automático via URL
       if (notificationId && notificationId !== transactionId) {
         await setDoc(doc(db, 'purchases', String(notificationId)), purchaseData, { merge: true });
       }
     }
 
+    // Sempre retornamos 200 para o gateway considerar como sucesso e não travar a fila
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error: any) {
-    // Sempre retorna 200 para o gateway não travar a fila, mas loga o erro internamente
+    // Retorna 200 mas loga o erro internamente para não alertar o gateway desnecessariamente
     return NextResponse.json({ success: true, error: error.message }, { status: 200 });
   }
 }
