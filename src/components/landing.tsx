@@ -121,7 +121,7 @@ export default function Landing() {
                     size="lg" 
                     className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-14 px-10 shadow-lg shadow-blue-900/40 w-full sm:w-auto uppercase tracking-widest text-base"
                 >
-                    <Link href="https://t.me/zephyrus_grupo" target="_blank">
+                    <Link href="https://t.me/+5r3PzzPPbZk3MTRh" target="_blank">
                         <TelegramIcon className="mr-2 h-6 w-6" />
                         ENTRAR NO CANAL AGORA
                     </Link>
