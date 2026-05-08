@@ -55,9 +55,9 @@ export default function Landing() {
               <div className="text-sm text-foreground/80 space-y-4">
                 <span className="block font-bold text-foreground">Fica expressamente reconhecido que o CONTRATADO não garante, promete ou assegura a reversão, desbloqueio, recuperação ou restabelecimento de contas, itens virtuais, progressos, patentes ou quaisquer ativos digitais, uma vez que a decisão final e soberana compete exclusivamente à plataforma responsável (Garena).</span>
                 <span className="block">O presente site tem por objeto a prestação de serviços independentes de análise técnica, orientação e suporte informacional, voltados exclusivamente à contestação administrativa de banimentos.</span>
-                <span className="block">O CONTRATANTE declara ciência inequívoca de que o CONTRATADO não possui qualquer vínculo, parceria ou afiliação com a empresa Garena, sendo todas as marcas mencionadas de propriedade exclusiva de seus respectivos titulares.</span>
+                <span className="block">O CONTRANTE declara ciência inequívoca de que o CONTRATADO não possui qualquer vínculo, parceria ou afiliação com a empresa Garena, sendo todas as marcas mencionadas de propriedade exclusiva de seus respectivos titulares.</span>
                 <span className="block">O CONTRATADO não realiza, em nenhuma hipótese, acesso direto ou indireto a servidores internos da plataforma.</span>
-                <span className="block">Ao utilizar este site ou contratar quaisquer serviços nele oferecidos, o CONTRATANTE declara ter lido, compreendido e concordado integralmente com os presentes termos.</span>
+                <span className="block">Ao utilizar este site ou contratar quaisquer serviços nele oferecidos, o CONTRANTE declara ter lido, compreendido e concordado integralmente com os presentes termos.</span>
               </div>
             </ScrollArea>
             <div className="flex items-center space-x-2">
@@ -89,7 +89,7 @@ export default function Landing() {
                     <Lock className="h-8 w-8 text-green-500" />
                 </div>
                 <p className="text-lg text-foreground/90 leading-relaxed px-2">
-                    No meu <strong>Grupo VIP</strong>, eu ensino o passo a passo de como você pode tentar recuperar suas contas do <strong>Facebook ou Google</strong> que foram perdidas ou hackeadas.
+                    Entre no grupo do <strong>Resenha do Zephyrus</strong>! No meu Grupo VIP, eu ensino o passo a passo de como recuperar contas de Facebook/Google, e lá no grupo da resenha todo final de semana tem <strong>presente do método gratuito</strong>.
                 </p>
                 <Button 
                     asChild 
