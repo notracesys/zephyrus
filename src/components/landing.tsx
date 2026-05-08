@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -103,24 +102,6 @@ export default function Landing() {
                     </Link>
                 </Button>
             </div>
-        </div>
-      </div>
-
-      <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-5xl mx-auto">
-        <div className="p-6 rounded-xl border bg-card/50 backdrop-blur-sm border-primary/20">
-            <ShieldCheck className="h-10 w-10 text-primary mb-4" />
-            <h3 className="font-bold text-xl mb-2">Especialistas em Jogos</h3>
-            <p className="text-muted-foreground text-sm">Focados em Free Fire e outras plataformas competitivas.</p>
-        </div>
-        <div className="p-6 rounded-xl border bg-card/50 backdrop-blur-sm border-primary/20">
-            <Lock className="h-10 w-10 text-primary mb-4" />
-            <h3 className="font-bold text-xl mb-2">Segurança Total</h3>
-            <p className="text-muted-foreground text-sm">Métodos que respeitam os termos de serviço das plataformas.</p>
-        </div>
-        <div className="p-6 rounded-xl border bg-card/50 backdrop-blur-sm border-primary/20">
-            <ArrowRight className="h-10 w-10 text-primary mb-4" />
-            <h3 className="font-bold text-xl mb-2">Suporte Direto</h3>
-            <p className="text-muted-foreground text-sm">Análise individualizada de cada caso por nossa equipe técnica.</p>
         </div>
       </div>
     </div>
