@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { ArrowRight, ShieldCheck, Lock, MessageCircle } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Lock, MessageCircle, PartyPopper } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -31,7 +31,7 @@ export default function Landing() {
         Recuperar sua conta não é uma questão de sorte. É uma questão de saber o que dizer. A maioria fracassa porque fala qualquer coisa, de qualquer jeito. Nós descobrimos o que funciona.
       </p>
       
-      <div className="mt-10 flex flex-col items-center gap-8">
+      <div className="mt-10 flex flex-col items-center gap-6">
         {/* CTA Principal para Desbanimento */}
         <Dialog onOpenChange={(open) => !open && setAgreed(false)}>
           <DialogTrigger asChild>
@@ -81,6 +81,16 @@ export default function Landing() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Card de Presente Semanal */}
+        <div className="w-full max-w-2xl p-4 rounded-xl border border-primary/30 bg-primary/5 animate-in slide-in-from-top-4 duration-700 delay-200">
+           <p className="font-black text-base md:text-lg flex items-center justify-center gap-2 text-primary uppercase text-center italic tracking-tighter">
+             🥳 ACESSO GRÁTIS TODA SEMANA! 🎉
+           </p>
+           <p className="text-[13px] md:text-sm text-muted-foreground mt-1 text-center font-bold">
+             A cada final de semana eu dou 1 acesso do método completo para alguém lá do grupo!
+           </p>
+        </div>
 
         {/* Seção VIP Group para Recuperação de FB/Google */}
         <div className="w-full max-w-2xl p-6 rounded-2xl border border-green-500/30 bg-green-500/5 backdrop-blur-sm animate-in fade-in zoom-in duration-1000 delay-300">
