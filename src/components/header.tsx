@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useState, useEffect } from 'react';
+import { useLanguage } from '@/lib/i18n';
 
 const Logo = () => (
     <Link href="/" className="flex items-center gap-1">
         <Avatar className="h-9 w-9">
-            <AvatarImage src="/eu.png" alt="Foto de perfil de @zepphyrus" />
+            <AvatarImage src="/eu.png" alt="Profile of @zepphyrus" />
             <AvatarFallback>Z</AvatarFallback>
         </Avatar>
         <span className="font-semibold text-lg text-foreground">@zepphyrus</span>
@@ -16,6 +17,7 @@ const Logo = () => (
 
 
 export default function Header() {
+  const { t } = useLanguage();
   const [activeUsers, setActiveUsers] = useState(137);
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export default function Header() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                 </div>
-                <span className="text-sm text-muted-foreground">{activeUsers} usuários ativos</span>
+                <span className="text-sm text-muted-foreground">{activeUsers} {t.users_active}</span>
             </div>
         </div>
       </div>

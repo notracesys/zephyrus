@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -6,10 +5,11 @@ import SalesNotification from '@/components/sales-notification';
 import Script from 'next/script';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { VisitTracker } from '@/components/visit-tracker';
+import LanguageSelectorDialog from '@/components/language-selector-dialog';
 
 export const metadata: Metadata = {
   title: 'UNBAN STRATEGY',
-  description: 'Estratégias e ferramentas para recuperação de contas de jogos online.',
+  description: 'Strategies and tools for recovering online gaming accounts.',
 };
 
 export default function RootLayout({
@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="en">
       <head>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='15' fill='white' /><image href='/favicon.png' x='15' y='15' width='70' height='70' /></svg>" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -43,6 +43,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
           <FirebaseClientProvider>
             <VisitTracker />
+            <LanguageSelectorDialog />
             {children}
             <Toaster />
             <SalesNotification />

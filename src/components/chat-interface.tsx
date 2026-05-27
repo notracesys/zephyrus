@@ -19,6 +19,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useLanguage } from '@/lib/i18n';
 
 type Message = {
   id: string | number;
@@ -28,9 +29,9 @@ type Message = {
   type?: 'text' | 'feedback';
 };
 
-const TypingIndicator = () => (
+const TypingIndicator = ({ text }: { text: string }) => (
   <div className="flex items-center space-x-1 p-3 rounded-lg">
-    <span className="text-muted-foreground text-sm">Digitando</span>
+    <span className="text-muted-foreground text-sm">{text}</span>
     <div className="flex space-x-1">
         <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
         <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
@@ -40,6 +41,7 @@ const TypingIndicator = () => (
 );
 
 export default function ChatInterface() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const firestore = useFirestore();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -57,16 +59,16 @@ export default function ChatInterface() {
   }, [messages, isTyping]);
 
   useEffect(() => {
-    const initialMessageContent = `Olá Equipe Zephyrus.
-Minha conta foi banida há: ${searchParams.get('suspensionTime') || 'Não informado'}.
-Usei software de terceiros: ${searchParams.get('thirdPartySoftware') || 'Não informado'}.
-O motivo do banimento foi: ${searchParams.get('banReason') || 'Não informado'}.
-É minha primeira suspensão: ${searchParams.get('firstOffense') || 'Não informado'}.
-Já fiz compras na conta: ${searchParams.get('hasMadePurchases') || 'Não informado'}.
-Recebi avisos prévios: ${searchParams.get('priorWarnings') || 'Não informado'}.
+    const initialMessageContent = `${t.chat_initial_msg}
+Suspension time: ${searchParams.get('suspensionTime') || 'N/A'}.
+Used 3rd party software: ${searchParams.get('thirdPartySoftware') || 'N/A'}.
+Ban reason: ${searchParams.get('banReason') || 'N/A'}.
+First offense: ${searchParams.get('firstOffense') || 'N/A'}.
+Made purchases: ${searchParams.get('hasMadePurchases') || 'N/A'}.
+Prior warnings: ${searchParams.get('priorWarnings') || 'N/A'}.
 
-Descrição do ocorrido:
-"${searchParams.get('banDescription') || 'Nenhuma descrição fornecida.'}"
+Description:
+"${searchParams.get('banDescription') || 'N/A'}"
 `;
 
     setMessages(prev => {
@@ -81,39 +83,30 @@ Descrição do ocorrido:
         const t2 = setTimeout(() => {
             const teamResponse: Message = {
                 id: 'team-1', sender: 'team',
-                content: '👋 Olá! Recebemos suas informações. Após uma análise preliminar, identificamos que seu caso tem características de um banimento automático, o que significa que existem chances reais de recuperação. Nossa equipe pode preparar uma defesa técnica detalhada para você. 📄',
+                content: t.chat_initial_response,
                 type: 'text',
             };
-            setMessages((prev) => {
-              if (prev.find(m => m.id === 'team-1')) return prev;
-              return [...prev, teamResponse];
-            });
+            setMessages((prev) => [...prev, teamResponse]);
             setIsTyping(false);
             const t3 = setTimeout(() => {
               setIsTyping(true);
               const t4 = setTimeout(() => {
                 const teamResponse2: Message = {
                   id: 'team-2', sender: 'team',
-                  content: `🤔 Muitos banimentos acontecem sem análise humana detalhada.\nQuando o caso é apresentado da forma certa, a plataforma pode reavaliar a decisão.💡\n\nÉ exatamente nesse ponto que a Equipe Zephyrus atua. 💪`,
+                  content: t.chat_msg_2,
                    type: 'text',
                 };
-                setMessages((prev) => {
-                  if (prev.find(m => m.id === 'team-2')) return prev;
-                  return [...prev, teamResponse2];
-                });
+                setMessages((prev) => [...prev, teamResponse2]);
                 setIsTyping(false);
                  const t5 = setTimeout(() => {
                     setIsTyping(true);
                     const t6 = setTimeout(() => {
                         const teamResponse3: Message = {
                             id: 'team-3', sender: 'team',
-                            content: 'Você deseja que a Equipe Zephyrus inicie a análise completa do seu caso? 🤔',
+                            content: t.chat_msg_3,
                             type: 'text',
                         };
-                        setMessages((prev) => {
-                          if (prev.find(m => m.id === 'team-3')) return prev;
-                          return [...prev, teamResponse3];
-                        });
+                        setMessages((prev) => [...prev, teamResponse3]);
                         setIsTyping(false);
                         setShowOptions(true);
                     }, 3000); 
@@ -130,7 +123,7 @@ Descrição do ocorrido:
     timeouts.push(t1);
 
     return () => timeouts.forEach(t => clearTimeout(t));
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const handleTrackCheckout = (url: string) => {
     if (!firestore) return;
@@ -145,7 +138,7 @@ Descrição do ocorrido:
     const userMessage: Message = {
         id: generateId(),
         sender: 'user',
-        content: option === 'sim' ? 'Sim, quero tentar recuperar minha conta 👍' : 'Não, apenas estou me informando',
+        content: option === 'sim' ? t.chat_option_yes : t.chat_option_no,
         status: 'read',
         type: 'text',
     };
@@ -157,45 +150,31 @@ Descrição do ocorrido:
         setTimeout(() => {
             setIsTyping(true);
             setTimeout(() => {
-                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Ótima escolha. ✅\n\nVocê está dando o passo que a maioria não dá: recorrer da forma correta. 🚀', type: 'text' }]);
+                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_great_choice, type: 'text' }]);
                 setIsTyping(false);
                 setTimeout(() => {
                     setShowImportantNotice(true);
                     setTimeout(() => {
                         setIsTyping(true);
                         setTimeout(() => {
-                            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Agora é o seguinte 👇\nSeu caso não é comum. Ele apresenta sinais claros de banimento automático: e esses são exatamente os casos que ainda valem a tentativa. ⚠️', type: 'text' }]);
+                            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg, type: 'text' }]);
                             setIsTyping(false);
                             setTimeout(() => {
                               setIsTyping(true);
                               setTimeout(() => {
-                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Várias pessoas chegaram até nós com o mesmo problema, achando que tinham perdido tudo.\nApós a análise e o processo feito pela Equipe Zephyrus, muitas conseguiram recuperar suas contas. ✨', type: 'text' }]);
+                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_2, type: 'text' }]);
                                 setIsTyping(false);
                                 setTimeout(() => {
                                     setIsTyping(true);
                                     setTimeout(() => {
-                                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: '/feedback1.jpg', type: 'feedback' }]);
+                                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_3, type: 'text' }]);
                                         setIsTyping(false);
                                         setTimeout(() => {
                                             setIsTyping(true);
                                             setTimeout(() => {
-                                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: '/feedback2.jpg', type: 'feedback' }]);
+                                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_4, type: 'text' }]);
                                                 setIsTyping(false);
-                                                setTimeout(() => {
-                                                    setIsTyping(true);
-                                                    setTimeout(() => {
-                                                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'A diferença não foi sorte.\nFoi recorrer do jeito certo, com quem sabe o que está fazendo. 💪', type: 'text' }]);
-                                                        setIsTyping(false);
-                                                        setTimeout(() => {
-                                                            setIsTyping(true);
-                                                            setTimeout(() => {
-                                                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Se você quer tentar recuperar sua conta enquanto ainda existe chance, esse é o momento. ⏳', type: 'text' }]);
-                                                                setIsTyping(false);
-                                                                setShowPurchaseButton(true);
-                                                            }, 3000);
-                                                        }, 6000);
-                                                    }, 3000)
-                                                }, 3000);
+                                                setShowPurchaseButton(true);
                                             }, 3000);
                                         }, 6000);
                                     }, 3000)
@@ -207,29 +186,6 @@ Descrição do ocorrido:
                 }, 2000);
             }, 3000);
         }, 6000);
-    } else {
-        setTimeout(() => {
-            setIsTyping(true);
-            setTimeout(() => {
-                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Você tem certeza? Essa pode ser uma decisão irreversível. É crucial que você entenda uma coisa: banimentos automáticos são como uma sentença de culpa.', type: 'text' }]);
-                setIsTyping(false);
-                setTimeout(() => {
-                    setIsTyping(true);
-                    setTimeout(() => {
-                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Quando você NÃO RECORRE, o sistema entende que você está ACEITANDO A PUNIÇÃO. Ele marca seu caso como "resolvido", e suas chances de recuperação despencam para quase ZERO.', type: 'text' }]);
-                        setIsTyping(false);
-                        setTimeout(() => {
-                            setIsTyping(true);
-                            setTimeout(() => {
-                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: 'Não agir é a pior escolha. O tempo corre contra você. Esta é sua última chance real.', type: 'text' }]);
-                                setIsTyping(false);
-                                setShowFinalOptions(true);
-                            }, 3000);
-                        }, 6000);
-                    }, 3000);
-                }, 6000);
-            }, 3000);
-        }, 6000);
     }
   }
 
@@ -238,10 +194,10 @@ Descrição do ocorrido:
       <AlertDialog open={showImportantNotice} onOpenChange={setShowImportantNotice}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2"><AlertTriangle className="text-destructive" /> Importante:</AlertDialogTitle>
-            <AlertDialogDescription>Em casos de banimento automático, o tempo é um fator decisivo. Quanto antes o processo é iniciado, maiores são as chances de sucesso.</AlertDialogDescription>
+            <AlertDialogTitle className="flex items-center gap-2"><AlertTriangle className="text-destructive" /> Important:</AlertDialogTitle>
+            <AlertDialogDescription>{t.chat_warning}</AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogAction onClick={() => setShowImportantNotice(false)} className="bg-primary hover:bg-primary/90">Fechar</AlertDialogAction></AlertDialogFooter>
+          <AlertDialogFooter><AlertDialogAction onClick={() => setShowImportantNotice(false)} className="bg-primary hover:bg-primary/90">Close</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
@@ -250,8 +206,8 @@ Descrição do ocorrido:
             <div className="container mx-auto px-4 h-20 flex items-center gap-4">
                 <Avatar className="h-12 w-12 border-2 border-primary"><AvatarImage src="/equipe.png" /><AvatarFallback>Z</AvatarFallback></Avatar>
                 <div>
-                    <h2 className="font-bold text-lg">Equipe Zephyrus</h2>
-                    <div className="flex items-center gap-2"><div className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span></div><p className="text-sm text-muted-foreground">Online</p></div>
+                    <h2 className="font-bold text-lg">{t.chat_team}</h2>
+                    <div className="flex items-center gap-2"><div className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span></div><p className="text-sm text-muted-foreground">{t.chat_online}</p></div>
                 </div>
             </div>
           </div>
@@ -259,13 +215,6 @@ Descrição do ocorrido:
           <div className="flex-grow p-4 overflow-y-auto">
               <div className="space-y-6 max-w-4xl mx-auto">
                   {messages.map((msg, index) => {
-                      if (msg.type === 'feedback') {
-                        return (
-                            <div key={msg.id} className="ml-10 pt-2 flex flex-col items-start space-y-4 animate-in fade-in-50 duration-500">
-                                <Image src={msg.content} alt="Feedback" width={300} height={600} className="rounded-lg shadow-md" />
-                            </div>
-                        )
-                      }
                       const isUser = msg.sender === 'user';
                       const isTeam = msg.sender === 'team';
                       const prevMessage = messages[index - 1];
@@ -280,27 +229,26 @@ Descrição do ocorrido:
                           </div>
                       </div>
                   )})}
-                  {isTyping && (<div className="flex items-end gap-2 justify-start"><Avatar className="h-8 w-8"><AvatarImage src="/equipe.png" /><AvatarFallback>Z</AvatarFallback></Avatar><div className="max-w-md rounded-lg p-2 bg-secondary"><TypingIndicator /></div></div>)}
+                  {isTyping && (<div className="flex items-end gap-2 justify-start"><Avatar className="h-8 w-8"><AvatarImage src="/equipe.png" /><AvatarFallback>Z</AvatarFallback></Avatar><div className="max-w-md rounded-lg p-2 bg-secondary"><TypingIndicator text={t.chat_typing} /></div></div>)}
                    <div ref={chatEndRef} />
               </div>
           </div>
           <div className="bg-card border-t p-4">
-              {showOptions && (<div className="flex flex-col sm:flex-row gap-2 max-w-4xl mx-auto animate-in fade-in-50 duration-500"><Button onClick={() => handleOptionClick('sim')} className="flex-1 font-bold">Sim, quero tentar recuperar minha conta 👍</Button><Button onClick={() => handleOptionClick('nao')} variant="secondary" className="flex-1 font-semibold">Não, apenas estou me informando</Button></div>)}
+              {showOptions && (<div className="flex flex-col sm:flex-row gap-2 max-w-4xl mx-auto animate-in fade-in-50 duration-500"><Button onClick={() => handleOptionClick('sim')} className="flex-1 font-bold">{t.chat_option_yes}</Button><Button onClick={() => handleOptionClick('nao')} variant="secondary" className="flex-1 font-semibold">{t.chat_option_no}</Button></div>)}
               {showPurchaseButton && (
                 <div className="flex justify-center max-w-4xl mx-auto animate-in fade-in-50 duration-500">
                   <Button 
                     asChild 
                     size="lg" 
                     onClick={() => handleTrackCheckout('https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6')} 
-                    className="w-full sm:w-auto font-bold relative overflow-hidden bg-primary text-primary-foreground before:absolute before:inset-0 before:-translate-x-full before:animate-shine before:bg-gradient-to-r before:from-transparent before:via-white/50 before:to-transparent"
+                    className="w-full sm:w-auto font-bold relative overflow-hidden bg-primary text-primary-foreground h-14"
                   >
                     <Link href="https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6" target="_blank">
-                      Quero Recuperar Minha Conta <ArrowRight className="ml-2 h-5 w-5" />
+                      {t.chat_purchase_btn} <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
                 </div>
               )}
-               {showFinalOptions && (<div className="flex flex-col sm:flex-row gap-2 max-w-4xl mx-auto animate-in fade-in-50 duration-500"><Button onClick={() => handleOptionClick('sim')} className="font-bold flex-1">Me Arrependi, quero recuperar! <ArrowRight className="ml-2 h-5 w-5" /></Button><Button asChild variant="outline" className="flex-1"><Link href="/"><Home className="mr-2 h-4 w-4" /> Desistir e Perder a Conta</Link></Button></div>)}
           </div>
       </div>
     </>
