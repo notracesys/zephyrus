@@ -29,6 +29,42 @@ export const translations = {
     analysis_title: "Analysis Questionnaire",
     analysis_desc: "Answer the questions below so our team can analyze your case.",
     analysis_send: "Send for Analysis",
+    analysis_error_title: "Incomplete Questions",
+    analysis_error_desc: "Please answer all questions to continue.",
+    analysis_q_text_label: "Describe in detail how you think your ban happened",
+    analysis_q_text_placeholder: "Ex: I was playing normally when the game closed and the suspended account message appeared. I don't use any cheating apps...",
+    analysis_questions: [
+      {
+        id: "suspensionTime",
+        label: "How long ago was your account suspended?",
+        options: ["Less than 1 week", "Between 1 week and 1 month", "Between 1 and 6 months", "More than 6 months"],
+      },
+      {
+        id: "thirdPartySoftware",
+        label: "Have you ever used any type of third-party software (hacks, mods, etc.)?",
+        options: ["Yes", "No", "I am not sure"],
+      },
+      {
+        id: "banReason",
+        label: "What was the reason that appeared in the ban message?",
+        options: ["Use of unofficial software/app", "Abuse of bugs or glitches", "Toxic behavior (offenses)", "Undue refund (chargeback)", "No reason specified", "Other"],
+      },
+      {
+        id: "firstOffense",
+        label: "Is this the first time your account has been suspended?",
+        options: ["Yes", "No, I have been suspended before"],
+      },
+      {
+        id: "hasMadePurchases",
+        label: "Have you ever made any purchases of diamonds or other items on the account?",
+        options: ["Yes", "No"],
+      },
+      {
+        id: "priorWarnings",
+        label: "Before the ban, did you receive warnings for inappropriate behavior (e.g., chat offenses)?",
+        options: ["Yes", "No", "I don't remember"],
+      },
+    ],
     chat_typing: "Typing",
     chat_team: "Zephyrus Team",
     chat_online: "Online",
@@ -58,7 +94,8 @@ export const translations = {
     delivery_expired_help: "For security, each purchase allows only a single access. If you were unable to complete the download, contact support.",
     lang_selection: "Select your language",
     lang_en: "English",
-    lang_es: "Spanish"
+    lang_es: "Spanish",
+    loading: "Loading..."
   },
   es: {
     title: "ESTRATEGIA UNBAN",
@@ -71,7 +108,7 @@ export const translations = {
       "Se reconoce expresamente que el CONTRATADO no garantiza, promete ni asegura la reversión, desbloqueo, recuperación o restablecimiento de cuentas, ítems virtuales, progresos, rangos o cualquier activo digital, ya que la decisión final y soberana corresponde exclusivamente a la plataforma responsable (Garena).",
       "Este sitio está destinado a la prestación de servicios independientes de análisis técnico, orientación y soporte informativo, enfocados exclusivamente en apelaciones administrativas de baneo.",
       "EL CLIENTE declara conocimiento inequívoco de que el CONTRATADO no tiene ningún vínculo, asociación o afiliación con Garena, y todas las marcas mencionadas son propiedad exclusiva de sus respectivos dueños.",
-      "EL CONTRATADO no realiza, bajo ninguna circunstância, acceso directo o indirecto a servidores internos de la plataforma.",
+      "EL CONTRATADO no realiza, bajo ninguna circunstancia, acceso directo o indirecto a servidores internos de la plataforma.",
       "Al utilizar este sitio o contratar cualquier servicio ofrecido en él, EL CLIENTE declara haber leído, entendido y aceptado plenamente estos términos."
     ],
     terms_agree: "He leído y acepto los términos y quiero continuar.",
@@ -88,6 +125,42 @@ export const translations = {
     analysis_title: "Cuestionario de Análisis",
     analysis_desc: "Responda las preguntas a continuación para que nuestro equipo pueda analizar su caso.",
     analysis_send: "Enviar para Análisis",
+    analysis_error_title: "Preguntas Incompletas",
+    analysis_error_desc: "Por favor, responda todas las preguntas para continuar.",
+    analysis_q_text_label: "Describa en detalle cómo cree que ocurrió su baneo",
+    analysis_q_text_placeholder: "Ej: Estaba jugando normalmente cuando el juego se cerró e apareció el mensaje de cuenta suspendida. No uso ninguna aplicación de trampas...",
+    analysis_questions: [
+      {
+        id: "suspensionTime",
+        label: "¿Hace cuánto tiempo fue suspendida su cuenta?",
+        options: ["Menos de 1 semana", "Entre 1 semana y 1 mes", "Entre 1 y 6 meses", "Más de 6 meses"],
+      },
+      {
+        id: "thirdPartySoftware",
+        label: "¿Alguna vez ha utilizado algún tipo de software de terceros (hacks, mods, etc.)?",
+        options: ["Sí", "No", "No estoy seguro"],
+      },
+      {
+        id: "banReason",
+        label: "¿Cuál fue el motivo que apareció en el mensaje de baneo?",
+        options: ["Uso de software/aplicación no oficial", "Abuso de bugs o fallos", "Comportamiento tóxico (ofensas)", "Reembolso indebido (chargeback)", "No se especificó motivo", "Otro"],
+      },
+      {
+        id: "firstOffense",
+        label: "¿Es esta la primera vez que se suspende su cuenta?",
+        options: ["Sí", "No, ya me suspendieron antes"],
+      },
+      {
+        id: "hasMadePurchases",
+        label: "¿Alguna vez ha realizado alguna compra de diamantes u otros artículos en la cuenta?",
+        options: ["Sí", "No"],
+      },
+      {
+        id: "priorWarnings",
+        label: "¿Antes del baneo, recibió advertencias por comportamiento inapropiado (ej: ofensas en el chat)?",
+        options: ["Sí", "No", "No recuerdo"],
+      },
+    ],
     chat_typing: "Escribiendo",
     chat_team: "Equipo Zephyrus",
     chat_online: "En línea",
@@ -117,6 +190,7 @@ export const translations = {
     delivery_expired_help: "Por seguridad, cada compra permite un solo acceso. Si no pudo completar la descarga, contacte al soporte.",
     lang_selection: "Seleccione su idioma",
     lang_en: "Inglés",
-    lang_es: "Español"
+    lang_es: "Español",
+    loading: "Cargando..."
   }
 };

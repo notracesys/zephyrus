@@ -12,54 +12,22 @@ import Header from '@/components/header';
 import { ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Textarea } from '@/components/ui/textarea';
+import { useLanguage } from '@/lib/i18n';
 
 const quizSchema = z.object({
-  suspensionTime: z.string({ required_error: 'Por favor, selecione uma opção.' }),
-  thirdPartySoftware: z.string({ required_error: 'Por favor, selecione uma opção.' }),
-  banReason: z.string({ required_error: 'Por favor, selecione uma opção.' }),
-  firstOffense: z.string({ required_error: 'Por favor, selecione uma opção.' }),
-  hasMadePurchases: z.string({ required_error: 'Por favor, selecione uma opção.' }),
-  priorWarnings: z.string({ required_error: 'Por favor, selecione uma opção.' }),
-  banDescription: z.string({ required_error: 'Por favor, descreva o seu banimento.' }).min(10, { message: 'Por favor, forneça uma descrição com pelo menos 10 caracteres.' }),
+  suspensionTime: z.string().min(1),
+  thirdPartySoftware: z.string().min(1),
+  banReason: z.string().min(1),
+  firstOffense: z.string().min(1),
+  hasMadePurchases: z.string().min(1),
+  priorWarnings: z.string().min(1),
+  banDescription: z.string().min(10),
 });
 
 type QuizFormValues = z.infer<typeof quizSchema>;
 
-const questions = [
-  {
-    id: 'suspensionTime',
-    label: 'Há quanto tempo sua conta foi suspensa?',
-    options: ['Menos de 1 semana', 'Entre 1 semana e 1 mês', 'Entre 1 e 6 meses', 'Mais de 6 meses'],
-  },
-  {
-    id: 'thirdPartySoftware',
-    label: 'Você já utilizou algum tipo de software de terceiros (hacks, mods, etc.)?',
-    options: ['Sim', 'Não', 'Não tenho certeza'],
-  },
-  {
-    id: 'banReason',
-    label: 'Qual foi o motivo que apareceu na mensagem de banimento?',
-    options: ['Uso de software/aplicativo não oficial', 'Abuso de bugs ou falhas', 'Comportamento tóxico (ofensas)', 'Reembolso indevido (chargeback)', 'Não havia motivo especificado', 'Outro'],
-  },
-  {
-    id: 'firstOffense',
-    label: 'Esta é a primeira vez que sua conta é suspensa?',
-    options: ['Sim', 'Não, já fui suspenso antes'],
-  },
-  {
-    id: 'hasMadePurchases',
-    label: 'Você já fez alguma compra de diamantes ou outros itens na conta?',
-    options: ['Sim', 'Não'],
-  },
-  {
-    id: 'priorWarnings',
-    label: 'Antes do banimento, você recebeu avisos por comportamento inadequado (ex: ofensas no chat)?',
-    options: ['Sim', 'Não', 'Não me lembro'],
-  },
-];
-
-
 export default function AnalysisPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const form = useForm<QuizFormValues>({
     resolver: zodResolver(quizSchema),
@@ -71,14 +39,11 @@ export default function AnalysisPage() {
   }
 
   function onError(errors: any) {
-    const firstErrorKey = Object.keys(errors)[0];
-    const errorMessage = errors[firstErrorKey]?.message || 'Por favor, responda a todas as perguntas para continuar.';
-    
     toast({
         variant: "destructive",
-        title: 'Perguntas Incompletas',
-        description: errorMessage,
-    })
+        title: t.analysis_error_title,
+        description: t.analysis_error_desc,
+    });
   }
 
   return (
@@ -86,16 +51,16 @@ export default function AnalysisPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 md:py-16">
         <section className="text-center mb-12 animate-in fade-in-50 duration-1000">
-            <h1 className="font-headline text-3xl md:text-4xl font-bold">Questionário de Análise</h1>
+            <h1 className="font-headline text-3xl md:text-4xl font-bold">{t.analysis_title}</h1>
             <p className="mt-2 text-lg text-muted-foreground">
-                Responda às perguntas abaixo para que nossa equipe possa analisar seu caso.
+                {t.analysis_desc}
             </p>
         </section>
 
         <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in-50 duration-1000">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-6">
-                    {questions.map((question, index) => (
+                    {t.analysis_questions.map((question, index) => (
                     <FormField
                         key={question.id}
                         control={form.control}
@@ -140,14 +105,14 @@ export default function AnalysisPage() {
                             <Card className="w-full">
                                 <CardHeader className="bg-card-foreground/5 rounded-t-lg border-b p-4">
                                 <CardTitle className="font-bold text-base flex items-center">
-                                    <span className="bg-primary text-primary-foreground rounded-full h-6 flex items-center justify-center text-sm mr-2 min-w-[1.5rem] px-1">{questions.length + 1}</span> 
-                                    Descreva em detalhes como você acha que seu banimento aconteceu
+                                    <span className="bg-primary text-primary-foreground rounded-full h-6 flex items-center justify-center text-sm mr-2 min-w-[1.5rem] px-1">{t.analysis_questions.length + 1}</span> 
+                                    {t.analysis_q_text_label}
                                 </CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-6">
                                 <FormControl>
                                     <Textarea
-                                        placeholder="Ex: Eu estava jogando normalmente quando o jogo fechou e apareceu a mensagem de conta suspensa. Não uso nenhum aplicativo de trapaça..."
+                                        placeholder={t.analysis_q_text_placeholder}
                                         className="min-h-[120px]"
                                         {...field}
                                     />
@@ -159,7 +124,7 @@ export default function AnalysisPage() {
 
                     <div className="flex justify-center pt-4">
                         <Button type="submit" size="lg" className="font-bold bg-primary hover:bg-primary/90 text-primary-foreground">
-                            Enviar para Análise
+                            {t.analysis_send}
                             <ArrowRight className="ml-2 h-5 w-5" />
                         </Button>
                     </div>
