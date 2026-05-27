@@ -19,18 +19,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-// Ícone oficial do Telegram via SVG
-const TelegramIcon = ({ className }: { className?: string }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="currentColor" 
-    className={className}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.28.28-.43.28l.214-3.04 5.532-4.997c.24-.213-.054-.334-.373-.12l-6.84 4.307-2.946-.92c-.64-.203-.654-.64.135-.95l11.51-4.434c.532-.194 1 .126.792.892z"/>
-  </svg>
-);
-
 export default function Landing() {
   const [agreed, setAgreed] = useState(false);
 
@@ -93,41 +81,6 @@ export default function Landing() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
-        {/* Card de Presente Semanal */}
-        <div className="w-full max-w-2xl p-4 rounded-xl border border-primary/30 bg-primary/5 animate-in slide-in-from-top-4 duration-700 delay-200">
-           <p className="font-black text-base md:text-lg flex items-center justify-center gap-2 text-primary uppercase text-center italic tracking-tighter">
-             🥳 ACESSO GRÁTIS TODA SEMANA! 🎉
-           </p>
-           <p className="text-[13px] md:text-sm text-muted-foreground mt-1 text-center font-bold">
-             A cada final de semana eu dou 1 acesso do método completo para alguém lá do grupo!
-           </p>
-        </div>
-
-        {/* Seção Telegram - VIP */}
-        <div className="w-full max-w-2xl p-6 rounded-2xl border border-blue-500/30 bg-blue-500/5 backdrop-blur-sm animate-in fade-in zoom-in duration-1000 delay-300 shadow-2xl shadow-blue-900/10">
-            <div className="flex flex-col items-center text-center space-y-4">
-                <div className="bg-blue-500/20 p-3 rounded-full">
-                    <TelegramIcon className="h-10 w-10 text-blue-400" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-black text-xl md:text-2xl uppercase italic tracking-tighter">Resenha do Zephyrus - VIP</h3>
-                  <p className="text-base md:text-lg text-foreground/90 leading-relaxed px-2">
-                    Entre agora no nosso canal oficial. Eu revelo estratégias que ninguém conta e toda semana tem presente do <strong>Método Completo Grátis</strong> para quem estiver lá dentro.
-                  </p>
-                </div>
-                <Button 
-                    asChild 
-                    size="lg" 
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-14 px-10 shadow-lg shadow-blue-900/40 w-full sm:w-auto uppercase tracking-widest text-base"
-                >
-                    <Link href="https://t.me/+5r3PzzPPbZk3MTRh" target="_blank">
-                        <TelegramIcon className="mr-2 h-6 w-6" />
-                        ENTRAR NO CANAL AGORA
-                    </Link>
-                </Button>
-            </div>
-        </div>
       </div>
     </div>
   );
