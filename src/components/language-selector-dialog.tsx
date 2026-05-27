@@ -9,30 +9,41 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { translations, Language } from '@/lib/i18n';
-import Image from 'next/image';
+import { Language } from '@/lib/i18n';
+import { usePathname } from 'next/navigation';
 
 export default function LanguageSelectorDialog() {
   const [showDialog, setShowDialog] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
-    const savedLang = localStorage.getItem('app_lang');
-    if (!savedLang) {
+    // Se não estiver na home, fecha o diálogo e limpa a flag de sessão
+    if (pathname !== '/') {
+      sessionStorage.removeItem('lang_picked_at_home');
+      setShowDialog(false);
+      return;
+    }
+
+    // Se estiver na home (/), verifica se já escolheu nesta "visita" específica
+    const justPicked = sessionStorage.getItem('lang_picked_at_home');
+    if (!justPicked) {
       setShowDialog(true);
     }
-  }, []);
+  }, [pathname]);
 
   const handleSelect = (lang: Language) => {
     localStorage.setItem('app_lang', lang);
+    // Marcamos que ele acabou de escolher para evitar o loop no reload
+    sessionStorage.setItem('lang_picked_at_home', 'true');
     setShowDialog(false);
-    window.location.reload(); // Recarrega para aplicar as traduções em todos os componentes
+    window.location.reload();
   };
 
   if (!showDialog) return null;
 
   return (
     <Dialog open={showDialog} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-[400px] bg-background border-primary/20">
+      <DialogContent className="sm:max-w-[400px] bg-background border-primary/20" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="text-center text-xl font-black italic uppercase tracking-tighter">
             Select your language / Selecciona tu idioma
