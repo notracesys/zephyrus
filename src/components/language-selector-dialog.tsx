@@ -13,19 +13,37 @@ import { Language } from '@/lib/i18n';
 import { usePathname } from 'next/navigation';
 import { Globe } from 'lucide-react';
 
+// Componente para a Bandeira dos EUA em SVG
+const USFlag = () => (
+  <svg viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg" className="w-10 h-7 rounded shadow-sm">
+    <path fill="#bd3d44" d="M0 0h640v480H0z"/>
+    <path stroke="#fff" strokeWidth="37" d="M0 37h640m0 74H0m0 74h640m0 74H0m0 74h640m0 74H0"/>
+    <path fill="#192f5d" d="M0 0h256v222H0z"/>
+    <circle cx="128" cy="111" r="60" fill="#fff" opacity="0.3" />
+  </svg>
+);
+
+// Componente para a Bandeira da Espanha em SVG
+const ESFlag = () => (
+  <svg viewBox="0 0 750 500" xmlns="http://www.w3.org/2000/svg" className="w-10 h-7 rounded shadow-sm">
+    <path fill="#c60b1e" d="M0 0h750v500H0z"/>
+    <path fill="#ffc400" d="M0 125h750v250H0z"/>
+  </svg>
+);
+
 export default function LanguageSelectorDialog() {
   const [showDialog, setShowDialog] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
-    // Only show on home page (/)
+    // Só mostra na home page (/)
     if (pathname !== '/') {
       sessionStorage.removeItem('lang_picked_at_home');
       setShowDialog(false);
       return;
     }
 
-    // Check if picked in this session
+    // Verifica se já escolheu nesta sessão
     const justPicked = sessionStorage.getItem('lang_picked_at_home');
     if (!justPicked) {
       setShowDialog(true);
@@ -44,56 +62,60 @@ export default function LanguageSelectorDialog() {
   return (
     <Dialog open={showDialog} onOpenChange={() => {}}>
       <DialogContent 
-        className="w-[92%] max-w-[420px] rounded-3xl bg-card/95 backdrop-blur-2xl border-primary/40 p-10 shadow-[0_0_50px_-12px_rgba(255,204,0,0.3)]" 
+        className="w-[92%] max-w-[420px] rounded-3xl bg-card/95 backdrop-blur-2xl border-primary/40 p-8 md:p-10 shadow-[0_0_50px_-12px_rgba(255,204,0,0.3)]" 
         onPointerDownOutside={(e) => e.preventDefault()} 
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader className="space-y-6">
-          <div className="mx-auto bg-primary/20 w-20 h-20 rounded-full flex items-center justify-center border-2 border-primary/30 animate-pulse">
-            <Globe className="text-primary h-10 w-10" />
+          <div className="mx-auto bg-primary/20 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center border-2 border-primary/30 animate-pulse">
+            <Globe className="text-primary h-8 w-8 md:h-10 md:w-10" />
           </div>
           <div className="space-y-2">
-            <DialogTitle className="text-center text-2xl md:text-3xl font-black italic uppercase tracking-tighter leading-tight">
+            <DialogTitle className="text-center text-xl md:text-3xl font-black italic uppercase tracking-tighter leading-tight">
               Select Language <br />
               <span className="text-primary">Selecciona Idioma</span>
             </DialogTitle>
-            <DialogDescription className="text-center text-muted-foreground font-medium text-base">
+            <DialogDescription className="text-center text-muted-foreground font-medium text-sm md:text-base">
               Choose your preferred language to start the recovery process.
             </DialogDescription>
           </div>
         </DialogHeader>
         
-        <div className="grid grid-cols-1 gap-5 mt-8">
+        <div className="grid grid-cols-1 gap-4 md:gap-5 mt-6 md:mt-8">
           <Button 
             onClick={() => handleSelect('en')} 
-            className="h-20 text-xl font-bold flex items-center justify-start gap-6 px-8 border-2 border-border/50 hover:border-primary hover:bg-primary/10 transition-all duration-300 group rounded-2xl"
+            className="h-16 md:h-20 text-lg md:text-xl font-bold flex items-center justify-start gap-4 md:gap-6 px-6 md:px-8 border-2 border-border/50 hover:border-primary hover:bg-primary/10 transition-all duration-300 group rounded-2xl"
             variant="outline"
           >
-            <span className="text-4xl group-hover:scale-125 transition-transform duration-300">🇺🇸</span>
+            <div className="group-hover:scale-110 transition-transform duration-300 shrink-0">
+              <USFlag />
+            </div>
             <div className="flex flex-col items-start leading-none">
-              <span className="text-lg">English</span>
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">North America / Global</span>
+              <span className="text-base md:text-lg">English</span>
+              <span className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">North America / Global</span>
             </div>
           </Button>
           
           <Button 
             onClick={() => handleSelect('es')} 
-            className="h-20 text-xl font-bold flex items-center justify-start gap-6 px-8 border-2 border-border/50 hover:border-primary hover:bg-primary/10 transition-all duration-300 group rounded-2xl"
+            className="h-16 md:h-20 text-lg md:text-xl font-bold flex items-center justify-start gap-4 md:gap-6 px-6 md:px-8 border-2 border-border/50 hover:border-primary hover:bg-primary/10 transition-all duration-300 group rounded-2xl"
             variant="outline"
           >
-            <span className="text-4xl group-hover:scale-125 transition-transform duration-300">🇪🇸</span>
+            <div className="group-hover:scale-110 transition-transform duration-300 shrink-0">
+              <ESFlag />
+            </div>
             <div className="flex flex-col items-start leading-none">
-              <span className="text-lg">Español</span>
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">Latinoamérica / España</span>
+              <span className="text-base md:text-lg">Español</span>
+              <span className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">Latinoamérica / España</span>
             </div>
           </Button>
         </div>
         
         <div className="mt-8 flex flex-col items-center gap-2">
-          <p className="text-center text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">
+          <p className="text-center text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">
             Secure & Encrypted Analysis
           </p>
-          <div className="h-1 w-12 bg-primary/20 rounded-full" />
+          <div className="h-1 w-10 md:w-12 bg-primary/20 rounded-full" />
         </div>
       </DialogContent>
     </Dialog>
