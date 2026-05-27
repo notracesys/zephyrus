@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Send, ShieldCheck, Lock, MessageCircle, PartyPopper } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -104,7 +104,7 @@ export default function Landing() {
            </p>
         </div>
 
-        {/* Seção VIP Group para Recuperação de FB/Google - TELEGRAM */}
+        {/* Seção Telegram - VIP */}
         <div className="w-full max-w-2xl p-6 rounded-2xl border border-blue-500/30 bg-blue-500/5 backdrop-blur-sm animate-in fade-in zoom-in duration-1000 delay-300 shadow-2xl shadow-blue-900/10">
             <div className="flex flex-col items-center text-center space-y-4">
                 <div className="bg-blue-500/20 p-3 rounded-full">
@@ -113,7 +113,7 @@ export default function Landing() {
                 <div className="space-y-2">
                   <h3 className="font-black text-xl md:text-2xl uppercase italic tracking-tighter">Resenha do Zephyrus - VIP</h3>
                   <p className="text-base md:text-lg text-foreground/90 leading-relaxed px-2">
-                    Recupere sua conta de <strong>Facebook ou Google</strong> hoje. Eu revelo o segredo que ninguém conta lá dentro. Além disso, sorteio do <strong>Método Grátis</strong> todo final de semana. Entre agora antes que o link expire!
+                    Entre agora no nosso canal oficial. Eu revelo estratégias que ninguém conta e toda semana tem presente do <strong>Método Completo Grátis</strong> para quem estiver lá dentro.
                   </p>
                 </div>
                 <Button 
