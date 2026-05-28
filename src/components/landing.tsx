@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
-import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
@@ -19,10 +18,18 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n';
+import { useRouter } from 'next/navigation';
 
 export default function Landing() {
   const { t } = useLanguage();
+  const router = useRouter();
   const [agreed, setAgreed] = useState(false);
+
+  const handleProceed = () => {
+    if (agreed) {
+      router.push('/verify');
+    }
+  };
 
   return (
     <div className="animate-in fade-in-50 duration-1000 pb-20">
@@ -61,23 +68,29 @@ export default function Landing() {
                 ))}
               </div>
             </ScrollArea>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 pt-4">
               <Checkbox id="terms" checked={agreed} onCheckedChange={(checked) => setAgreed(checked as boolean)} />
-              <Label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <Label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
                 {t.terms_agree}
               </Label>
             </div>
-            <DialogFooter>
+            <DialogFooter className="pt-6">
               <DialogClose asChild>
                 <Button type="button" variant="secondary" size="sm">
                   {t.cancel}
                 </Button>
               </DialogClose>
-              <Button asChild disabled={!agreed} size="sm" className={cn("mb-2 sm:mb-0", !agreed && "cursor-not-allowed")}>
-                <Link href="/verify">
-                  {t.proceed}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+              <Button 
+                onClick={handleProceed} 
+                disabled={!agreed} 
+                size="sm" 
+                className={cn(
+                  "mb-2 sm:mb-0 font-bold", 
+                  !agreed && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                {t.proceed}
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </DialogFooter>
           </DialogContent>
