@@ -31,6 +31,17 @@ const ESFlag = () => (
   </svg>
 );
 
+// Componente para a Bandeira do Brasil em SVG
+const BRFlag = () => (
+  <svg viewBox="0 0 720 504" xmlns="http://www.w3.org/2000/svg" className="w-10 h-7 rounded shadow-sm">
+    <path fill="#009b3a" d="M0 0h720v504H0z"/>
+    <path fill="#fedf00" d="m360 54 306 198-306 198L54 252z"/>
+    <circle fill="#313131" cx="360" cy="252" r="117"/>
+    <circle fill="#002776" cx="360" cy="252" r="108"/>
+    <path fill="#fff" d="M256.7 274.5c34.8-13 74.5-20.2 116.3-20.2 36 0 70.4 5.3 101.5 15.1l-1.4-17c-30.8-10.4-65.4-16.1-102.1-16.1-42.5 0-83 7.6-118.4 21.1z"/>
+  </svg>
+);
+
 export default function LanguageSelectorDialog() {
   const [showDialog, setShowDialog] = useState(false);
   const pathname = usePathname();
@@ -73,15 +84,29 @@ export default function LanguageSelectorDialog() {
           <div className="space-y-2">
             <DialogTitle className="text-center text-xl md:text-3xl font-black italic uppercase tracking-tighter leading-tight">
               Select Language <br />
-              <span className="text-primary">Selecciona Idioma</span>
+              <span className="text-primary">Selecione o Idioma</span>
             </DialogTitle>
             <DialogDescription className="text-center text-muted-foreground font-medium text-sm md:text-base">
-              Choose your preferred language to start the recovery process.
+              Choose your preferred language to start.
             </DialogDescription>
           </div>
         </DialogHeader>
         
         <div className="grid grid-cols-1 gap-4 md:gap-5 mt-6 md:mt-8">
+          <Button 
+            onClick={() => handleSelect('pt')} 
+            className="h-16 md:h-20 text-lg md:text-xl font-bold flex items-center justify-start gap-4 md:gap-6 px-6 md:px-8 border-2 border-primary/50 bg-primary/5 hover:bg-primary/10 transition-all duration-300 group rounded-2xl"
+            variant="outline"
+          >
+            <div className="group-hover:scale-110 transition-transform duration-300 shrink-0">
+              <BRFlag />
+            </div>
+            <div className="flex flex-col items-start leading-none">
+              <span className="text-base md:text-lg">Português</span>
+              <span className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">Brasil / Portugal</span>
+            </div>
+          </Button>
+
           <Button 
             onClick={() => handleSelect('en')} 
             className="h-16 md:h-20 text-lg md:text-xl font-bold flex items-center justify-start gap-4 md:gap-6 px-6 md:px-8 border-2 border-border/50 hover:border-primary hover:bg-primary/10 transition-all duration-300 group rounded-2xl"

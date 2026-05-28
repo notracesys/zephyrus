@@ -1,4 +1,4 @@
-export type Language = 'en' | 'es';
+export type Language = 'en' | 'es' | 'pt';
 
 export const translations = {
   en: {
@@ -95,6 +95,7 @@ export const translations = {
     lang_selection: "Select your language",
     lang_en: "English",
     lang_es: "Spanish",
+    lang_pt: "Portuguese",
     loading: "Loading..."
   },
   es: {
@@ -123,7 +124,7 @@ export const translations = {
     verifying: "Verificando...",
     verified: "Verificado",
     analysis_title: "Cuestionario de Análisis",
-    analysis_desc: "Responda las preguntas a continuación para que nuestro equipo pueda analizar su caso.",
+    analysis_desc: "Responda las preguntas a continuación para que nuestro equipo possa analizar su caso.",
     analysis_send: "Enviar para Análisis",
     analysis_error_title: "Preguntas Incompletas",
     analysis_error_desc: "Por favor, responda todas las preguntas para continuar.",
@@ -191,6 +192,104 @@ export const translations = {
     lang_selection: "Seleccione su idioma",
     lang_en: "Inglés",
     lang_es: "Español",
+    lang_pt: "Portugués",
     loading: "Cargando..."
+  },
+  pt: {
+    title: "ESTRATÉGIA UNBAN",
+    subtitle: "Sua conta foi banida? Nem tudo está perdido.",
+    description: "Recuperar sua conta não é questão de sorte. É saber o que dizer. A maioria falha porque diz qualquer coisa, de qualquer jeito. Nós descobrimos o que funciona.",
+    cta: "Recuperar Conta Banida",
+    terms_title: "Termos e Condições de Responsabilidade",
+    terms_desc: "Por favor, leia atentamente antes de prosseguir com sua solicitação de Unban.",
+    terms_body: [
+      "É expressamente reconhecido que o CONTRATADO não garante, promete ou assegura a reversão, desbloqueio, recuperação ou restabelecimento de contas, itens virtuais, progressos, patentes ou quaisquer ativos digitais, visto que a decisão final e soberana pertence exclusivamente à plataforma responsável (Garena).",
+      "Este site destina-se à prestação de serviços de análise técnica independente, orientação e suporte informativo, exclusivamente voltados para recursos administrativos de banimento.",
+      "O CLIENTE declara conhecimento inequívoco de que o CONTRATADO não possui qualquer vínculo, parceria ou filiação com a Garena, sendo todas as marcas mencionadas de propriedade exclusiva de seus respectivos titulares.",
+      "O CONTRATADO não realiza, sob hipótese alguma, acesso direto ou indireto a servidores internos da plataforma.",
+      "Ao utilizar este site ou contratar quaisquer serviços nele oferecidos, o CLIENTE declara ter lido, compreendido e concordado integralmente com estes termos."
+    ],
+    terms_agree: "Li e concordo com os termos e desejo prosseguir.",
+    cancel: "Cancelar",
+    proceed: "Prosseguir",
+    users_active: "usuários ativos",
+    verify_title: "Verificar Conta",
+    verify_subtitle: "Insira o ID da sua conta para dar o primeiro passo.",
+    id_label: "ID do Jogador",
+    id_placeholder: "Insira o ID do jogador aqui",
+    verify_btn: "Verificar",
+    verifying: "Verificando...",
+    verified: "Verificado",
+    analysis_title: "Questionário de Análise",
+    analysis_desc: "Responda as perguntas abaixo para que nossa equipe possa analisar seu caso.",
+    analysis_send: "Enviar para Análise",
+    analysis_error_title: "Perguntas Incompletas",
+    analysis_error_desc: "Por favor, responda todas as perguntas para continuar.",
+    analysis_q_text_label: "Descreva detalhadamente como você acha que ocorreu o seu banimento",
+    analysis_q_text_placeholder: "Ex: Eu estava jogando normalmente quando o jogo fechou e apareceu a mensagem de conta suspensa. Não uso nenhum app de trapaça...",
+    analysis_questions: [
+      {
+        id: "suspensionTime",
+        label: "Quanto tempo faz que sua conta foi suspensa?",
+        options: ["Menos de 1 semana", "Entre 1 semana e 1 mês", "Entre 1 e 6 meses", "Mais de 6 meses"],
+      },
+      {
+        id: "thirdPartySoftware",
+        label: "Você já usou algum tipo de software de terceiros (hacks, mods, etc.)?",
+        options: ["Sim", "Não", "Não tenho certeza"],
+      },
+      {
+        id: "banReason",
+        label: "Qual foi o motivo que apareceu na mensagem de banimento?",
+        options: ["Uso de software/app não oficial", "Abuso de bugs ou glitches", "Comportamento tóxico (ofensas)", "Estorno indevido (chargeback)", "Nenhum motivo especificado", "Outro"],
+      },
+      {
+        id: "firstOffense",
+        label: "Esta é a primeira vez que sua conta foi suspensa?",
+        options: ["Sim", "Não, já fui suspenso antes"],
+      },
+      {
+        id: "hasMadePurchases",
+        label: "Você já fez alguma compra de diamantes ou outros itens na conta?",
+        options: ["Sim", "Não"],
+      },
+      {
+        id: "priorWarnings",
+        label: "Antes do banimento, você recebeu avisos por comportamento inadequado (ex: ofensas no chat)?",
+        options: ["Sim", "Não", "Não me lembro"],
+      },
+    ],
+    chat_typing: "Digitando",
+    chat_team: "Equipe Zephyrus",
+    chat_online: "Online",
+    chat_initial_msg: "Olá Equipe Zephyrus.",
+    chat_initial_response: "👋 Olá! Recebemos suas informações. Após uma análise preliminar, identificamos que seu caso tem características de um banimento automático, o que significa que há chances reais de recuperação. Nossa equipe pode preparar uma defesa técnica detalhada para você. 📄",
+    chat_msg_2: "🤔 Muitos banimentos acontecem sem uma análise humana detalhada.\nQuando o caso é apresentado da maneira certa, a plataforma pode reavaliar a decisão.💡\n\nAqui é exatamente onde a Equipe Zephyrus atua. 💪",
+    chat_msg_3: "Você deseja que a Equipe Zephyrus inicie a análise completa do seu caso? 🤔",
+    chat_option_yes: "Sim, quero tentar recuperar minha conta 👍",
+    chat_option_no: "Não, estou apenas buscando informações",
+    chat_great_choice: "Ótima escolha. ✅\nVocê está dando o passo que a maioria não dá: recorrer da maneira certa. 🚀",
+    chat_warning: "Importante: Em casos de banimento automático, o tempo é um fator decisivo. Quanto antes o processo for iniciado, maiores são as chances de sucesso.",
+    chat_final_msg: "Agora é o seguinte 👇\nSeu caso não é comum. Ele mostra sinais claros de um banimento automático: e são exatamente esses os casos que ainda valem a tentativa. ⚠️",
+    chat_final_msg_2: "Diversas pessoas chegaram até nós com o mesmo problema, achando que tinham perdido tudo.\nApós a análise e o processo feito pela Equipe Zephyrus, muitos conseguiram recuperar suas contas. ✨",
+    chat_final_msg_3: "A diferença não foi sorte.\nFoi recorrer do jeito certo, com quem sabe o que está fazendo. 💪",
+    chat_final_msg_4: "Se você quer tentar recuperar sua conta enquanto ainda há uma chance, o momento é agora. ⏳",
+    chat_purchase_btn: "Quero Recuperar Minha Conta",
+    delivery_title: "ÁREA DE ACESSO",
+    delivery_subtitle: "Insira o ID da sua transação recebido por e-mail.",
+    delivery_placeholder: "Ex: A1B2C3D4...",
+    delivery_btn: "Liberar Acesso",
+    delivery_important: "Importante: O acesso é permitido apenas uma vez. Certifique-se de estar em uma conexão estável.",
+    delivery_authorized: "ACESSO LIBERADO!",
+    delivery_authorized_subtitle: "Não feche esta página antes de concluir o download.",
+    delivery_download_btn: "Baixar Agora",
+    delivery_expired: "Acesso Expirado",
+    delivery_expired_desc: "Este ID de transação já foi utilizado para acessar o download.",
+    delivery_expired_help: "Por segurança, cada compra permite um único acesso. Se você não conseguiu concluir o download, entre em contato com o suporte.",
+    lang_selection: "Selecione seu idioma",
+    lang_en: "Inglês",
+    lang_es: "Espanhol",
+    lang_pt: "Português",
+    loading: "Carregando..."
   }
 };

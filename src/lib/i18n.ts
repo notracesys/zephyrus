@@ -11,7 +11,7 @@ export function useLanguage() {
 
   useEffect(() => {
     const savedLang = localStorage.getItem('app_lang') as Language;
-    if (savedLang && (savedLang === 'en' || savedLang === 'es')) {
+    if (savedLang && (savedLang === 'en' || savedLang === 'es' || savedLang === 'pt')) {
       setLang(savedLang);
     }
   }, []);
