@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { CheckCheck, AlertTriangle, ArrowRight, CheckCircle2, ShieldCheck, History } from 'lucide-react';
+import { CheckCheck, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -21,10 +21,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
 
 type FeedbackData = {
-  id: string;
-  user: string;
-  result: string;
-  date: string;
+  imageUrl: string;
 };
 
 type Message = {
@@ -48,35 +45,13 @@ const TypingIndicator = ({ text }: { text: string }) => (
 );
 
 const FeedbackCard = ({ data }: { data: FeedbackData }) => (
-  <div className="bg-background/80 border-2 border-primary/20 rounded-2xl p-4 shadow-xl animate-in zoom-in-95 duration-500 w-full max-w-sm">
-    <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-            <div className="bg-primary/10 p-1.5 rounded-full">
-                <ShieldCheck className="h-4 w-4 text-primary" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Proof of Result</span>
-        </div>
-        <div className="flex items-center gap-1 text-[9px] font-bold text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">
-            <CheckCircle2 className="h-3 w-3" /> SUCCESS
-        </div>
-    </div>
-    
-    <div className="space-y-2">
-        <div className="flex justify-between items-center">
-            <p className="text-xs text-muted-foreground">User:</p>
-            <p className="text-xs font-black">{data.user}</p>
-        </div>
-        <div className="flex justify-between items-center">
-            <p className="text-xs text-muted-foreground">Account ID:</p>
-            <p className="text-xs font-mono font-bold bg-muted px-1.5 py-0.5 rounded">{data.id}</p>
-        </div>
-        <div className="flex justify-between items-center pt-2 border-t border-border/50">
-            <p className="text-[11px] font-bold text-primary uppercase">{data.result}</p>
-            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <History className="h-3 w-3" /> {data.date}
-            </div>
-        </div>
-    </div>
+  <div className="animate-in zoom-in-95 duration-500 w-full max-w-[280px]">
+    <img 
+        src={data.imageUrl} 
+        alt="Feedback" 
+        className="rounded-2xl border-2 border-primary/20 shadow-2xl w-full h-auto"
+        data-ai-hint="Customer feedback screenshot"
+    />
   </div>
 );
 
@@ -130,7 +105,6 @@ ${t.chat_label_description}:
             setMessages((prev) => [...prev, teamResponse]);
             setIsTyping(false);
             
-            // Inserir Feedbacks após a primeira resposta
             const tFeedbacks = setTimeout(() => {
               setIsTyping(true);
               const tShowFeedbacks = setTimeout(() => {
@@ -143,7 +117,6 @@ ${t.chat_label_description}:
                 setMessages(prev => [...prev, ...feedbackMsgs]);
                 setIsTyping(false);
                 
-                // Continuar a sequência normal
                 const t3 = setTimeout(() => {
                   setIsTyping(true);
                   const t4 = setTimeout(() => {
