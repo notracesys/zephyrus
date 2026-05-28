@@ -44,31 +44,45 @@ const BRFlag = () => (
 
 export default function LanguageSelectorDialog() {
   const [showDialog, setShowDialog] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
-    // Só mostra na home page (/)
-    if (pathname !== '/') {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const isHome = pathname === '/' || pathname === '';
+
+    if (!isHome) {
+      // Quando sair da home, limpamos o bloqueio de reload para que apareça na próxima volta
       sessionStorage.removeItem('lang_picked_at_home');
       setShowDialog(false);
       return;
     }
 
-    // Verifica se já escolheu nesta sessão
+    // Se estiver na home, verifica se deve mostrar
     const justPicked = sessionStorage.getItem('lang_picked_at_home');
     if (!justPicked) {
       setShowDialog(true);
     }
-  }, [pathname]);
+  }, [pathname, mounted]);
 
   const handleSelect = (lang: Language) => {
     localStorage.setItem('app_lang', lang);
+    // Marcamos que acabamos de escolher para evitar o loop infinito após o reload
     sessionStorage.setItem('lang_picked_at_home', 'true');
     setShowDialog(false);
-    window.location.reload();
+    
+    // Pequeno delay antes do reload para garantir a experiência visual
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
-  if (!showDialog) return null;
+  if (!mounted || !showDialog) return null;
 
   return (
     <Dialog open={showDialog} onOpenChange={() => {}}>
