@@ -88,6 +88,11 @@ export const translations = {
     chat_final_msg_3: "The difference was not luck.\nIt was appealing the right way, with those who know what they are doing. 💪",
     chat_final_msg_4: "If you want to try to recover your account while there is still a chance, this is the moment. ⏳",
     chat_purchase_btn: "I Want to Recover My Account",
+    chat_feedbacks: [
+      { id: "2938****", user: "David M.", result: "Account Recovered", date: "Today" },
+      { id: "1029****", user: "Sarah L.", result: "Ban Reversed", date: "Yesterday" },
+      { id: "5582****", user: "Mark K.", result: "Access Restored", date: "2 days ago" }
+    ],
     delivery_title: "ACCESS AREA",
     delivery_subtitle: "Enter your transaction ID received by email.",
     delivery_placeholder: "Ex: A1B2C3D4...",
@@ -145,7 +150,7 @@ export const translations = {
       },
       {
         id: "thirdPartySoftware",
-        label: "¿Alguna vez ha utilizado algún tipo de software de terceros (hacks, mods, etc.)?",
+        label: "¿Alguna vez ha utilizado algum tipo de software de terceros (hacks, mods, etc.)?",
         options: ["Sí", "No", "No estoy seguro"],
       },
       {
@@ -192,6 +197,11 @@ export const translations = {
     chat_final_msg_3: "La diferencia no fue suerte.\nFue apelar de la manera correcta, con quienes saben lo que hacen. 💪",
     chat_final_msg_4: "Si quiere intentar recuperar su cuenta mientras todavía hay una oportunidad, este es el momento. ⏳",
     chat_purchase_btn: "Quiero Recuperar Mi Cuenta",
+    chat_feedbacks: [
+      { id: "2938****", user: "Carlos R.", result: "Cuenta Recuperada", date: "Hoy" },
+      { id: "1029****", user: "Maria J.", result: "Baneo Revertido", date: "Ayer" },
+      { id: "5582****", user: "José L.", result: "Acceso Restaurado", date: "Hace 2 días" }
+    ],
     delivery_title: "ÁREA DE ACCESO",
     delivery_subtitle: "Ingrese su ID de transacción recibido por correo electrónico.",
     delivery_placeholder: "Ej: A1B2C3D4...",
@@ -296,6 +306,11 @@ export const translations = {
     chat_final_msg_3: "A diferença não foi sorte.\nFoi recorrer do jeito certo, com quem sabe o que está fazendo. 💪",
     chat_final_msg_4: "Se você quer tentar recuperar sua conta enquanto ainda há uma chance, o momento é agora. ⏳",
     chat_purchase_btn: "Quero Recuperar Minha Conta",
+    chat_feedbacks: [
+      { id: "2938****", user: "Miguel S.", result: "Conta Recuperada", date: "Hoje" },
+      { id: "1029****", user: "Lívia G.", result: "Banimento Revertido", date: "Ontem" },
+      { id: "5582****", user: "Arthur M.", result: "Acesso Restaurado", date: "Há 2 dias" }
+    ],
     delivery_title: "ÁREA DE ACESSO",
     delivery_subtitle: "Insira o ID da sua transação recebido por e-mail.",
     delivery_placeholder: "Ex: A1B2C3D4...",

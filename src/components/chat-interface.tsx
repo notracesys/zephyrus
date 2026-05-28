@@ -1,10 +1,10 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Check, CheckCheck, AlertTriangle, ArrowRight, Home } from 'lucide-react';
+import { CheckCheck, AlertTriangle, ArrowRight, CheckCircle2, ShieldCheck, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -15,18 +15,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import Image from 'next/image';
 import Link from 'next/link';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
 
+type FeedbackData = {
+  id: string;
+  user: string;
+  result: string;
+  date: string;
+};
+
 type Message = {
   id: string | number;
   sender: 'user' | 'team';
-  content: string;
+  content?: string;
   status?: 'sent' | 'delivered' | 'read';
   type?: 'text' | 'feedback';
+  feedbackData?: FeedbackData;
 };
 
 const TypingIndicator = ({ text }: { text: string }) => (
@@ -36,6 +43,39 @@ const TypingIndicator = ({ text }: { text: string }) => (
         <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
         <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
         <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce"></span>
+    </div>
+  </div>
+);
+
+const FeedbackCard = ({ data }: { data: FeedbackData }) => (
+  <div className="bg-background/80 border-2 border-primary/20 rounded-2xl p-4 shadow-xl animate-in zoom-in-95 duration-500 w-full max-w-sm">
+    <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+            <div className="bg-primary/10 p-1.5 rounded-full">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Proof of Result</span>
+        </div>
+        <div className="flex items-center gap-1 text-[9px] font-bold text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">
+            <CheckCircle2 className="h-3 w-3" /> SUCCESS
+        </div>
+    </div>
+    
+    <div className="space-y-2">
+        <div className="flex justify-between items-center">
+            <p className="text-xs text-muted-foreground">User:</p>
+            <p className="text-xs font-black">{data.user}</p>
+        </div>
+        <div className="flex justify-between items-center">
+            <p className="text-xs text-muted-foreground">Account ID:</p>
+            <p className="text-xs font-mono font-bold bg-muted px-1.5 py-0.5 rounded">{data.id}</p>
+        </div>
+        <div className="flex justify-between items-center pt-2 border-t border-border/50">
+            <p className="text-[11px] font-bold text-primary uppercase">{data.result}</p>
+            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                <History className="h-3 w-3" /> {data.date}
+            </div>
+        </div>
     </div>
   </div>
 );
@@ -58,7 +98,6 @@ export default function ChatInterface() {
   }, [messages, isTyping]);
 
   useEffect(() => {
-    // Só inicia o chat quando o idioma estiver pronto e os parâmetros existirem
     if (!isReady) return;
 
     const initialMessageContent = `${t.chat_initial_msg}
@@ -90,38 +129,58 @@ ${t.chat_label_description}:
             };
             setMessages((prev) => [...prev, teamResponse]);
             setIsTyping(false);
-            const t3 = setTimeout(() => {
+            
+            // Inserir Feedbacks após a primeira resposta
+            const tFeedbacks = setTimeout(() => {
               setIsTyping(true);
-              const t4 = setTimeout(() => {
-                const teamResponse2: Message = {
-                  id: 'team-2', sender: 'team',
-                  content: t.chat_msg_2,
-                   type: 'text',
-                };
-                setMessages((prev) => [...prev, teamResponse2]);
+              const tShowFeedbacks = setTimeout(() => {
+                const feedbackMsgs: Message[] = (t.chat_feedbacks || []).map((f: any, i: number) => ({
+                  id: `feedback-${i}`,
+                  sender: 'team' as const,
+                  type: 'feedback' as const,
+                  feedbackData: f
+                }));
+                setMessages(prev => [...prev, ...feedbackMsgs]);
                 setIsTyping(false);
-                 const t5 = setTimeout(() => {
-                    setIsTyping(true);
-                    const t6 = setTimeout(() => {
-                        const teamResponse3: Message = {
-                            id: 'team-3', sender: 'team',
-                            content: t.chat_msg_3,
-                            type: 'text',
-                        };
-                        setMessages((prev) => [...prev, teamResponse3]);
-                        setIsTyping(false);
-                        setShowOptions(true);
-                    }, 3000); 
-                    timeouts.push(t6);
-                }, 6000); 
-                timeouts.push(t5);
-              }, 3000);
-              timeouts.push(t4);
-            }, 6000);
-            timeouts.push(t3);
+                
+                // Continuar a sequência normal
+                const t3 = setTimeout(() => {
+                  setIsTyping(true);
+                  const t4 = setTimeout(() => {
+                    const teamResponse2: Message = {
+                      id: 'team-2', sender: 'team',
+                      content: t.chat_msg_2,
+                      type: 'text',
+                    };
+                    setMessages((prev) => [...prev, teamResponse2]);
+                    setIsTyping(false);
+                     const t5 = setTimeout(() => {
+                        setIsTyping(true);
+                        const t6 = setTimeout(() => {
+                            const teamResponse3: Message = {
+                                id: 'team-3', sender: 'team',
+                                content: t.chat_msg_3,
+                                type: 'text',
+                            };
+                            setMessages((prev) => [...prev, teamResponse3]);
+                            setIsTyping(false);
+                            setShowOptions(true);
+                        }, 3000); 
+                        timeouts.push(t6);
+                    }, 6000); 
+                    timeouts.push(t5);
+                  }, 3000);
+                  timeouts.push(t4);
+                }, 6000);
+                timeouts.push(t3);
+              }, 4000);
+              timeouts.push(tShowFeedbacks);
+            }, 5000);
+            timeouts.push(tFeedbacks);
+            
         }, 3000); 
         timeouts.push(t2);
-    }, 6000); 
+    }, 4000); 
     timeouts.push(t1);
 
     return () => timeouts.forEach(t => clearTimeout(t));
@@ -224,10 +283,15 @@ ${t.chat_label_description}:
                       return (
                       <div key={msg.id} className={cn('flex items-end gap-2', isUser ? 'justify-end' : 'justify-start')}>
                           {isTeam && (<div className="w-8">{nextMessage?.sender !== 'team' && (<Avatar className="h-8 w-8"><AvatarImage src="/equipe.png" /><AvatarFallback>Z</AvatarFallback></Avatar>)}</div>)}
-                          <div className={cn('relative p-3 max-w-[85%] md:max-w-lg shadow-md', isUser ? 'bg-primary text-primary-foreground rounded-t-xl rounded-bl-xl' : 'bg-secondary text-secondary-foreground rounded-t-xl rounded-br-xl', (isUser && prevMessage?.sender === 'user') && 'rounded-tr-none', (isUser && nextMessage?.sender === 'user') && 'rounded-bl-none', (isTeam && prevMessage?.sender === 'team') && 'rounded-tl-none', (isTeam && nextMessage?.sender === 'team') && 'rounded-br-none')}>
-                              <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                              {isUser && (<div className="flex justify-end items-center gap-1 mt-1"><CheckCheck className={cn("h-4 w-4", msg.status === 'read' ? "text-blue-500" : "text-muted-foreground")} /></div>)}
-                          </div>
+                          
+                          {msg.type === 'feedback' && msg.feedbackData ? (
+                            <FeedbackCard data={msg.feedbackData} />
+                          ) : (
+                            <div className={cn('relative p-3 max-w-[85%] md:max-w-lg shadow-md', isUser ? 'bg-primary text-primary-foreground rounded-t-xl rounded-bl-xl' : 'bg-secondary text-secondary-foreground rounded-t-xl rounded-br-xl', (isUser && prevMessage?.sender === 'user') && 'rounded-tr-none', (isUser && nextMessage?.sender === 'user') && 'rounded-bl-none', (isTeam && prevMessage?.sender === 'team') && 'rounded-tl-none', (isTeam && nextMessage?.sender === 'team') && 'rounded-br-none')}>
+                                <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                                {isUser && (<div className="flex justify-end items-center gap-1 mt-1"><CheckCheck className={cn("h-4 w-4", msg.status === 'read' ? "text-blue-500" : "text-muted-foreground")} /></div>)}
+                            </div>
+                          )}
                       </div>
                   )})}
                   {isTyping && (<div className="flex items-end gap-2 justify-start"><Avatar className="h-8 w-8"><AvatarImage src="/equipe.png" /><AvatarFallback>Z</AvatarFallback></Avatar><div className="max-w-md rounded-lg p-2 bg-secondary"><TypingIndicator text={t.chat_typing} /></div></div>)}
