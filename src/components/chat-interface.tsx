@@ -60,14 +60,14 @@ export default function ChatInterface() {
 
   useEffect(() => {
     const initialMessageContent = `${t.chat_initial_msg}
-Suspension time: ${searchParams.get('suspensionTime') || 'N/A'}.
-Used 3rd party software: ${searchParams.get('thirdPartySoftware') || 'N/A'}.
-Ban reason: ${searchParams.get('banReason') || 'N/A'}.
-First offense: ${searchParams.get('firstOffense') || 'N/A'}.
-Made purchases: ${searchParams.get('hasMadePurchases') || 'N/A'}.
-Prior warnings: ${searchParams.get('priorWarnings') || 'N/A'}.
+${t.chat_label_suspension_time}: ${searchParams.get('suspensionTime') || 'N/A'}.
+${t.chat_label_software}: ${searchParams.get('thirdPartySoftware') || 'N/A'}.
+${t.chat_label_reason}: ${searchParams.get('banReason') || 'N/A'}.
+${t.chat_label_first_offense}: ${searchParams.get('firstOffense') || 'N/A'}.
+${t.chat_label_purchases}: ${searchParams.get('hasMadePurchases') || 'N/A'}.
+${t.chat_label_warnings}: ${searchParams.get('priorWarnings') || 'N/A'}.
 
-Description:
+${t.chat_label_description}:
 "${searchParams.get('banDescription') || 'N/A'}"
 `;
 
