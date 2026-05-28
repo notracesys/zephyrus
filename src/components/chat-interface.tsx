@@ -41,7 +41,7 @@ const TypingIndicator = ({ text }: { text: string }) => (
 );
 
 export default function ChatInterface() {
-  const { t } = useLanguage();
+  const { t, isReady } = useLanguage();
   const searchParams = useSearchParams();
   const firestore = useFirestore();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -49,7 +49,6 @@ export default function ChatInterface() {
   const [showOptions, setShowOptions] = useState(false);
   const [showImportantNotice, setShowImportantNotice] = useState(false);
   const [showPurchaseButton, setShowPurchaseButton] = useState(false);
-  const [showFinalOptions, setShowFinalOptions] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const generateId = () => Math.random().toString(36).substr(2, 9) + Date.now();
@@ -59,6 +58,9 @@ export default function ChatInterface() {
   }, [messages, isTyping]);
 
   useEffect(() => {
+    // Só inicia o chat quando o idioma estiver pronto e os parâmetros existirem
+    if (!isReady) return;
+
     const initialMessageContent = `${t.chat_initial_msg}
 ${t.chat_label_suspension_time}: ${searchParams.get('suspensionTime') || 'N/A'}.
 ${t.chat_label_software}: ${searchParams.get('thirdPartySoftware') || 'N/A'}.
@@ -123,7 +125,7 @@ ${t.chat_label_description}:
     timeouts.push(t1);
 
     return () => timeouts.forEach(t => clearTimeout(t));
-  }, [searchParams, t]);
+  }, [searchParams, t, isReady]);
 
   const handleTrackCheckout = (url: string) => {
     if (!firestore) return;
@@ -144,7 +146,6 @@ ${t.chat_label_description}:
     };
     setMessages(prev => [...prev, userMessage]);
     setShowOptions(false);
-    setShowFinalOptions(false);
 
     if (option === 'sim') {
         setTimeout(() => {
@@ -192,12 +193,12 @@ ${t.chat_label_description}:
   return (
     <>
       <AlertDialog open={showImportantNotice} onOpenChange={setShowImportantNotice}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[90%] rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2"><AlertTriangle className="text-destructive" /> Important:</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2"><AlertTriangle className="text-destructive" /> {t.chat_warning_title || 'Important:'}</AlertDialogTitle>
             <AlertDialogDescription>{t.chat_warning}</AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogAction onClick={() => setShowImportantNotice(false)} className="bg-primary hover:bg-primary/90">Close</AlertDialogAction></AlertDialogFooter>
+          <AlertDialogFooter><AlertDialogAction onClick={() => setShowImportantNotice(false)} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">Close</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
@@ -234,7 +235,7 @@ ${t.chat_label_description}:
               </div>
           </div>
           <div className="bg-card border-t p-4">
-              {showOptions && (<div className="flex flex-col sm:flex-row gap-2 max-w-4xl mx-auto animate-in fade-in-50 duration-500"><Button onClick={() => handleOptionClick('sim')} className="flex-1 font-bold">{t.chat_option_yes}</Button><Button onClick={() => handleOptionClick('nao')} variant="secondary" className="flex-1 font-semibold">{t.chat_option_no}</Button></div>)}
+              {showOptions && (<div className="flex flex-col sm:flex-row gap-2 max-w-4xl mx-auto animate-in fade-in-50 duration-500"><Button onClick={() => handleOptionClick('sim')} className="flex-1 font-bold h-12">{t.chat_option_yes}</Button><Button onClick={() => handleOptionClick('nao')} variant="secondary" className="flex-1 font-semibold h-12">{t.chat_option_no}</Button></div>)}
               {showPurchaseButton && (
                 <div className="flex justify-center max-w-4xl mx-auto animate-in fade-in-50 duration-500">
                   <Button 
