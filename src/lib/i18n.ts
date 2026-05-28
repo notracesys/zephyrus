@@ -7,21 +7,15 @@ export { translations };
 export type { Language };
 
 export function useLanguage() {
-  // Inicializa com o idioma salvo se disponível, para evitar flash de inglês
-  const [lang, setLang] = useState<Language>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('app_lang') as Language;
-      if (saved === 'en' || saved === 'es' || saved === 'pt') return saved;
-    }
-    return 'en';
-  });
-
+  // Inicializa sempre com 'en' para garantir consistência entre servidor e primeira renderização do cliente (evita erro de hidratação)
+  const [lang, setLang] = useState<Language>('en');
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const savedLang = localStorage.getItem('app_lang') as Language;
-    if (savedLang && (savedLang === 'en' || savedLang === 'es' || savedLang === 'pt')) {
-      setLang(savedLang);
+    // Apenas após a montagem no cliente, buscamos o idioma real salvo
+    const saved = localStorage.getItem('app_lang') as Language;
+    if (saved && (saved === 'en' || saved === 'es' || saved === 'pt')) {
+      setLang(saved);
     }
     setIsReady(true);
   }, []);

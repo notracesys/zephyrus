@@ -17,10 +17,12 @@ const Logo = () => (
 
 
 export default function Header() {
-  const { t } = useLanguage();
+  const { t, isReady } = useLanguage();
   const [activeUsers, setActiveUsers] = useState(137);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     setActiveUsers(Math.floor(Math.random() * (200 - 100 + 1)) + 100);
 
     const interval = setInterval(() => {
@@ -46,7 +48,10 @@ export default function Header() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                 </div>
-                <span className="text-sm text-muted-foreground">{activeUsers} {t.users_active}</span>
+                <span className="text-sm text-muted-foreground">
+                  {/* Evita erro de hidratação: renderiza apenas após montar e o i18n estar pronto */}
+                  {mounted && isReady ? `${activeUsers} ${t.users_active}` : '...'}
+                </span>
             </div>
         </div>
       </div>
