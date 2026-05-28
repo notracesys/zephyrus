@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { CheckCheck, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { CheckCheck, AlertTriangle, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -105,56 +105,39 @@ ${t.chat_label_description}:
             setMessages((prev) => [...prev, teamResponse]);
             setIsTyping(false);
             
-            const tFeedbacks = setTimeout(() => {
+            const t3 = setTimeout(() => {
               setIsTyping(true);
-              const tShowFeedbacks = setTimeout(() => {
-                const feedbackMsgs: Message[] = (t.chat_feedbacks || []).map((f: any, i: number) => ({
-                  id: `feedback-${i}`,
-                  sender: 'team' as const,
-                  type: 'feedback' as const,
-                  feedbackData: f
-                }));
-                setMessages(prev => [...prev, ...feedbackMsgs]);
+              const t4 = setTimeout(() => {
+                const teamResponse2: Message = {
+                  id: 'team-2', sender: 'team',
+                  content: t.chat_msg_2,
+                  type: 'text',
+                };
+                setMessages((prev) => [...prev, teamResponse2]);
                 setIsTyping(false);
-                
-                const t3 = setTimeout(() => {
-                  setIsTyping(true);
-                  const t4 = setTimeout(() => {
-                    const teamResponse2: Message = {
-                      id: 'team-2', sender: 'team',
-                      content: t.chat_msg_2,
-                      type: 'text',
-                    };
-                    setMessages((prev) => [...prev, teamResponse2]);
-                    setIsTyping(false);
-                     const t5 = setTimeout(() => {
-                        setIsTyping(true);
-                        const t6 = setTimeout(() => {
-                            const teamResponse3: Message = {
-                                id: 'team-3', sender: 'team',
-                                content: t.chat_msg_3,
-                                type: 'text',
-                            };
-                            setMessages((prev) => [...prev, teamResponse3]);
-                            setIsTyping(false);
-                            setShowOptions(true);
-                        }, 3000); 
-                        timeouts.push(t6);
-                    }, 6000); 
-                    timeouts.push(t5);
-                  }, 3000);
-                  timeouts.push(t4);
-                }, 6000);
-                timeouts.push(t3);
-              }, 4000);
-              timeouts.push(tShowFeedbacks);
-            }, 5000);
-            timeouts.push(tFeedbacks);
+                 const t5 = setTimeout(() => {
+                    setIsTyping(true);
+                    const t6 = setTimeout(() => {
+                        const teamResponse3: Message = {
+                            id: 'team-3', sender: 'team',
+                            content: t.chat_msg_3,
+                            type: 'text',
+                        };
+                        setMessages((prev) => [...prev, teamResponse3]);
+                        setIsTyping(false);
+                        setShowOptions(true);
+                    }, 3000); 
+                    timeouts.push(t6);
+                }, 6000); 
+                timeouts.push(t5);
+              }, 3000);
+              timeouts.push(t4);
+            }, 6000);
+            timeouts.push(t3);
             
         }, 3000); 
         timeouts.push(t2);
     }, 4000); 
-    timeouts.push(t1);
 
     return () => timeouts.forEach(t => clearTimeout(t));
   }, [searchParams, t, isReady]);
@@ -197,21 +180,38 @@ ${t.chat_label_description}:
                               setTimeout(() => {
                                 setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_2, type: 'text' }]);
                                 setIsTyping(false);
+                                
+                                // FEEDBACK IMAGES APPEAR HERE
                                 setTimeout(() => {
                                     setIsTyping(true);
                                     setTimeout(() => {
-                                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_3, type: 'text' }]);
+                                        const feedbackMsgs: Message[] = (t.chat_feedbacks || []).map((f: any, i: number) => ({
+                                          id: `feedback-${i}-${Date.now()}`,
+                                          sender: 'team' as const,
+                                          type: 'feedback' as const,
+                                          feedbackData: f
+                                        }));
+                                        setMessages(prev => [...prev, ...feedbackMsgs]);
                                         setIsTyping(false);
+
                                         setTimeout(() => {
                                             setIsTyping(true);
                                             setTimeout(() => {
-                                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_4, type: 'text' }]);
+                                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_3, type: 'text' }]);
                                                 setIsTyping(false);
-                                                setShowPurchaseButton(true);
-                                            }, 3000);
-                                        }, 6000);
-                                    }, 3000)
-                                }, 6000)
+                                                setTimeout(() => {
+                                                    setIsTyping(true);
+                                                    setTimeout(() => {
+                                                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_4, type: 'text' }]);
+                                                        setIsTyping(false);
+                                                        setShowPurchaseButton(true);
+                                                    }, 3000);
+                                                }, 6000);
+                                            }, 3000)
+                                        }, 6000)
+                                    }, 3000);
+                                }, 4000);
+
                               }, 3000);
                             }, 6000);
                         }, 3000);
@@ -227,7 +227,7 @@ ${t.chat_label_description}:
       <AlertDialog open={showImportantNotice} onOpenChange={setShowImportantNotice}>
         <AlertDialogContent className="w-[90%] rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2"><AlertTriangle className="text-destructive" /> {t.chat_warning_title || 'Important:'}</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2"><AlertTriangle className="text-destructive" /> {t.chat_warning_title}</AlertDialogTitle>
             <AlertDialogDescription>{t.chat_warning}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter><AlertDialogAction onClick={() => setShowImportantNotice(false)} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">Close</AlertDialogAction></AlertDialogFooter>
