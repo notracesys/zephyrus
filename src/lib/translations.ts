@@ -90,8 +90,8 @@ export const translations = {
     chat_final_msg_4: "If you want to try to recover your account while there is still a chance, this is the moment. ⏳",
     chat_purchase_btn: "I Want to Recover My Account",
     chat_feedbacks: [
-      { imageUrl: "/feedback1.png" },
-      { imageUrl: "/feedback2.png" }
+      { imageUrl: "/feedback1.jpg" },
+      { imageUrl: "/feedback2.jpg" }
     ],
     delivery_title: "ACCESS AREA",
     delivery_subtitle: "Enter your transaction ID received by email.",
@@ -199,8 +199,8 @@ export const translations = {
     chat_final_msg_4: "Si quiere intentar recuperar su cuenta mientras todavía hay una oportunidad, este es el momento. ⏳",
     chat_purchase_btn: "Quiero Recuperar Mi Cuenta",
     chat_feedbacks: [
-      { imageUrl: "/feedback1.png" },
-      { imageUrl: "/feedback2.png" }
+      { imageUrl: "/feedback1.jpg" },
+      { imageUrl: "/feedback2.jpg" }
     ],
     delivery_title: "ÁREA DE ACCESO",
     delivery_subtitle: "Ingrese su ID de transacción recibido por correo electrónico.",
@@ -306,10 +306,10 @@ export const translations = {
     chat_final_msg_2: "Diversas pessoas chegaram até nós com o mesmo problema, achando que tinham perdido tudo.\nApós a análise e o processo feito pela Equipe Zephyrus, muitos conseguiram recuperar suas contas. ✨",
     chat_final_msg_3: "A diferença não foi sorte.\nFoi recorrer do jeito certo, com quem sabe o que está fazendo. 💪",
     chat_final_msg_4: "Se você quer tentar recuperar sua conta enquanto ainda há uma chance, o momento é agora. ⏳",
-    chat_purchase_btn: "Quero Recuperar Minha Conta",
+    chat_purchase_btn: "Quiero Recuperar Minha Conta",
     chat_feedbacks: [
-      { imageUrl: "/feedback1.png" },
-      { imageUrl: "/feedback2.png" }
+      { imageUrl: "/feedback1.jpg" },
+      { imageUrl: "/feedback2.jpg" }
     ],
     delivery_title: "ÁREA DE ACESSO",
     delivery_subtitle: "Insira o ID da sua transação recebido por e-mail.",
