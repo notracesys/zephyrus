@@ -278,10 +278,10 @@ ${t.chat_label_description}:
                   <Button 
                     asChild 
                     size="lg" 
-                    onClick={() => handleTrackCheckout('https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6')} 
+                    onClick={() => handleTrackCheckout(t.checkout_url)} 
                     className="w-full sm:w-auto font-bold relative overflow-hidden bg-primary text-primary-foreground h-14"
                   >
-                    <Link href="https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6" target="_blank">
+                    <Link href={t.checkout_url} target="_blank">
                       {t.chat_purchase_btn} <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>

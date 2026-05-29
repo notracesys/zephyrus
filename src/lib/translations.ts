@@ -6,6 +6,7 @@ export const translations = {
     subtitle: "Your account was banned? Not all is lost.",
     description: "Recovering your account is not a matter of luck. It's about knowing what to say. Most fail because they say anything, anyway. We discovered what works.",
     cta: "Recover Banned Account",
+    checkout_url: "https://chk.eduzz.com/aziwk6nz?currency=USD",
     terms_title: "Liability Terms and Conditions",
     terms_desc: "Please read carefully before proceeding with your Unban request.",
     terms_body: [
@@ -115,6 +116,7 @@ export const translations = {
     subtitle: "¿Tu cuenta fue baneada? No todo está perdido.",
     description: "Recuperar tu cuenta no es cuestión de suerte. Se trata de saber qué decir. La mayoría fracasa porque dice cualquier cosa, de cualquier manera. Descubrimos lo que funciona.",
     cta: "Recuperar Cuenta Baneada",
+    checkout_url: "https://chk.eduzz.com/aziwk6nz?currency=USD",
     terms_title: "Términos y Condiciones de Responsabilidad",
     terms_desc: "Por favor, lea atentamente antes de continuar con su solicitud de Desbaneo.",
     terms_body: [
@@ -145,7 +147,7 @@ export const translations = {
     analysis_questions: [
       {
         id: "suspensionTime",
-        label: "¿Hace cuánto tiempo fue suspendida su cuenta?",
+        label: "¿Hace cuánto tempo fue suspendida su cuenta?",
         options: ["Menos de 1 semana", "Entre 1 semana y 1 mes", "Entre 1 y 6 meses", "Más de 6 meses"],
       },
       {
@@ -224,6 +226,7 @@ export const translations = {
     subtitle: "Sua conta foi banida? Nem tudo está perdido.",
     description: "Recuperar sua conta não é questão de sorte. É saber o que dizer. A maioria falha porque diz qualquer coisa, de qualquer jeito. Nós descobrimos o que funciona.",
     cta: "Recuperar Conta Banida",
+    checkout_url: "https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6",
     terms_title: "Termos e Condições de Responsabilidade",
     terms_desc: "Por favor, leia atentamente antes de prosseguir com sua solicitação de Unban.",
     terms_body: [
@@ -306,7 +309,7 @@ export const translations = {
     chat_final_msg_2: "Diversas pessoas chegaram até nós com o mesmo problema, achando que tinham perdido tudo.\nApós a análise e o processo feito pela Equipe Zephyrus, muitos conseguiram recuperar suas contas. ✨",
     chat_final_msg_3: "A diferença não foi sorte.\nFoi recorrer do jeito certo, com quem sabe o que está fazendo. 💪",
     chat_final_msg_4: "Se você quer tentar recuperar sua conta enquanto ainda há uma chance, o momento é agora. ⏳",
-    chat_purchase_btn: "Quiero Recuperar Minha Conta",
+    chat_purchase_btn: "Quero Recuperar Minha Conta",
     chat_feedbacks: [
       { imageUrl: "/feedback1.jpg" },
       { imageUrl: "/feedback2.jpg" }
