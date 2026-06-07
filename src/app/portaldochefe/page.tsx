@@ -20,12 +20,12 @@ import {
   ChartLegendContent
 } from '@/components/ui/chart';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useAuth, useDoc } from '@/firebase';
-import { collection, query, orderBy, doc, getDoc, setDoc, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, doc, getDoc, setDoc } from 'firebase/firestore';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { 
   Eye, TrendingUp, Activity, ShoppingCart, Lock, Loader2, LogOut, Package, 
   Search, CheckCircle2, XCircle, MousePointerClick, BarChart3, Settings, Save,
-  Palette, Link2, UserCircle, Type, Upload, Image as ImageIcon, Sparkles
+  Palette, Link2, UserCircle, Type, Upload, Image as ImageIcon, Sparkles, Trash2
 } from 'lucide-react';
 import { format, isSameDay, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -254,6 +254,11 @@ export default function PortalDoChefe() {
       toast({ title: "Imagem carregada!", description: "Clique em Salvar para aplicar as mudanças." });
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = (field: 'headerAvatar' | 'teamAvatar') => {
+    setConfigForm(prev => ({ ...prev, [field]: '' }));
+    toast({ title: "Foto removida!", description: "Clique em Salvar para confirmar." });
   };
 
   const handleSearchId = async (e: React.FormEvent) => {
@@ -537,7 +542,7 @@ export default function PortalDoChefe() {
                 </CardContent>
               </Card>
 
-              {/* Avatares - AGORA COM UPLOAD */}
+              {/* Avatares */}
               <Card className="bg-card/40 border-border/50 backdrop-blur-sm md:col-span-2 shadow-xl border-primary/10">
                 <CardHeader className="p-6 border-b border-border/30">
                   <div className="flex items-center gap-3">
@@ -557,14 +562,24 @@ export default function PortalDoChefe() {
                         {configForm.headerAvatar ? (
                            <>
                              <img src={configForm.headerAvatar} alt="Header Preview" className="h-full w-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" />
-                             <Button 
-                                variant="secondary" 
-                                size="sm" 
-                                className="absolute opacity-0 group-hover:opacity-100 transition-opacity font-bold gap-2"
-                                onClick={() => headerFileRef.current?.click()}
-                             >
-                               <Upload className="h-4 w-4" /> TROCAR FOTO
-                             </Button>
+                             <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                               <Button 
+                                  variant="secondary" 
+                                  size="sm" 
+                                  className="font-bold gap-2"
+                                  onClick={() => headerFileRef.current?.click()}
+                               >
+                                 <Upload className="h-4 w-4" /> TROCAR
+                               </Button>
+                               <Button 
+                                  variant="destructive" 
+                                  size="icon" 
+                                  className="h-9 w-9"
+                                  onClick={() => handleRemovePhoto('headerAvatar')}
+                               >
+                                 <Trash2 className="h-4 w-4" />
+                               </Button>
+                             </div>
                            </>
                         ) : (
                           <Button 
@@ -596,14 +611,24 @@ export default function PortalDoChefe() {
                         {configForm.teamAvatar ? (
                            <>
                              <img src={configForm.teamAvatar} alt="Team Preview" className="h-full w-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" />
-                             <Button 
-                                variant="secondary" 
-                                size="sm" 
-                                className="absolute opacity-0 group-hover:opacity-100 transition-opacity font-bold gap-2"
-                                onClick={() => teamFileRef.current?.click()}
-                             >
-                               <Upload className="h-4 w-4" /> TROCAR FOTO
-                             </Button>
+                             <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                               <Button 
+                                  variant="secondary" 
+                                  size="sm" 
+                                  className="font-bold gap-2"
+                                  onClick={() => teamFileRef.current?.click()}
+                               >
+                                 <Upload className="h-4 w-4" /> TROCAR
+                               </Button>
+                               <Button 
+                                  variant="destructive" 
+                                  size="icon" 
+                                  className="h-9 w-9"
+                                  onClick={() => handleRemovePhoto('teamAvatar')}
+                                >
+                                 <Trash2 className="h-4 w-4" />
+                               </Button>
+                             </div>
                            </>
                         ) : (
                           <Button 
@@ -641,4 +666,3 @@ export default function PortalDoChefe() {
     </div>
   );
 }
-
