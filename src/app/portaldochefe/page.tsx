@@ -46,6 +46,74 @@ const chartConfig = {
   },
 };
 
+// Auxiliar para converter Hex para HSL (formato do Tailwind CSS)
+function hexToHSL(hex: string) {
+  hex = hex.replace(/^#/, '');
+  let r = parseInt(hex.substring(0, 2), 16) / 255;
+  let g = parseInt(hex.substring(2, 4), 16) / 255;
+  let b = parseInt(hex.substring(4, 6), 16) / 255;
+
+  let max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s, l = (max + min) / 2;
+
+  if (max === min) {
+    h = s = 0;
+  } else {
+    let d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+
+  h = Math.round(h * 360);
+  s = Math.round(s * 100);
+  l = Math.round(l * 100);
+
+  return `${h} ${s}% ${l}%`;
+}
+
+// Auxiliar para converter HSL para Hex (para inicializar o picker)
+function hslToHex(hslStr: string) {
+  const parts = hslStr.split(' ');
+  if (parts.length < 3) return "#ffcc00";
+  
+  let h = parseInt(parts[0]);
+  let s = parseInt(parts[1].replace('%', '')) / 100;
+  let l = parseInt(parts[2].replace('%', '')) / 100;
+
+  let r, g, b;
+
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h / 360 + 1/3);
+    g = hue2rgb(p, q, h / 360);
+    b = hue2rgb(p, q, h / 360 - 1/3);
+  }
+
+  const toHex = (x: number) => {
+    const hex = Math.round(x * 255).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  };
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
 export default function PortalDoChefe() {
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
@@ -57,7 +125,6 @@ export default function PortalDoChefe() {
   const [searchResult, setSearchResult] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false);
   
-  // State para configurações
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [configForm, setConfigForm] = useState({
     siteName: '',
@@ -73,7 +140,6 @@ export default function PortalDoChefe() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
-  // Queries para Dashboard
   const visitsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return collection(firestore, 'visits');
@@ -92,7 +158,6 @@ export default function PortalDoChefe() {
   }, [firestore, user]);
   const { data: salesData, isLoading: salesLoading } = useCollection(salesQuery);
 
-  // Doc de Configurações
   const configDocRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return doc(firestore, 'config', 'global');
@@ -182,6 +247,11 @@ export default function PortalDoChefe() {
     } catch (error) { console.error(error); } finally { setIsSearching(false); }
   };
 
+  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const hsl = hexToHSL(e.target.value);
+    setConfigForm({ ...configForm, primaryColor: hsl });
+  };
+
   if (!mounted) return null;
   if (isUserLoading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
 
@@ -242,7 +312,6 @@ export default function PortalDoChefe() {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Stats Cards */}
             <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
               <Card className="bg-card/40 border-border/50 backdrop-blur-sm overflow-hidden group">
                 <CardContent className="pt-6">
@@ -357,7 +426,6 @@ export default function PortalDoChefe() {
 
           <TabsContent value="config" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid gap-6 md:grid-cols-2">
-              {/* Geral & Nome */}
               <Card className="bg-card/40 border-border/50 backdrop-blur-sm">
                 <CardHeader className="p-6">
                   <div className="flex items-center gap-3">
@@ -377,7 +445,6 @@ export default function PortalDoChefe() {
                 </CardContent>
               </Card>
 
-              {/* Cores & Estilo */}
               <Card className="bg-card/40 border-border/50 backdrop-blur-sm">
                 <CardHeader className="p-6">
                   <div className="flex items-center gap-3">
@@ -387,17 +454,35 @@ export default function PortalDoChefe() {
                 </CardHeader>
                 <CardContent className="p-6 pt-0 space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-xs uppercase font-bold text-muted-foreground">Cor Primária (HSL)</Label>
-                    <div className="flex gap-2">
-                      <Input value={configForm.primaryColor} onChange={(e) => setConfigForm({...configForm, primaryColor: e.target.value})} placeholder="Ex: 48 100% 50% (Amarelo)" className="bg-muted/30 font-mono" />
-                      <div className="h-10 w-10 rounded-lg border border-border" style={{ backgroundColor: `hsl(${configForm.primaryColor || '48 100% 50%'})` }} />
+                    <Label className="text-xs uppercase font-bold text-muted-foreground">Cor Primária</Label>
+                    <div className="flex gap-4 items-center">
+                      <div className="relative group overflow-hidden h-14 w-14 rounded-xl border-2 border-border/50 shadow-inner flex items-center justify-center bg-muted shrink-0 transition-transform active:scale-95">
+                        <input 
+                          type="color" 
+                          value={hslToHex(configForm.primaryColor || '48 100% 50%')} 
+                          onChange={handleColorChange}
+                          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                        />
+                        <div 
+                          className="h-8 w-8 rounded-full shadow-lg border-2 border-white/20" 
+                          style={{ backgroundColor: `hsl(${configForm.primaryColor || '48 100% 50%'})` }}
+                        />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <Input 
+                          value={configForm.primaryColor} 
+                          onChange={(e) => setConfigForm({...configForm, primaryColor: e.target.value})} 
+                          placeholder="Ex: 48 100% 50%" 
+                          className="bg-muted/30 font-mono text-xs" 
+                        />
+                        <p className="text-[9px] text-muted-foreground italic uppercase font-bold tracking-widest">HSL Value</p>
+                      </div>
                     </div>
-                    <p className="text-[10px] text-muted-foreground italic">Dica: 280 100% 50% é Roxo, 160 100% 50% é Verde.</p>
+                    <p className="text-[10px] text-muted-foreground italic mt-2">Clique no quadrado à esquerda para abrir o seletor visual.</p>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Checkout Links */}
               <Card className="bg-card/40 border-border/50 backdrop-blur-sm md:col-span-2">
                 <CardHeader className="p-6">
                   <div className="flex items-center gap-3">
@@ -417,7 +502,6 @@ export default function PortalDoChefe() {
                 </CardContent>
               </Card>
 
-              {/* Avatares */}
               <Card className="bg-card/40 border-border/50 backdrop-blur-sm md:col-span-2">
                 <CardHeader className="p-6">
                   <div className="flex items-center gap-3">
@@ -430,7 +514,7 @@ export default function PortalDoChefe() {
                     <Label className="text-xs uppercase font-bold text-muted-foreground">Avatar do Header (URL)</Label>
                     <div className="flex gap-4 items-center">
                       <Input value={configForm.headerAvatar} onChange={(e) => setConfigForm({...configForm, headerAvatar: e.target.value})} placeholder="/eu.png" className="bg-muted/30" />
-                      <div className="h-12 w-12 rounded-full border bg-muted shrink-0 overflow-hidden">
+                      <div className="h-12 w-12 rounded-full border bg-muted shrink-0 overflow-hidden shadow-lg border-primary/20">
                         <img src={configForm.headerAvatar || '/eu.png'} alt="Preview" className="h-full w-full object-cover" />
                       </div>
                     </div>
@@ -439,7 +523,7 @@ export default function PortalDoChefe() {
                     <Label className="text-xs uppercase font-bold text-muted-foreground">Avatar da Equipe Chat (URL)</Label>
                     <div className="flex gap-4 items-center">
                       <Input value={configForm.teamAvatar} onChange={(e) => setConfigForm({...configForm, teamAvatar: e.target.value})} placeholder="/equipe.png" className="bg-muted/30" />
-                      <div className="h-12 w-12 rounded-full border bg-muted shrink-0 overflow-hidden">
+                      <div className="h-12 w-12 rounded-full border bg-muted shrink-0 overflow-hidden shadow-lg border-primary/20">
                         <img src={configForm.teamAvatar || '/equipe.png'} alt="Preview" className="h-full w-full object-cover" />
                       </div>
                     </div>
@@ -449,7 +533,7 @@ export default function PortalDoChefe() {
             </div>
 
             <div className="flex justify-end pt-4">
-              <Button onClick={handleSaveConfig} disabled={isSavingConfig} size="lg" className="px-10 font-black h-14 text-lg gap-2 shadow-xl shadow-primary/20">
+              <Button onClick={handleSaveConfig} disabled={isSavingConfig} size="lg" className="px-10 font-black h-14 text-lg gap-2 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform">
                 {isSavingConfig ? <Loader2 className="animate-spin" /> : <><Save /> SALVAR TODAS AS ALTERAÇÕES</>}
               </Button>
             </div>
@@ -459,3 +543,4 @@ export default function PortalDoChefe() {
     </div>
   );
 }
+
