@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Header from '@/components/header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
@@ -20,12 +20,12 @@ import {
   ChartLegendContent
 } from '@/components/ui/chart';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useAuth, useDoc } from '@/firebase';
-import { collection, query, orderBy, doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, getDoc, setDoc, getDocs } from 'firebase/firestore';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { 
   Eye, TrendingUp, Activity, ShoppingCart, Lock, Loader2, LogOut, Package, 
   Search, CheckCircle2, XCircle, MousePointerClick, BarChart3, Settings, Save,
-  Palette, Link2, UserCircle, Type
+  Palette, Link2, UserCircle, Type, Upload, Image as ImageIcon, Sparkles
 } from 'lucide-react';
 import { format, isSameDay, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -34,6 +34,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const chartConfig = {
   visits: {
@@ -76,8 +77,9 @@ function hexToHSL(hex: string) {
   return `${h} ${s}% ${l}%`;
 }
 
-// Auxiliar para converter HSL para Hex (para inicializar o picker)
+// Auxiliar para converter HSL para Hex
 function hslToHex(hslStr: string) {
+  if (!hslStr) return "#ffcc00";
   const parts = hslStr.split(' ');
   if (parts.length < 3) return "#ffcc00";
   
@@ -136,6 +138,9 @@ export default function PortalDoChefe() {
     ctaText: ''
   });
 
+  const headerFileRef = useRef<HTMLInputElement>(null);
+  const teamFileRef = useRef<HTMLInputElement>(null);
+
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -152,6 +157,7 @@ export default function PortalDoChefe() {
   }, [firestore, user]);
   const { data: clicksData, isLoading: clicksLoading } = useCollection(clicksQuery);
 
+  // Vendas reais sem limite de 30 documentos
   const salesQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(collection(firestore, 'purchases'), orderBy('timestamp', 'desc'));
@@ -232,6 +238,24 @@ export default function PortalDoChefe() {
     }
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'headerAvatar' | 'teamAvatar') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 800000) { // Limite de ~800KB para Base64 no Firestore
+        toast({ variant: "destructive", title: "Imagem muito grande", description: "Use uma imagem menor que 800KB." });
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setConfigForm(prev => ({ ...prev, [field]: base64String }));
+      toast({ title: "Imagem carregada!", description: "Clique em Salvar para aplicar as mudanças." });
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSearchId = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchId || !firestore) return;
@@ -296,93 +320,93 @@ export default function PortalDoChefe() {
           <h1 className="text-2xl md:text-3xl font-black italic flex items-center gap-3 tracking-tighter uppercase">
             Comando Central <Activity className="text-primary h-6 w-6" />
           </h1>
-          <Button variant="outline" size="sm" onClick={() => signOut(auth)} className="border-destructive/30 text-destructive hover:bg-destructive/10">
+          <Button variant="outline" size="sm" onClick={() => signOut(auth)} className="border-destructive/30 text-destructive hover:bg-destructive/10 rounded-full px-6">
             <LogOut className="h-4 w-4 mr-2" /> Sair do Painel
           </Button>
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="bg-card/50 border border-border/50 p-1 rounded-xl h-14">
-            <TabsTrigger value="dashboard" className="h-full px-8 text-sm font-bold gap-2">
+          <TabsList className="bg-card/50 border border-border/50 p-1 rounded-2xl h-16 w-full sm:w-auto">
+            <TabsTrigger value="dashboard" className="h-full px-10 text-sm font-bold gap-2 rounded-xl data-[state=active]:shadow-lg">
               <BarChart3 className="h-4 w-4" /> Dashboard
             </TabsTrigger>
-            <TabsTrigger value="config" className="h-full px-8 text-sm font-bold gap-2">
+            <TabsTrigger value="config" className="h-full px-10 text-sm font-bold gap-2 rounded-xl data-[state=active]:shadow-lg">
               <Settings className="h-4 w-4" /> Configurações
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-              <Card className="bg-card/40 border-border/50 backdrop-blur-sm overflow-hidden group">
+              <Card className="bg-card/40 border-border/50 backdrop-blur-sm overflow-hidden group hover:border-primary/50 transition-colors">
                 <CardContent className="pt-6">
                   <div className="flex justify-between items-center mb-1">
                     <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Acessos</p>
                     <Eye className="h-3 w-3 text-primary group-hover:scale-125 transition-transform" />
                   </div>
-                  <div className="text-2xl font-black">{visitsLoading ? '...' : stats.vTotal}</div>
+                  <div className="text-3xl font-black tracking-tight">{visitsLoading ? '...' : stats.vTotal}</div>
                   <div className="h-1 w-full bg-muted mt-2 rounded-full overflow-hidden">
                     <div className="h-full bg-primary" style={{ width: '100%' }} />
                   </div>
                 </CardContent>
               </Card>
-              <Card className="bg-card/40 border-border/50 backdrop-blur-sm group">
+              <Card className="bg-card/40 border-border/50 backdrop-blur-sm group hover:border-primary/50 transition-colors">
                 <CardContent className="pt-6">
                   <div className="flex justify-between items-center mb-1">
                     <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Checkouts</p>
                     <ShoppingCart className="h-3 w-3 text-primary group-hover:scale-125 transition-transform" />
                   </div>
-                  <div className="text-2xl font-black">{clicksLoading ? '...' : stats.cTotal}</div>
+                  <div className="text-3xl font-black tracking-tight">{clicksLoading ? '...' : stats.cTotal}</div>
                   <p className="text-[10px] text-primary font-bold mt-1 uppercase tracking-tighter">{stats.checkoutRate.toFixed(1)}% de conversão</p>
                 </CardContent>
               </Card>
-              <Card className="bg-card/40 border-border/50 backdrop-blur-sm group">
+              <Card className="bg-card/40 border-border/50 backdrop-blur-sm group hover:border-green-500/50 transition-colors">
                 <CardContent className="pt-6">
                   <div className="flex justify-between items-center mb-1">
-                    <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Vendas</p>
+                    <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Vendas Reais</p>
                     <Package className="h-3 w-3 text-green-500 group-hover:scale-125 transition-transform" />
                   </div>
-                  <div className="text-2xl font-black text-green-500">{salesLoading ? '...' : stats.sTotal}</div>
+                  <div className="text-3xl font-black text-green-500 tracking-tight">{salesLoading ? '...' : stats.sTotal}</div>
                   <p className="text-[10px] text-green-500 font-bold mt-1 uppercase tracking-tighter">{stats.salesRate.toFixed(1)}% do tráfego total</p>
                 </CardContent>
               </Card>
-              <Card className="bg-card/40 border-border/50 backdrop-blur-sm group">
+              <Card className="bg-card/40 border-border/50 backdrop-blur-sm group hover:border-primary/50 transition-colors">
                 <CardContent className="pt-6">
                   <div className="flex justify-between items-center mb-1">
                     <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Eficiência</p>
                     <TrendingUp className="h-3 w-3 text-primary group-hover:scale-125 transition-transform" />
                   </div>
-                  <div className="text-2xl font-black text-primary">{stats.closingRate.toFixed(1)}%</div>
+                  <div className="text-3xl font-black text-primary tracking-tight">{stats.closingRate.toFixed(1)}%</div>
                   <p className="text-[10px] text-muted-foreground font-bold mt-1 uppercase tracking-tighter">Vendas/Checkouts</p>
                 </CardContent>
               </Card>
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
-              <Card className="bg-card/40 border-border/50 md:col-span-2 overflow-hidden">
-                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6">
+              <Card className="bg-card/40 border-border/50 md:col-span-2 overflow-hidden shadow-xl">
+                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 border-b border-border/30">
                   <div className="space-y-1">
-                    <CardTitle className="text-lg font-bold flex items-center gap-2">Análise de Tráfego</CardTitle>
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">Análise de Tráfego <Sparkles className="h-4 w-4 text-primary" /></CardTitle>
                     <p className="text-xs text-muted-foreground">Comparativo diário de visitas e intenções de compra.</p>
                   </div>
                   <Tabs defaultValue="7d" onValueChange={(v) => setTimeRange(v as any)} className="w-full sm:w-auto">
-                    <TabsList className="bg-background/50 h-9">
-                      <TabsTrigger value="7d" className="text-xs h-7">7D</TabsTrigger>
-                      <TabsTrigger value="30d" className="text-xs h-7">30D</TabsTrigger>
+                    <TabsList className="bg-background/50 h-10 p-1 rounded-lg">
+                      <TabsTrigger value="7d" className="text-xs h-8 px-4 font-bold">7 DIAS</TabsTrigger>
+                      <TabsTrigger value="30d" className="text-xs h-8 px-4 font-bold">30 DIAS</TabsTrigger>
                     </TabsList>
                   </Tabs>
                 </CardHeader>
-                <CardContent className="p-6 pt-0">
-                  <div className="h-[300px] w-full">
+                <CardContent className="p-6 pt-10">
+                  <div className="h-[350px] w-full">
                     <ChartContainer config={chartConfig} className="h-full w-full">
                       <ResponsiveContainer>
                         <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                           <CartesianGrid vertical={false} strokeOpacity={0.05} />
-                          <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                          <YAxis fontSize={10} axisLine={false} tickLine={false} />
+                          <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} fontBold />
+                          <YAxis fontSize={10} axisLine={false} tickLine={false} fontBold />
                           <ChartTooltip content={<ChartTooltipContent />} />
                           <ChartLegend content={<ChartLegendContent />} />
-                          <Bar dataKey="visits" name="Visitas" radius={[4, 4, 0, 0]} fill="var(--color-visits)" />
-                          <Bar dataKey="checkouts" name="Checkouts" radius={[4, 4, 0, 0]} fill="var(--color-checkouts)" />
+                          <Bar dataKey="visits" name="Visitas" radius={[6, 6, 0, 0]} fill="var(--color-visits)" barSize={30} />
+                          <Bar dataKey="checkouts" name="Checkouts" radius={[6, 6, 0, 0]} fill="var(--color-checkouts)" barSize={30} />
                         </BarChart>
                       </ResponsiveContainer>
                     </ChartContainer>
@@ -390,33 +414,33 @@ export default function PortalDoChefe() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-card/40 border-border/50 h-fit">
-                <CardHeader className="p-6">
+              <Card className="bg-card/40 border-border/50 h-fit shadow-xl border-primary/20">
+                <CardHeader className="p-6 border-b border-border/30">
                   <CardTitle className="text-lg font-bold flex items-center gap-2 uppercase italic tracking-tighter">
                     <Search className="h-5 w-5 text-primary" /> Consultar ID
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6 pt-0 space-y-4">
+                <CardContent className="p-6 space-y-4">
                   <form onSubmit={handleSearchId} className="space-y-2">
-                    <Input placeholder="ID da transação..." value={searchId} onChange={(e) => setSearchId(e.target.value)} className="h-12 bg-background/50 font-mono text-sm" />
-                    <Button type="submit" className="w-full font-bold h-12" disabled={isSearching}>
-                      {isSearching ? <Loader2 className="animate-spin h-5 w-5" /> : 'LOCALIZAR'}
+                    <Input placeholder="ID da transação..." value={searchId} onChange={(e) => setSearchId(e.target.value)} className="h-14 bg-background/50 font-mono text-sm border-primary/10 focus:border-primary/50" />
+                    <Button type="submit" className="w-full font-bold h-14 text-lg shadow-lg shadow-primary/10" disabled={isSearching}>
+                      {isSearching ? <Loader2 className="animate-spin h-6 w-6" /> : 'LOCALIZAR'}
                     </Button>
                   </form>
                   {searchResult && searchResult !== 'not_found' && (
-                    <div className="p-4 rounded-xl border border-green-500/30 bg-green-500/5 space-y-3 animate-in zoom-in duration-300">
-                      <div className="flex items-center gap-2 text-green-500"><CheckCircle2 className="h-4 w-4" /><p className="text-[10px] font-black uppercase">Encontrado</p></div>
-                      <div className="text-[10px] space-y-2 pt-2 border-t border-green-500/10">
-                        <p className="flex justify-between font-mono"><span>EMAIL:</span> <span className="text-foreground">{searchResult.email}</span></p>
-                        <p className="flex justify-between font-mono"><span>STATUS:</span> <span className="text-green-500">{searchResult.status}</span></p>
-                        <p className="flex justify-between font-mono"><span>ACESSO:</span> <span>{searchResult.accessed ? '✅ USADO' : '⏳ DISPONÍVEL'}</span></p>
+                    <div className="p-5 rounded-2xl border border-green-500/30 bg-green-500/5 space-y-4 animate-in zoom-in duration-300">
+                      <div className="flex items-center gap-2 text-green-500"><CheckCircle2 className="h-5 w-5" /><p className="text-xs font-black uppercase tracking-widest">Encontrado com Sucesso</p></div>
+                      <div className="text-[11px] space-y-3 pt-3 border-t border-green-500/10">
+                        <p className="flex justify-between font-mono"><span>EMAIL:</span> <span className="text-foreground font-bold">{searchResult.email}</span></p>
+                        <p className="flex justify-between font-mono"><span>STATUS:</span> <span className="text-green-500 font-bold uppercase">{searchResult.status}</span></p>
+                        <p className="flex justify-between font-mono"><span>ACESSO:</span> <span className={cn("font-bold px-2 py-0.5 rounded", searchResult.accessed ? 'bg-orange-500/10 text-orange-500' : 'bg-green-500/10 text-green-500')}>{searchResult.accessed ? 'USADO' : 'DISPONÍVEL'}</span></p>
                       </div>
                     </div>
                   )}
                   {searchResult === 'not_found' && (
-                    <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/5 text-center animate-in zoom-in duration-300">
-                      <XCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
-                      <p className="text-[10px] font-black uppercase text-destructive">Não encontrado</p>
+                    <div className="p-6 rounded-2xl border border-destructive/30 bg-destructive/5 text-center animate-in zoom-in duration-300">
+                      <XCircle className="h-10 w-10 text-destructive mx-auto mb-3" />
+                      <p className="text-xs font-black uppercase text-destructive tracking-widest">Transação Inexistente</p>
                     </div>
                   )}
                 </CardContent>
@@ -424,117 +448,191 @@ export default function PortalDoChefe() {
             </div>
           </TabsContent>
 
-          <TabsContent value="config" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <TabsContent value="config" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid gap-6 md:grid-cols-2">
-              <Card className="bg-card/40 border-border/50 backdrop-blur-sm">
-                <CardHeader className="p-6">
+              {/* Identidade */}
+              <Card className="bg-card/40 border-border/50 backdrop-blur-sm shadow-xl">
+                <CardHeader className="p-6 border-b border-border/30">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg"><Type className="h-5 w-5 text-primary" /></div>
-                    <CardTitle className="text-lg">Nome & Identidade</CardTitle>
+                    <div className="p-3 bg-primary/10 rounded-2xl"><Type className="h-6 w-6 text-primary" /></div>
+                    <div>
+                        <CardTitle className="text-xl">Nome & Identidade</CardTitle>
+                        <CardDescription>Configure como o sistema se apresenta.</CardDescription>
+                    </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-6 pt-0 space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs uppercase font-bold text-muted-foreground">Nome do Sistema (Ex: Zephyrus)</Label>
-                    <Input value={configForm.siteName} onChange={(e) => setConfigForm({...configForm, siteName: e.target.value})} placeholder="Nome que aparece no header e chat" className="bg-muted/30" />
+                <CardContent className="p-6 space-y-6">
+                  <div className="space-y-3">
+                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Nome do Sistema</Label>
+                    <Input value={configForm.siteName} onChange={(e) => setConfigForm({...configForm, siteName: e.target.value})} placeholder="Ex: Zephyrus" className="bg-muted/30 h-12" />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs uppercase font-bold text-muted-foreground">Texto do Botão CTA Principal</Label>
-                    <Input value={configForm.ctaText} onChange={(e) => setConfigForm({...configForm, ctaText: e.target.value})} placeholder="Vazio = Padrão do i18n" className="bg-muted/30" />
+                  <div className="space-y-3">
+                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Texto do Botão CTA Principal</Label>
+                    <Input value={configForm.ctaText} onChange={(e) => setConfigForm({...configForm, ctaText: e.target.value})} placeholder="Vazio = Padrão do site" className="bg-muted/30 h-12" />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-card/40 border-border/50 backdrop-blur-sm">
-                <CardHeader className="p-6">
+              {/* Cores */}
+              <Card className="bg-card/40 border-border/50 backdrop-blur-sm shadow-xl">
+                <CardHeader className="p-6 border-b border-border/30">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg"><Palette className="h-5 w-5 text-primary" /></div>
-                    <CardTitle className="text-lg">Cores do Site</CardTitle>
+                    <div className="p-3 bg-primary/10 rounded-2xl"><Palette className="h-6 w-6 text-primary" /></div>
+                    <div>
+                        <CardTitle className="text-xl">Cores do Site</CardTitle>
+                        <CardDescription>Injete sua marca visual.</CardDescription>
+                    </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-6 pt-0 space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs uppercase font-bold text-muted-foreground">Cor Primária</Label>
-                    <div className="flex gap-4 items-center">
-                      <div className="relative group overflow-hidden h-14 w-14 rounded-xl border-2 border-border/50 shadow-inner flex items-center justify-center bg-muted shrink-0 transition-transform active:scale-95">
+                <CardContent className="p-6 space-y-6">
+                  <div className="space-y-4">
+                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Cor Primária (Acentos & Botões)</Label>
+                    <div className="flex gap-6 items-center p-4 bg-muted/20 rounded-2xl border border-border/50">
+                      <div className="relative group overflow-hidden h-20 w-20 rounded-2xl border-2 border-white/10 shadow-2xl flex items-center justify-center bg-background shrink-0 transition-transform active:scale-95">
                         <input 
                           type="color" 
-                          value={hslToHex(configForm.primaryColor || '48 100% 50%')} 
+                          value={hslToHex(configForm.primaryColor)} 
                           onChange={handleColorChange}
-                          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                          className="absolute inset-0 h-full w-full cursor-pointer opacity-0 z-10"
                         />
                         <div 
-                          className="h-8 w-8 rounded-full shadow-lg border-2 border-white/20" 
+                          className="h-12 w-12 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border-2 border-white/20 animate-pulse" 
                           style={{ backgroundColor: `hsl(${configForm.primaryColor || '48 100% 50%'})` }}
                         />
                       </div>
-                      <div className="flex-1 space-y-1">
+                      <div className="flex-1 space-y-2">
                         <Input 
                           value={configForm.primaryColor} 
                           onChange={(e) => setConfigForm({...configForm, primaryColor: e.target.value})} 
                           placeholder="Ex: 48 100% 50%" 
-                          className="bg-muted/30 font-mono text-xs" 
+                          className="bg-background/50 font-mono text-sm h-10" 
                         />
-                        <p className="text-[9px] text-muted-foreground italic uppercase font-bold tracking-widest">HSL Value</p>
+                        <p className="text-[10px] text-muted-foreground italic font-medium uppercase tracking-widest">Código HSL Dinâmico</p>
                       </div>
                     </div>
-                    <p className="text-[10px] text-muted-foreground italic mt-2">Clique no quadrado à esquerda para abrir o seletor visual.</p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-card/40 border-border/50 backdrop-blur-sm md:col-span-2">
-                <CardHeader className="p-6">
+              {/* Checkout Links */}
+              <Card className="bg-card/40 border-border/50 backdrop-blur-sm md:col-span-2 shadow-xl">
+                <CardHeader className="p-6 border-b border-border/30">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg"><Link2 className="h-5 w-5 text-primary" /></div>
-                    <CardTitle className="text-lg">Links de Checkout</CardTitle>
+                    <div className="p-3 bg-primary/10 rounded-2xl"><Link2 className="h-6 w-6 text-primary" /></div>
+                    <div>
+                        <CardTitle className="text-xl">Links de Checkout</CardTitle>
+                        <CardDescription>Defina para onde o dinheiro deve ir.</CardDescription>
+                    </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-6 pt-0 grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs uppercase font-bold text-muted-foreground">Link Brasil (PushinPay)</Label>
-                    <Input value={configForm.checkoutUrlPt} onChange={(e) => setConfigForm({...configForm, checkoutUrlPt: e.target.value})} className="bg-muted/30" />
+                <CardContent className="p-6 grid md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">Brasil (PushinPay) <ImageIcon className="h-3 w-3 opacity-50" /></Label>
+                    <Input value={configForm.checkoutUrlPt} onChange={(e) => setConfigForm({...configForm, checkoutUrlPt: e.target.value})} className="bg-muted/30 h-12" />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs uppercase font-bold text-muted-foreground">Link Internacional (Eduzz/Dólar)</Label>
-                    <Input value={configForm.checkoutUrlEnEs} onChange={(e) => setConfigForm({...configForm, checkoutUrlEnEs: e.target.value})} className="bg-muted/30" />
+                  <div className="space-y-3">
+                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Internacional (Eduzz/Dólar)</Label>
+                    <Input value={configForm.checkoutUrlEnEs} onChange={(e) => setConfigForm({...configForm, checkoutUrlEnEs: e.target.value})} className="bg-muted/30 h-12" />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-card/40 border-border/50 backdrop-blur-sm md:col-span-2">
-                <CardHeader className="p-6">
+              {/* Avatares - AGORA COM UPLOAD */}
+              <Card className="bg-card/40 border-border/50 backdrop-blur-sm md:col-span-2 shadow-xl border-primary/10">
+                <CardHeader className="p-6 border-b border-border/30">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg"><UserCircle className="h-5 w-5 text-primary" /></div>
-                    <CardTitle className="text-lg">Avatares e Fotos</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6 pt-0 grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-xs uppercase font-bold text-muted-foreground">Avatar do Header (URL)</Label>
-                    <div className="flex gap-4 items-center">
-                      <Input value={configForm.headerAvatar} onChange={(e) => setConfigForm({...configForm, headerAvatar: e.target.value})} placeholder="/eu.png" className="bg-muted/30" />
-                      <div className="h-12 w-12 rounded-full border bg-muted shrink-0 overflow-hidden shadow-lg border-primary/20">
-                        <img src={configForm.headerAvatar || '/eu.png'} alt="Preview" className="h-full w-full object-cover" />
-                      </div>
+                    <div className="p-3 bg-primary/10 rounded-2xl"><UserCircle className="h-6 w-6 text-primary" /></div>
+                    <div>
+                        <CardTitle className="text-xl">Avatares & Upload de Fotos</CardTitle>
+                        <CardDescription>Suba as fotos que aparecerão no Header e no Chat.</CardDescription>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs uppercase font-bold text-muted-foreground">Avatar da Equipe Chat (URL)</Label>
-                    <div className="flex gap-4 items-center">
-                      <Input value={configForm.teamAvatar} onChange={(e) => setConfigForm({...configForm, teamAvatar: e.target.value})} placeholder="/equipe.png" className="bg-muted/30" />
-                      <div className="h-12 w-12 rounded-full border bg-muted shrink-0 overflow-hidden shadow-lg border-primary/20">
-                        <img src={configForm.teamAvatar || '/equipe.png'} alt="Preview" className="h-full w-full object-cover" />
+                </CardHeader>
+                <CardContent className="p-6 grid md:grid-cols-2 gap-10">
+                  {/* Header Avatar */}
+                  <div className="space-y-4">
+                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Foto do Header (Logo)</Label>
+                    <div className="flex flex-col gap-4">
+                      <div className="relative h-40 w-full rounded-2xl border-2 border-dashed border-border/50 bg-muted/10 flex items-center justify-center group overflow-hidden">
+                        {configForm.headerAvatar ? (
+                           <>
+                             <img src={configForm.headerAvatar} alt="Header Preview" className="h-full w-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" />
+                             <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="absolute opacity-0 group-hover:opacity-100 transition-opacity font-bold gap-2"
+                                onClick={() => headerFileRef.current?.click()}
+                             >
+                               <Upload className="h-4 w-4" /> TROCAR FOTO
+                             </Button>
+                           </>
+                        ) : (
+                          <Button 
+                            variant="ghost" 
+                            className="h-full w-full flex flex-col gap-2 text-muted-foreground hover:text-primary"
+                            onClick={() => headerFileRef.current?.click()}
+                          >
+                            <ImageIcon className="h-8 w-8" />
+                            <span className="text-xs font-black uppercase">Clique para Subir</span>
+                          </Button>
+                        )}
+                        <input 
+                            type="file" 
+                            ref={headerFileRef} 
+                            className="hidden" 
+                            accept="image/*" 
+                            onChange={(e) => handleFileUpload(e, 'headerAvatar')} 
+                        />
                       </div>
+                      <Input value={configForm.headerAvatar} onChange={(e) => setConfigForm({...configForm, headerAvatar: e.target.value})} placeholder="Ou cole o link da imagem aqui" className="bg-muted/30 text-[10px] font-mono" />
+                    </div>
+                  </div>
+
+                  {/* Team Avatar */}
+                  <div className="space-y-4">
+                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Avatar da Equipe (Chat)</Label>
+                    <div className="flex flex-col gap-4">
+                      <div className="relative h-40 w-full rounded-2xl border-2 border-dashed border-border/50 bg-muted/10 flex items-center justify-center group overflow-hidden">
+                        {configForm.teamAvatar ? (
+                           <>
+                             <img src={configForm.teamAvatar} alt="Team Preview" className="h-full w-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" />
+                             <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="absolute opacity-0 group-hover:opacity-100 transition-opacity font-bold gap-2"
+                                onClick={() => teamFileRef.current?.click()}
+                             >
+                               <Upload className="h-4 w-4" /> TROCAR FOTO
+                             </Button>
+                           </>
+                        ) : (
+                          <Button 
+                            variant="ghost" 
+                            className="h-full w-full flex flex-col gap-2 text-muted-foreground hover:text-primary"
+                            onClick={() => teamFileRef.current?.click()}
+                          >
+                            <ImageIcon className="h-8 w-8" />
+                            <span className="text-xs font-black uppercase">Clique para Subir</span>
+                          </Button>
+                        )}
+                        <input 
+                            type="file" 
+                            ref={teamFileRef} 
+                            className="hidden" 
+                            accept="image/*" 
+                            onChange={(e) => handleFileUpload(e, 'teamAvatar')} 
+                        />
+                      </div>
+                      <Input value={configForm.teamAvatar} onChange={(e) => setConfigForm({...configForm, teamAvatar: e.target.value})} placeholder="Ou cole o link da imagem aqui" className="bg-muted/30 text-[10px] font-mono" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            <div className="flex justify-end pt-4">
-              <Button onClick={handleSaveConfig} disabled={isSavingConfig} size="lg" className="px-10 font-black h-14 text-lg gap-2 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform">
-                {isSavingConfig ? <Loader2 className="animate-spin" /> : <><Save /> SALVAR TODAS AS ALTERAÇÕES</>}
+            <div className="flex justify-end pt-10 pb-20">
+              <Button onClick={handleSaveConfig} disabled={isSavingConfig} size="lg" className="px-16 font-black h-16 text-xl gap-3 shadow-2xl shadow-primary/40 hover:scale-[1.03] transition-transform rounded-2xl">
+                {isSavingConfig ? <Loader2 className="animate-spin" /> : <><Save /> APLICAR TODAS AS MUDANÇAS</>}
               </Button>
             </div>
           </TabsContent>
