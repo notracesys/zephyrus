@@ -22,7 +22,7 @@ import {
 import { useFirestore, useCollection, useMemoFirebase, useUser, useAuth } from '@/firebase';
 import { collection, query, orderBy, doc, getDoc } from 'firebase/firestore';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { Eye, TrendingUp, Activity, ShoppingCart, Lock, Loader2, LogOut, Package, Search, CheckCircle2, XCircle } from 'lucide-react';
+import { Eye, TrendingUp, Activity, ShoppingCart, Lock, Loader2, LogOut, Package, Search, CheckCircle2, XCircle, MousePointerClick, BarChart3 } from 'lucide-react';
 import { format, isSameDay, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Input } from '@/components/ui/input';
@@ -109,6 +109,18 @@ export default function PortalDoChefe() {
     }
     return data;
   }, [visitsData, clicksData, timeRange]);
+
+  const stats = useMemo(() => {
+    const vTotal = visitsData?.length || 0;
+    const cTotal = clicksData?.length || 0;
+    const sTotal = salesData?.length || 0;
+
+    const checkoutRate = vTotal > 0 ? (cTotal / vTotal) * 100 : 0;
+    const salesRate = vTotal > 0 ? (sTotal / vTotal) * 100 : 0;
+    const closingRate = cTotal > 0 ? (sTotal / cTotal) * 100 : 0;
+
+    return { vTotal, cTotal, sTotal, checkoutRate, salesRate, closingRate };
+  }, [visitsData, clicksData, salesData]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,7 +213,8 @@ export default function PortalDoChefe() {
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Visitas</p>
                 <Eye className="h-3 w-3 text-muted-foreground" />
               </div>
-              <div className="text-xl md:text-2xl font-black">{visitsLoading ? '...' : (visitsData?.length || 0)}</div>
+              <div className="text-xl md:text-2xl font-black">{visitsLoading ? '...' : stats.vTotal}</div>
+              <p className="text-[9px] text-muted-foreground font-bold mt-1">TOTAL DE ACESSOS</p>
             </CardContent>
           </Card>
           <Card className="bg-card/40 border-border/50">
@@ -210,7 +223,8 @@ export default function PortalDoChefe() {
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Checkouts</p>
                 <ShoppingCart className="h-3 w-3 text-muted-foreground" />
               </div>
-              <div className="text-xl md:text-2xl font-black">{clicksLoading ? '...' : (clicksData?.length || 0)}</div>
+              <div className="text-xl md:text-2xl font-black">{clicksLoading ? '...' : stats.cTotal}</div>
+              <p className="text-[9px] text-primary font-bold mt-1">{stats.checkoutRate.toFixed(1)}% DO TRÁFEGO</p>
             </CardContent>
           </Card>
           <Card className="bg-card/40 border-border/50">
@@ -219,18 +233,20 @@ export default function PortalDoChefe() {
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Vendas</p>
                 <Package className="h-3 w-3 text-green-500" />
               </div>
-              <div className="text-xl md:text-2xl font-black text-green-500">{salesLoading ? '...' : (salesData?.length || 0)}</div>
+              <div className="text-xl md:text-2xl font-black text-green-500">{salesLoading ? '...' : stats.sTotal}</div>
+              <p className="text-[9px] text-green-500 font-bold mt-1">{stats.salesRate.toFixed(1)}% CONVERSÃO GERAL</p>
             </CardContent>
           </Card>
           <Card className="bg-card/40 border-border/50">
             <CardContent className="pt-6">
               <div className="flex justify-between items-center mb-1">
-                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Conversão</p>
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Eficiência</p>
                 <TrendingUp className="h-3 w-3 text-primary" />
               </div>
               <div className="text-xl md:text-2xl font-black text-primary">
-                {!visitsData?.length ? '0%' : `${((salesData?.length || 0) / (visitsData.length || 1) * 100).toFixed(1)}%`}
+                {stats.closingRate.toFixed(1)}%
               </div>
+              <p className="text-[9px] text-muted-foreground font-bold mt-1">VENDAS POR CHECKOUT</p>
             </CardContent>
           </Card>
         </div>
@@ -239,9 +255,14 @@ export default function PortalDoChefe() {
           {/* Gráfico de Tráfego e Funil */}
           <Card className="bg-card/40 border-border/50 md:col-span-2 overflow-hidden">
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 md:p-6">
-              <CardTitle className="text-lg font-bold flex items-center gap-2">
-                Análise de Tráfego e Funil
-              </CardTitle>
+              <div className="space-y-1">
+                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                  Análise de Tráfego e Funil
+                </CardTitle>
+                <p className="text-xs text-muted-foreground font-medium">
+                  Conversão média: <span className="text-primary font-bold">{stats.checkoutRate.toFixed(1)}%</span> para checkout e <span className="text-green-500 font-bold">{stats.closingRate.toFixed(1)}%</span> de fechamento.
+                </p>
+              </div>
               <Tabs defaultValue="7d" onValueChange={(v) => setTimeRange(v as any)} className="w-full sm:w-auto">
                 <TabsList className="grid grid-cols-2 w-full bg-background/50">
                   <TabsTrigger value="7d" className="text-xs h-8">7 Dias</TabsTrigger>
@@ -264,6 +285,25 @@ export default function PortalDoChefe() {
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>
+              </div>
+              
+              {/* Funil Visual Rápido */}
+              <div className="mt-6 grid grid-cols-3 gap-2 px-2">
+                 <div className="flex flex-col items-center p-3 rounded-lg bg-background/30 border border-border/50">
+                    <Eye className="h-4 w-4 text-muted-foreground mb-1" />
+                    <span className="text-[10px] font-bold uppercase text-muted-foreground">Topo</span>
+                    <span className="text-sm font-black">100%</span>
+                 </div>
+                 <div className="flex flex-col items-center p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <MousePointerClick className="h-4 w-4 text-primary mb-1" />
+                    <span className="text-[10px] font-bold uppercase text-primary">Meio</span>
+                    <span className="text-sm font-black">{stats.checkoutRate.toFixed(1)}%</span>
+                 </div>
+                 <div className="flex flex-col items-center p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                    <BarChart3 className="h-4 w-4 text-green-500 mb-1" />
+                    <span className="text-[10px] font-bold uppercase text-green-500">Fundo</span>
+                    <span className="text-sm font-black">{stats.salesRate.toFixed(1)}%</span>
+                 </div>
               </div>
             </CardContent>
           </Card>
