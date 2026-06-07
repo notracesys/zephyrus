@@ -15,7 +15,9 @@ import {
 import { 
   ChartContainer, 
   ChartTooltip, 
-  ChartTooltipContent 
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent
 } from '@/components/ui/chart';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useAuth } from '@/firebase';
 import { collection, query, orderBy, doc, getDoc } from 'firebase/firestore';
@@ -28,12 +30,15 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 
 const chartConfig = {
   visits: {
     label: "Visitas",
     color: "hsl(var(--primary))",
+  },
+  checkouts: {
+    label: "Checkouts",
+    color: "hsl(var(--chart-2))",
   },
 };
 
@@ -66,7 +71,6 @@ export default function PortalDoChefe() {
 
   const salesQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    // Removido o limite de 30 para mostrar o total real de vendas
     return query(collection(firestore, 'purchases'), orderBy('timestamp', 'desc'));
   }, [firestore, user]);
   const { data: salesData, isLoading: salesLoading } = useCollection(salesQuery);
@@ -76,22 +80,35 @@ export default function PortalDoChefe() {
   }, []);
 
   const chartData = useMemo(() => {
-    if (!visitsData) return [];
+    if (!visitsData || !clicksData) return [];
     const daysCount = timeRange === '7d' ? 7 : 30;
     const data = [];
     const today = startOfDay(new Date());
     for (let i = daysCount - 1; i >= 0; i--) {
       const currentDay = subDays(today, i);
-      const count = visitsData.filter(visit => {
+      
+      const vCount = visitsData.filter(visit => {
         if (!visit.timestamp) return false;
         const visitDate = visit.timestamp.toDate ? visit.timestamp.toDate() : new Date(visit.timestamp);
         return isSameDay(visitDate, currentDay);
       }).length;
+
+      const cCount = clicksData.filter(click => {
+        if (!click.timestamp) return false;
+        const clickDate = click.timestamp.toDate ? click.timestamp.toDate() : new Date(click.timestamp);
+        return isSameDay(clickDate, currentDay);
+      }).length;
+
       let name = timeRange === '7d' ? format(currentDay, 'EEE', { locale: ptBR }).replace('.', '').slice(0, 3).toUpperCase() : format(currentDay, 'dd/MM');
-      data.push({ name, visits: count, isToday: isSameDay(currentDay, today) });
+      data.push({ 
+        name, 
+        visits: vCount, 
+        checkouts: cCount,
+        isToday: isSameDay(currentDay, today) 
+      });
     }
     return data;
-  }, [visitsData, timeRange]);
+  }, [visitsData, clicksData, timeRange]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -223,7 +240,7 @@ export default function PortalDoChefe() {
           <Card className="bg-card/40 border-border/50 md:col-span-2 overflow-hidden">
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 md:p-6">
               <CardTitle className="text-lg font-bold flex items-center gap-2">
-                Tráfego por Período
+                Análise de Tráfego e Funil
               </CardTitle>
               <Tabs defaultValue="7d" onValueChange={(v) => setTimeRange(v as any)} className="w-full sm:w-auto">
                 <TabsList className="grid grid-cols-2 w-full bg-background/50">
@@ -241,11 +258,9 @@ export default function PortalDoChefe() {
                       <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
                       <YAxis fontSize={8} axisLine={false} tickLine={false} />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="visits" radius={[2, 2, 0, 0]} barSize={timeRange === '7d' ? 30 : 10}>
-                        {chartData.map((e, i) => (
-                          <Cell key={i} fill={e.isToday ? 'hsl(var(--primary))' : 'rgba(255,204,0,0.1)'} />
-                        ))}
-                      </Bar>
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Bar dataKey="visits" name="Visitas" radius={[2, 2, 0, 0]} fill="var(--color-visits)" />
+                      <Bar dataKey="checkouts" name="Checkouts" radius={[2, 2, 0, 0]} fill="var(--color-checkouts)" />
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>
