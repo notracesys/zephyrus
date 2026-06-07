@@ -25,10 +25,8 @@ export async function POST(request: Request) {
       body = Object.fromEntries(params.entries());
     }
 
-    // Mapeamento exaustivo de IDs possíveis enviados pelo PushinPay
+    // Identifica o ID único da transação para evitar duplicidade no banco
     const transactionId = body.transaction_id || body.reference || body.id || (body.data && body.data.id);
-    const notificationId = body.id;
-    const externalId = body.external_reference || body.external_id;
     
     const rawStatus = body.status || (body.data && body.data.status) || '';
     const status = String(rawStatus).toLowerCase().trim();
@@ -36,29 +34,24 @@ export async function POST(request: Request) {
     // Lista de status que consideramos como "Aprovado"
     const approvedStatuses = ['paid', 'approved', 'succeeded', 'completed', 'pago', 'aprovado', 'paga'];
 
-    if (approvedStatuses.includes(status)) {
+    if (transactionId && approvedStatuses.includes(status)) {
+      const cleanId = String(transactionId).trim();
+      
       const purchaseData = {
-        id: String(transactionId),
+        id: cleanId,
         status: status,
         email: body.email || body.customer?.email || 'N/A',
         timestamp: serverTimestamp(),
-        accessed: false, // Inicialmente liberado para o primeiro acesso
-        rawBody: rawText // Guardamos o log bruto para auditoria se necessário
+        accessed: false, 
+        rawBody: rawText 
       };
 
-      // Grava em todos os IDs possíveis para garantir que qualquer um funcione na busca
-      const idsToSave = [transactionId, notificationId, externalId].filter(id => id && typeof id === 'string' || typeof id === 'number');
-      
-      const savePromises = idsToSave.map(id => 
-        setDoc(doc(db, 'purchases', String(id).trim()), purchaseData, { merge: true })
-      );
-
-      await Promise.all(savePromises);
+      // Salva usando o ID da transação como ID do documento para garantir unicidade
+      await setDoc(doc(db, 'purchases', cleanId), purchaseData, { merge: true });
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error: any) {
-    // Sempre retorna 200 para o gateway para evitar retentativas infinitas se for erro de lógica
     return NextResponse.json({ success: true, error: error.message }, { status: 200 });
   }
 }

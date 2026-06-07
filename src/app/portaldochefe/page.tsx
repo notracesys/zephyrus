@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -9,8 +10,7 @@ import {
   ResponsiveContainer, 
   XAxis, 
   YAxis,
-  CartesianGrid,
-  Cell
+  CartesianGrid
 } from 'recharts';
 import { 
   ChartContainer, 
@@ -57,6 +57,7 @@ export default function PortalDoChefe() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
+  // Queries sem limites para contagem total real
   const visitsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return collection(firestore, 'visits');
@@ -87,13 +88,13 @@ export default function PortalDoChefe() {
     for (let i = daysCount - 1; i >= 0; i--) {
       const currentDay = subDays(today, i);
       
-      const vCount = visitsData.filter(visit => {
+      const vCount = (visitsData || []).filter(visit => {
         if (!visit.timestamp) return false;
         const visitDate = visit.timestamp.toDate ? visit.timestamp.toDate() : new Date(visit.timestamp);
         return isSameDay(visitDate, currentDay);
       }).length;
 
-      const cCount = clicksData.filter(click => {
+      const cCount = (clicksData || []).filter(click => {
         if (!click.timestamp) return false;
         const clickDate = click.timestamp.toDate ? click.timestamp.toDate() : new Date(click.timestamp);
         return isSameDay(clickDate, currentDay);
@@ -103,8 +104,7 @@ export default function PortalDoChefe() {
       data.push({ 
         name, 
         visits: vCount, 
-        checkouts: cCount,
-        isToday: isSameDay(currentDay, today) 
+        checkouts: cCount
       });
     }
     return data;
@@ -201,7 +201,7 @@ export default function PortalDoChefe() {
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Visitas</p>
                 <Eye className="h-3 w-3 text-muted-foreground" />
               </div>
-              <div className="text-xl md:text-2xl font-black">{visitsLoading ? '...' : visitsData?.length}</div>
+              <div className="text-xl md:text-2xl font-black">{visitsLoading ? '...' : (visitsData?.length || 0)}</div>
             </CardContent>
           </Card>
           <Card className="bg-card/40 border-border/50">
@@ -210,7 +210,7 @@ export default function PortalDoChefe() {
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Checkouts</p>
                 <ShoppingCart className="h-3 w-3 text-muted-foreground" />
               </div>
-              <div className="text-xl md:text-2xl font-black">{clicksLoading ? '...' : clicksData?.length}</div>
+              <div className="text-xl md:text-2xl font-black">{clicksLoading ? '...' : (clicksData?.length || 0)}</div>
             </CardContent>
           </Card>
           <Card className="bg-card/40 border-border/50">
@@ -219,7 +219,7 @@ export default function PortalDoChefe() {
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Vendas</p>
                 <Package className="h-3 w-3 text-green-500" />
               </div>
-              <div className="text-xl md:text-2xl font-black text-green-500">{salesLoading ? '...' : salesData?.length}</div>
+              <div className="text-xl md:text-2xl font-black text-green-500">{salesLoading ? '...' : (salesData?.length || 0)}</div>
             </CardContent>
           </Card>
           <Card className="bg-card/40 border-border/50">
@@ -236,7 +236,7 @@ export default function PortalDoChefe() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          {/* Gráfico de Tráfego */}
+          {/* Gráfico de Tráfego e Funil */}
           <Card className="bg-card/40 border-border/50 md:col-span-2 overflow-hidden">
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 md:p-6">
               <CardTitle className="text-lg font-bold flex items-center gap-2">
@@ -268,23 +268,23 @@ export default function PortalDoChefe() {
             </CardContent>
           </Card>
 
-          {/* Verificar ID */}
+          {/* Verificar ID de Transação */}
           <Card className="bg-card/40 border-border/50 h-fit">
             <CardHeader className="p-4 md:p-6">
               <CardTitle className="text-lg font-bold flex items-center gap-2 uppercase italic tracking-tighter">
-                <Search className="h-5 w-5 text-primary" /> Verificar ID
+                <Search className="h-5 w-5 text-primary" /> Consultar Transação
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 md:p-6 pt-0 space-y-4">
               <form onSubmit={handleSearchId} className="flex flex-col gap-2">
                 <Input 
-                  placeholder="Cole o ID da transação aqui..." 
+                  placeholder="ID da transação..." 
                   value={searchId} 
                   onChange={(e) => setSearchId(e.target.value)} 
                   className="h-11 text-sm bg-background/50 font-mono" 
                 />
                 <Button type="submit" className="w-full font-bold h-11" disabled={isSearching}>
-                  {isSearching ? <Loader2 className="animate-spin h-5 w-5" /> : 'CONSULTAR STATUS'}
+                  {isSearching ? <Loader2 className="animate-spin h-5 w-5" /> : 'CONSULTAR'}
                 </Button>
               </form>
               
@@ -292,7 +292,6 @@ export default function PortalDoChefe() {
                 <div className="p-4 rounded-xl border border-destructive/50 bg-destructive/10 text-center animate-in fade-in zoom-in duration-300">
                   <XCircle className="h-10 w-10 text-destructive mx-auto mb-2" />
                   <p className="text-xs font-black uppercase tracking-widest text-destructive">Não encontrado</p>
-                  <p className="text-[10px] text-muted-foreground mt-1 leading-tight">Este ID não foi registrado pelo webhook no banco de dados ainda.</p>
                 </div>
               )}
 
@@ -300,7 +299,7 @@ export default function PortalDoChefe() {
                 <div className="p-4 rounded-xl border border-green-500/50 bg-green-500/10 space-y-3 animate-in fade-in zoom-in duration-300">
                   <div className="flex items-center gap-2 text-green-500">
                     <CheckCircle2 className="h-5 w-5" />
-                    <p className="text-xs font-black uppercase tracking-widest">Transação Encontrada</p>
+                    <p className="text-xs font-black uppercase tracking-widest">Encontrado</p>
                   </div>
                   <div className="text-[10px] space-y-2 pt-2 border-t border-green-500/20">
                     <p className="flex justify-between"><span className="text-muted-foreground font-bold">E-MAIL:</span> <span className="font-mono">{searchResult.email}</span></p>
@@ -311,7 +310,7 @@ export default function PortalDoChefe() {
                         <span className="text-green-500 font-bold uppercase animate-pulse">⏳ DISPONÍVEL</span>
                       }
                     </p>
-                    <p className="flex justify-between"><span className="text-muted-foreground font-bold">CRIADO EM:</span> <span>{searchResult.timestamp?.toDate ? format(searchResult.timestamp.toDate(), 'dd/MM/yy HH:mm') : 'N/A'}</span></p>
+                    <p className="flex justify-between"><span className="text-muted-foreground font-bold">DATA:</span> <span>{searchResult.timestamp?.toDate ? format(searchResult.timestamp.toDate(), 'dd/MM/yy HH:mm') : 'N/A'}</span></p>
                   </div>
                 </div>
               )}
