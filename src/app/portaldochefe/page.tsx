@@ -18,9 +18,9 @@ import {
   ChartTooltipContent 
 } from '@/components/ui/chart';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useAuth } from '@/firebase';
-import { collection, query, orderBy, limit, doc, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, getDoc } from 'firebase/firestore';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { Eye, TrendingUp, Activity, ShoppingCart, Lock, LogIn, Loader2, LogOut, Package, Search, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import { Eye, TrendingUp, Activity, ShoppingCart, Lock, Loader2, LogOut, Package, Search, CheckCircle2, XCircle } from 'lucide-react';
 import { format, isSameDay, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Input } from '@/components/ui/input';
@@ -66,7 +66,8 @@ export default function PortalDoChefe() {
 
   const salesQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return query(collection(firestore, 'purchases'), orderBy('timestamp', 'desc'), limit(30));
+    // Removido o limite de 30 para mostrar o total real de vendas
+    return query(collection(firestore, 'purchases'), orderBy('timestamp', 'desc'));
   }, [firestore, user]);
   const { data: salesData, isLoading: salesLoading } = useCollection(salesQuery);
 
@@ -175,7 +176,7 @@ export default function PortalDoChefe() {
           </Button>
         </div>
 
-        {/* Estatísticas Rápidas - Responsivo em 2 colunas no mobile */}
+        {/* Estatísticas Rápidas */}
         <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
           <Card className="bg-card/40 border-border/50">
             <CardContent className="pt-6">
@@ -218,7 +219,7 @@ export default function PortalDoChefe() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          {/* Gráfico de Tráfego - Otimizado para Mobile */}
+          {/* Gráfico de Tráfego */}
           <Card className="bg-card/40 border-border/50 md:col-span-2 overflow-hidden">
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 md:p-6">
               <CardTitle className="text-lg font-bold flex items-center gap-2">
@@ -252,7 +253,7 @@ export default function PortalDoChefe() {
             </CardContent>
           </Card>
 
-          {/* Verificar ID - Otimizado para Mobile */}
+          {/* Verificar ID */}
           <Card className="bg-card/40 border-border/50 h-fit">
             <CardHeader className="p-4 md:p-6">
               <CardTitle className="text-lg font-bold flex items-center gap-2 uppercase italic tracking-tighter">
@@ -302,59 +303,6 @@ export default function PortalDoChefe() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Lista de Vendas Recentes */}
-        <Card className="bg-card/40 border-border/50">
-          <CardHeader className="p-4 md:p-6">
-            <CardTitle className="text-lg font-bold flex items-center gap-2 uppercase italic tracking-tighter">
-              <Package className="h-5 w-5 text-primary" /> Vendas e Controle de Acesso
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6 pt-0">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {salesLoading ? (
-                <div className="flex justify-center items-center py-12 col-span-full">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : salesData?.length === 0 ? (
-                <div className="text-center text-muted-foreground py-12 col-span-full border-2 border-dashed rounded-xl border-border/50">
-                  <ShoppingCart className="h-10 w-10 mx-auto mb-2 opacity-20" />
-                  <p className="text-sm font-bold uppercase tracking-widest">Nenhuma venda encontrada</p>
-                </div>
-              ) : (
-                salesData?.map((sale) => (
-                  <div key={sale.id} className="flex flex-col p-4 rounded-xl border border-border/50 bg-background/20 hover:bg-background/40 transition-all group">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="space-y-1">
-                        <p className="text-xs font-black truncate max-w-[140px] md:max-w-[200px] text-foreground">{sale.email}</p>
-                        <div className="text-[9px] font-mono text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full inline-block border border-border/50">
-                          ID: {sale.id}
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <Badge className="bg-green-500/10 text-green-500 border-green-500/20 text-[8px] font-black uppercase px-1.5 py-0">PAGO</Badge>
-                        <div className="flex items-center gap-1 text-[8px] text-muted-foreground mt-1 font-bold">
-                          <Clock className="h-2 w-2" /> {sale.timestamp?.toDate ? format(sale.timestamp.toDate(), 'HH:mm') : '--:--'}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-auto pt-3 border-t border-border/50">
-                      {sale.accessed ? (
-                        <div className="flex items-center justify-center gap-2 w-full bg-green-500/10 text-green-500 text-[9px] font-black uppercase h-7 rounded-lg border border-green-500/20">
-                          <CheckCircle2 className="h-3 w-3" /> ACESSOU A ENTREGA
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center gap-2 w-full bg-muted/50 text-muted-foreground text-[9px] font-black uppercase h-7 rounded-lg border border-border/50">
-                          <Loader2 className="h-3 w-3" /> AGUARDANDO ACESSO
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </main>
     </div>
   );
