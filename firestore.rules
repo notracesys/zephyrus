@@ -3,56 +3,33 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- HELPER FUNCTIONS ---
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // --- VISITS RULES ---
     match /visits/{visitId} {
       allow create: if true; 
       allow read, list: if isSignedIn(); 
     }
 
-    // --- CHECKOUT CLICKS RULES ---
     match /checkoutClicks/{clickId} {
       allow create: if true;
       allow read, list: if isSignedIn();
     }
 
-    // --- PURCHASES RULES ---
     match /purchases/{purchaseId} {
-      // O webhook (servidor) precisa criar a compra.
-      // Como não usamos Admin SDK, permitimos a criação.
-      // A leitura é permitida para qualquer um que tenha o ID exato (o comprador).
       allow create: if true;
       allow get: if true; 
       allow list, update, delete: if isSignedIn(); 
     }
 
-    // --- COLLECTION RULES (USUÁRIOS) ---
+    match /config/global {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
     match /users/{userId} {
       allow get, list, create, update, delete: if isSignedIn() && request.auth.uid == userId;
-
-      match /sessions/{sessionId} {
-        allow get, list, create, update, delete: if isSignedIn() && request.auth.uid == userId;
-
-        match /quizResponses/{quizResponseId} {
-          allow get, list, create, update, delete: if isSignedIn() && request.auth.uid == userId;
-        }
-
-        match /freeFireAccounts/{freeFireAccountId} {
-          allow get, list, create, update, delete: if isSignedIn() && request.auth.uid == userId;
-        }
-
-        match /analysisResults/{analysisResultId} {
-          allow get, list, create, update, delete: if isSignedIn() && request.auth.uid == userId;
-        }
-
-        match /servicePurchases/{servicePurchaseId} {
-          allow get, list, create, update, delete: if isSignedIn() && request.auth.uid == userId;
-        }
-      }
     }
   }
 }

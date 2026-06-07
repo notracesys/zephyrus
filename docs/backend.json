@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserSession": {
@@ -15,11 +16,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "CheckoutClick",
       "type": "object",
-      "description": "Registra quando um usuário clica para ir para o checkout (PushinPay).",
+      "description": "Registra quando um usuário clica para ir para o checkout.",
       "properties": {
         "id": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" },
-        "source": { "type": "string", "description": "De onde veio o clique (ex: chat, recuperar, oferta-recusada)" },
+        "source": { "type": "string", "description": "De onde veio o clique" },
         "url": { "type": "string", "description": "URL do checkout clicado" }
       },
       "required": ["id", "timestamp"]
@@ -34,10 +35,24 @@
         "email": { "type": "string" },
         "status": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" },
-        "accessed": { "type": "boolean", "description": "Se o cliente já acessou a página de entrega." },
-        "lastAccess": { "type": "string", "format": "date-time" }
+        "accessed": { "type": "boolean", "description": "Se o cliente já acessou a página de entrega." }
       },
       "required": ["id", "status", "timestamp"]
+    },
+    "AppConfig": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AppConfig",
+      "type": "object",
+      "description": "Configurações globais do site editáveis pelo admin.",
+      "properties": {
+        "siteName": { "type": "string" },
+        "primaryColor": { "type": "string", "description": "Cor primária em HSL" },
+        "checkoutUrlPt": { "type": "string" },
+        "checkoutUrlEnEs": { "type": "string" },
+        "headerAvatar": { "type": "string" },
+        "teamAvatar": { "type": "string" },
+        "ctaText": { "type": "string" }
+      }
     }
   },
   "auth": {
@@ -66,7 +81,15 @@
         "definition": {
           "entityName": "Purchase",
           "schema": { "$ref": "#/backend/entities/Purchase" },
-          "description": "Compras confirmadas pelo webhook do PushinPay."
+          "description": "Compras confirmadas pelo webhook."
+        }
+      },
+      {
+        "path": "/config/global",
+        "definition": {
+          "entityName": "AppConfig",
+          "schema": { "$ref": "#/backend/entities/AppConfig" },
+          "description": "Documento único de configurações do app."
         }
       }
     ]

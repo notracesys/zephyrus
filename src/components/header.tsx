@@ -1,19 +1,24 @@
+
 'use client';
 
 import Link from 'next/link';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n';
+import { useAppConfig } from '@/components/config-provider';
 
-const Logo = () => (
+const Logo = () => {
+  const config = useAppConfig();
+  return (
     <Link href="/" className="flex items-center gap-1">
-        <Avatar className="h-9 w-9">
-            <AvatarImage src="/eu.png" alt="Profile of @zepphyrus" />
-            <AvatarFallback>Z</AvatarFallback>
+        <Avatar className="h-9 w-9 border border-primary/20">
+            <AvatarImage src={config.headerAvatar} alt={`Logo ${config.siteName}`} />
+            <AvatarFallback>{config.siteName.slice(0,1)}</AvatarFallback>
         </Avatar>
-        <span className="font-semibold text-lg text-foreground">@zepphyrus</span>
+        <span className="font-semibold text-lg text-foreground tracking-tight">@{config.siteName.toLowerCase()}</span>
     </Link>
-);
+  );
+};
 
 
 export default function Header() {
@@ -48,8 +53,7 @@ export default function Header() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  {/* Evita erro de hidratação: renderiza apenas após montar e o i18n estar pronto */}
+                <span className="text-sm text-muted-foreground font-medium">
                   {mounted && isReady ? `${activeUsers} ${t.users_active}` : '...'}
                 </span>
             </div>

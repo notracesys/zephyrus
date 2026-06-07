@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -19,9 +20,11 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n';
 import { useRouter } from 'next/navigation';
+import { useAppConfig } from '@/components/config-provider';
 
 export default function Landing() {
   const { t } = useLanguage();
+  const config = useAppConfig();
   const router = useRouter();
   const [agreed, setAgreed] = useState(false);
 
@@ -47,7 +50,7 @@ export default function Landing() {
               size="lg"
               className="w-full sm:w-auto font-bold relative overflow-hidden bg-primary text-primary-foreground h-14 px-10 text-lg before:absolute before:inset-0 before:-translate-x-full before:animate-shine before:bg-gradient-to-r before:from-transparent before:via-white/50 before:to-transparent"
             >
-              {t.cta}
+              {config.ctaText || t.cta}
               <ArrowRight className="ml-2 h-6 w-6" />
             </Button>
           </DialogTrigger>

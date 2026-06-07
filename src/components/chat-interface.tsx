@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -19,6 +20,7 @@ import Link from 'next/link';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
+import { useAppConfig } from '@/components/config-provider';
 
 type FeedbackData = {
   imageUrl: string;
@@ -56,7 +58,8 @@ const FeedbackCard = ({ data }: { data: FeedbackData }) => (
 );
 
 export default function ChatInterface() {
-  const { t, isReady } = useLanguage();
+  const { t, isReady, lang } = useLanguage();
+  const config = useAppConfig();
   const searchParams = useSearchParams();
   const firestore = useFirestore();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -71,6 +74,8 @@ export default function ChatInterface() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
+
+  const checkoutUrl = lang === 'pt' ? config.checkoutUrlPt : config.checkoutUrlEnEs;
 
   useEffect(() => {
     if (!isReady) return;
@@ -181,7 +186,6 @@ ${t.chat_label_description}:
                                 setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_2, type: 'text' }]);
                                 setIsTyping(false);
                                 
-                                // FEEDBACK IMAGES APPEAR HERE
                                 setTimeout(() => {
                                     setIsTyping(true);
                                     setTimeout(() => {
@@ -237,9 +241,9 @@ ${t.chat_label_description}:
       <div className="flex flex-col h-[calc(100vh-4rem)]">
           <div className="border-b bg-card">
             <div className="container mx-auto px-4 h-20 flex items-center gap-4">
-                <Avatar className="h-12 w-12 border-2 border-primary"><AvatarImage src="/equipe.png" /><AvatarFallback>Z</AvatarFallback></Avatar>
+                <Avatar className="h-12 w-12 border-2 border-primary"><AvatarImage src={config.teamAvatar} /><AvatarFallback>Z</AvatarFallback></Avatar>
                 <div>
-                    <h2 className="font-bold text-lg">{t.chat_team}</h2>
+                    <h2 className="font-bold text-lg">{`${t.chat_team.replace('Zephyrus', config.siteName)}`}</h2>
                     <div className="flex items-center gap-2"><div className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span></div><p className="text-sm text-muted-foreground">{t.chat_online}</p></div>
                 </div>
             </div>
@@ -255,7 +259,7 @@ ${t.chat_label_description}:
 
                       return (
                       <div key={msg.id} className={cn('flex items-end gap-2', isUser ? 'justify-end' : 'justify-start')}>
-                          {isTeam && (<div className="w-8">{nextMessage?.sender !== 'team' && (<Avatar className="h-8 w-8"><AvatarImage src="/equipe.png" /><AvatarFallback>Z</AvatarFallback></Avatar>)}</div>)}
+                          {isTeam && (<div className="w-8">{nextMessage?.sender !== 'team' && (<Avatar className="h-8 w-8"><AvatarImage src={config.teamAvatar} /><AvatarFallback>Z</AvatarFallback></Avatar>)}</div>)}
                           
                           {msg.type === 'feedback' && msg.feedbackData ? (
                             <FeedbackCard data={msg.feedbackData} />
@@ -267,7 +271,7 @@ ${t.chat_label_description}:
                           )}
                       </div>
                   )})}
-                  {isTyping && (<div className="flex items-end gap-2 justify-start"><Avatar className="h-8 w-8"><AvatarImage src="/equipe.png" /><AvatarFallback>Z</AvatarFallback></Avatar><div className="max-w-md rounded-lg p-2 bg-secondary"><TypingIndicator text={t.chat_typing} /></div></div>)}
+                  {isTyping && (<div className="flex items-end gap-2 justify-start"><Avatar className="h-8 w-8"><AvatarImage src={config.teamAvatar} /><AvatarFallback>Z</AvatarFallback></Avatar><div className="max-w-md rounded-lg p-2 bg-secondary"><TypingIndicator text={t.chat_typing} /></div></div>)}
                    <div ref={chatEndRef} />
               </div>
           </div>
@@ -278,10 +282,10 @@ ${t.chat_label_description}:
                   <Button 
                     asChild 
                     size="lg" 
-                    onClick={() => handleTrackCheckout(t.checkout_url)} 
+                    onClick={() => handleTrackCheckout(checkoutUrl)} 
                     className="w-full sm:w-auto font-bold relative overflow-hidden bg-primary text-primary-foreground h-14"
                   >
-                    <Link href={t.checkout_url} target="_blank">
+                    <Link href={checkoutUrl} target="_blank">
                       {t.chat_purchase_btn} <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>

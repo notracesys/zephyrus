@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -6,6 +7,7 @@ import Script from 'next/script';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { VisitTracker } from '@/components/visit-tracker';
 import LanguageSelectorDialog from '@/components/language-selector-dialog';
+import { ConfigProvider } from '@/components/config-provider';
 
 export const metadata: Metadata = {
   title: 'UNBAN STRATEGY',
@@ -42,11 +44,13 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
           <FirebaseClientProvider>
-            <VisitTracker />
-            <LanguageSelectorDialog />
-            {children}
-            <Toaster />
-            <SalesNotification />
+            <ConfigProvider>
+              <VisitTracker />
+              <LanguageSelectorDialog />
+              {children}
+              <Toaster />
+              <SalesNotification />
+            </ConfigProvider>
           </FirebaseClientProvider>
       </body>
     </html>
