@@ -17,6 +17,16 @@ interface AppConfig {
 
 const ConfigContext = createContext<AppConfig | null>(null);
 
+const DEFAULT_CONFIG: AppConfig = {
+  siteName: 'Zephyrus',
+  primaryColor: '48 100% 50%',
+  checkoutUrlPt: 'https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6',
+  checkoutUrlEnEs: 'https://chk.eduzz.com/aziwk6nz?currency=USD',
+  headerAvatar: '/eu.png',
+  teamAvatar: '/equipe.png',
+  ctaText: '',
+};
+
 export function ConfigProvider({ children }: { children: ReactNode }) {
   const firestore = useFirestore();
   const configRef = useMemoFirebase(() => {
@@ -26,21 +36,19 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
 
   const { data: configData } = useDoc<AppConfig>(configRef);
 
-  const defaultConfig: AppConfig = {
-    siteName: 'Zephyrus',
-    primaryColor: '48 100% 50%', // Amarelo padrão
-    checkoutUrlPt: 'https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6',
-    checkoutUrlEnEs: 'https://chk.eduzz.com/aziwk6nz?currency=USD',
-    headerAvatar: '/eu.png',
-    teamAvatar: '/equipe.png',
-    ctaText: '',
+  // Garantimos que campos vazios no banco não quebrem o site, voltando para o padrão
+  const config = {
+    siteName: configData?.siteName || DEFAULT_CONFIG.siteName,
+    primaryColor: configData?.primaryColor || DEFAULT_CONFIG.primaryColor,
+    checkoutUrlPt: configData?.checkoutUrlPt || DEFAULT_CONFIG.checkoutUrlPt,
+    checkoutUrlEnEs: configData?.checkoutUrlEnEs || DEFAULT_CONFIG.checkoutUrlEnEs,
+    headerAvatar: configData?.headerAvatar || DEFAULT_CONFIG.headerAvatar,
+    teamAvatar: configData?.teamAvatar || DEFAULT_CONFIG.teamAvatar,
+    ctaText: configData?.ctaText !== undefined ? configData.ctaText : DEFAULT_CONFIG.ctaText,
   };
-
-  const config = { ...defaultConfig, ...configData };
 
   return (
     <ConfigContext.Provider value={config}>
-      {/* Injeção Dinâmica de CSS Variables */}
       <style jsx global>{`
         :root {
           --primary: ${config.primaryColor};
@@ -54,14 +62,5 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
 
 export const useAppConfig = () => {
   const context = useContext(ConfigContext);
-  if (!context) return {
-    siteName: 'Zephyrus',
-    primaryColor: '48 100% 50%',
-    checkoutUrlPt: 'https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6',
-    checkoutUrlEnEs: 'https://chk.eduzz.com/aziwk6nz?currency=USD',
-    headerAvatar: '/eu.png',
-    teamAvatar: '/equipe.png',
-    ctaText: '',
-  };
-  return context;
+  return context || DEFAULT_CONFIG;
 };

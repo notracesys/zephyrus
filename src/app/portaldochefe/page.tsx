@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -19,11 +20,11 @@ import {
   ChartLegendContent
 } from '@/components/ui/chart';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useAuth, useDoc } from '@/firebase';
-import { collection, query, orderBy, doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { 
   Eye, Activity, ShoppingCart, Lock, Loader2, LogOut, Package, 
-  CheckCircle2, BarChart3, Settings, Save,
+  BarChart3, Settings, Save,
   Palette, Link2, UserCircle, Type, Upload, Image as ImageIcon, Sparkles, Trash2, TrendingUp
 } from 'lucide-react';
 import { format, isSameDay, subDays, startOfDay } from 'date-fns';
@@ -33,7 +34,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 
 const chartConfig = {
   visits: {
@@ -108,13 +108,15 @@ export default function PortalDoChefe() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [timeRange, setTimeRange] = useState<'7d' | '30d'>('7d');
   const [isSavingConfig, setIsSavingConfig] = useState(false);
+  
+  // Valores padrão de fallback para evitar campos vazios no banco
   const [configForm, setConfigForm] = useState({
-    siteName: '',
-    primaryColor: '',
-    checkoutUrlPt: '',
-    checkoutUrlEnEs: '',
-    headerAvatar: '',
-    teamAvatar: '',
+    siteName: 'Zephyrus',
+    primaryColor: '48 100% 50%',
+    checkoutUrlPt: 'https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6',
+    checkoutUrlEnEs: 'https://chk.eduzz.com/aziwk6nz?currency=USD',
+    headerAvatar: '/eu.png',
+    teamAvatar: '/equipe.png',
     ctaText: ''
   });
 
@@ -152,15 +154,11 @@ export default function PortalDoChefe() {
   useEffect(() => {
     setMounted(true);
     if (configData) {
-      setConfigForm({
-        siteName: configData.siteName || '',
-        primaryColor: configData.primaryColor || '',
-        checkoutUrlPt: configData.checkoutUrlPt || '',
-        checkoutUrlEnEs: configData.checkoutUrlEnEs || '',
-        headerAvatar: configData.headerAvatar || '',
-        teamAvatar: configData.teamAvatar || '',
-        ctaText: configData.ctaText || ''
-      });
+      // Atualiza o formulário apenas com o que existe no banco, mantendo os fallbacks para o resto
+      setConfigForm(prev => ({
+        ...prev,
+        ...configData
+      }));
     }
   }, [configData]);
 
@@ -208,10 +206,11 @@ export default function PortalDoChefe() {
     if (!firestore || !user) return;
     setIsSavingConfig(true);
     try {
+      // Salva o objeto completo que já contém os valores padrão para evitar que campos fiquem vazios
       await setDoc(doc(firestore, 'config', 'global'), configForm, { merge: true });
-      toast({ title: "Configurações salvas!", description: "As mudanças já estão no ar." });
+      toast({ title: "Configurações aplicadas!", description: "O site foi atualizado com sucesso." });
     } catch (error) {
-      toast({ variant: "destructive", title: "Erro ao salvar." });
+      toast({ variant: "destructive", title: "Erro ao salvar configurações." });
     } finally {
       setIsSavingConfig(false);
     }
