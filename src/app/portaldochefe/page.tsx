@@ -102,6 +102,40 @@ function hslToHex(hslStr: string) {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
+/**
+ * Comprime uma imagem client-side para garantir que o Base64 seja pequeno.
+ */
+async function compressImage(file: File, maxWidth = 400, quality = 0.7): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Retorna como JPEG para compressão eficiente
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+    };
+    reader.onerror = reject;
+  });
+}
+
 export default function PortalDoChefe() {
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
@@ -110,14 +144,15 @@ export default function PortalDoChefe() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d'>('7d');
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   
+  // Estado inicial com valores padrão para evitar que fiquem vazios ao salvar
   const [configForm, setConfigForm] = useState({
     siteName: 'Zephyrus',
     primaryColor: '48 100% 50%',
     ctaTextColor: 'black' as 'black' | 'white',
     checkoutUrlPt: 'https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6',
     checkoutUrlEnEs: 'https://chk.eduzz.com/aziwk6nz?currency=USD',
-    headerAvatar: '/eu.png',
-    teamAvatar: '/equipe.png',
+    headerAvatar: '',
+    teamAvatar: '',
     ctaText: ''
   });
 
@@ -155,6 +190,8 @@ export default function PortalDoChefe() {
   useEffect(() => {
     setMounted(true);
     if (configData) {
+      // Sincroniza o formulário com o banco apenas uma vez ao carregar ou quando o banco mudar externamente
+      // Mas evita sobrescrever se o usuário estiver editando ativamente
       setConfigForm(prev => ({
         ...prev,
         ...configData
@@ -206,32 +243,43 @@ export default function PortalDoChefe() {
     if (!firestore || !user) return;
     setIsSavingConfig(true);
     try {
+      // Usamos setDoc com merge para garantir persistência
       await setDoc(doc(firestore, 'config', 'global'), configForm, { merge: true });
       toast({ title: "Configurações aplicadas!", description: "O site foi atualizado com sucesso." });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Erro ao salvar configurações." });
+    } catch (error: any) {
+      console.error("Erro ao salvar:", error);
+      toast({ 
+        variant: "destructive", 
+        title: "Erro ao salvar", 
+        description: error.message?.includes("too large") 
+          ? "As fotos são muito pesadas. Tente fotos menores." 
+          : "Não foi possível aplicar as mudanças." 
+      });
     } finally {
       setIsSavingConfig(false);
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'headerAvatar' | 'teamAvatar') => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'headerAvatar' | 'teamAvatar') => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 800000) {
-        toast({ variant: "destructive", title: "Imagem muito grande", description: "Use uma imagem menor que 800KB." });
-        return;
+
+    try {
+      setIsSavingConfig(true);
+      // Comprime a imagem para garantir que o Base64 seja pequeno e não quebre o Firestore
+      const compressedBase64 = await compressImage(file, 400, 0.7);
+      setConfigForm(prev => ({ ...prev, [field]: compressedBase64 }));
+      toast({ title: "Imagem carregada", description: "Clique em 'Aplicar Mudanças' para salvar." });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Erro no upload", description: "Não foi possível processar a imagem." });
+    } finally {
+      setIsSavingConfig(false);
     }
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setConfigForm(prev => ({ ...prev, [field]: base64String }));
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleRemovePhoto = (field: 'headerAvatar' | 'teamAvatar') => {
     setConfigForm(prev => ({ ...prev, [field]: '' }));
+    toast({ title: "Foto removida", description: "A imagem padrão será usada após salvar." });
   };
 
   if (!mounted) return null;
@@ -497,6 +545,7 @@ export default function PortalDoChefe() {
                       )}
                       <input type="file" ref={headerFileRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'headerAvatar')} />
                     </div>
+                    <p className="text-[10px] text-center text-muted-foreground uppercase font-bold">A imagem será comprimida automaticamente.</p>
                   </div>
                   <div className="space-y-4">
                     <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Equipe (Chat)</Label>
@@ -514,6 +563,7 @@ export default function PortalDoChefe() {
                       )}
                       <input type="file" ref={teamFileRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'teamAvatar')} />
                     </div>
+                    <p className="text-[10px] text-center text-muted-foreground uppercase font-bold">A imagem será comprimida automaticamente.</p>
                   </div>
                 </CardContent>
               </Card>
