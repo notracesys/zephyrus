@@ -48,10 +48,10 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   // Enquanto estiver buscando os dados do Firestore ou montando o componente no cliente
   if (!mounted || isLoading) {
     return (
-      <div className="fixed inset-0 bg-[#080808] flex items-center justify-center z-[9999]">
+      <div className="fixed inset-0 bg-white flex items-center justify-center z-[9999]">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground animate-pulse">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 animate-pulse">
             Carregando Sistema...
           </p>
         </div>
