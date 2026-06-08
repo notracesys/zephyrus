@@ -14,7 +14,8 @@ export default function ParticleBackground() {
       top: `${Math.random() * 100}vh`,
       width: `${Math.random() * 4 + 2}px`,
       height: `${Math.random() * 4 + 2}px`,
-      backgroundColor: 'rgba(255, 204, 0, 0.3)', // Amarelo dourado suave
+      // Usa a variável CSS --primary com opacidade para seguir o tema do site
+      backgroundColor: 'hsla(var(--primary) / 0.3)',
       borderRadius: '50%',
       animation: `rise ${Math.random() * 2 + 3}s linear infinite`,
       animationDelay: `-${Math.random() * 5}s`,
