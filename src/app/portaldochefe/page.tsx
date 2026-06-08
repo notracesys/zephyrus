@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -23,9 +22,9 @@ import { useFirestore, useCollection, useMemoFirebase, useUser, useAuth, useDoc 
 import { collection, query, orderBy, doc, getDoc, setDoc } from 'firebase/firestore';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { 
-  Eye, TrendingUp, Activity, ShoppingCart, Lock, Loader2, LogOut, Package, 
-  Search, CheckCircle2, XCircle, MousePointerClick, BarChart3, Settings, Save,
-  Palette, Link2, UserCircle, Type, Upload, Image as ImageIcon, Sparkles, Trash2
+  Eye, Activity, ShoppingCart, Lock, Loader2, LogOut, Package, 
+  CheckCircle2, BarChart3, Settings, Save,
+  Palette, Link2, UserCircle, Type, Upload, Image as ImageIcon, Sparkles, Trash2, TrendingUp
 } from 'lucide-react';
 import { format, isSameDay, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -47,19 +46,14 @@ const chartConfig = {
   },
 };
 
-// Auxiliar para converter Hex para HSL (formato do Tailwind CSS)
 function hexToHSL(hex: string) {
   hex = hex.replace(/^#/, '');
   let r = parseInt(hex.substring(0, 2), 16) / 255;
   let g = parseInt(hex.substring(2, 4), 16) / 255;
   let b = parseInt(hex.substring(4, 6), 16) / 255;
-
   let max = Math.max(r, g, b), min = Math.min(r, g, b);
   let h = 0, s, l = (max + min) / 2;
-
-  if (max === min) {
-    h = s = 0;
-  } else {
+  if (max !== min) {
     let d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
@@ -69,26 +63,20 @@ function hexToHSL(hex: string) {
     }
     h /= 6;
   }
-
   h = Math.round(h * 360);
   s = Math.round(s * 100);
   l = Math.round(l * 100);
-
   return `${h} ${s}% ${l}%`;
 }
 
-// Auxiliar para converter HSL para Hex
 function hslToHex(hslStr: string) {
   if (!hslStr) return "#ffcc00";
   const parts = hslStr.split(' ');
   if (parts.length < 3) return "#ffcc00";
-  
   let h = parseInt(parts[0]);
   let s = parseInt(parts[1].replace('%', '')) / 100;
   let l = parseInt(parts[2].replace('%', '')) / 100;
-
   let r, g, b;
-
   if (s === 0) {
     r = g = b = l;
   } else {
@@ -100,19 +88,16 @@ function hslToHex(hslStr: string) {
       if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
       return p;
     };
-
     const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
     const p = 2 * l - q;
     r = hue2rgb(p, q, h / 360 + 1/3);
     g = hue2rgb(p, q, h / 360);
     b = hue2rgb(p, q, h / 360 - 1/3);
   }
-
   const toHex = (x: number) => {
     const hex = Math.round(x * 255).toString(16);
     return hex.length === 1 ? '0' + hex : hex;
   };
-
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
@@ -122,11 +107,6 @@ export default function PortalDoChefe() {
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [timeRange, setTimeRange] = useState<'7d' | '30d'>('7d');
-  
-  const [searchId, setSearchId] = useState('');
-  const [searchResult, setSearchResult] = useState<any>(null);
-  const [isSearching, setIsSearching] = useState(false);
-  
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [configForm, setConfigForm] = useState({
     siteName: '',
@@ -157,7 +137,6 @@ export default function PortalDoChefe() {
   }, [firestore, user]);
   const { data: clicksData, isLoading: clicksLoading } = useCollection(clicksQuery);
 
-  // Vendas reais sem limite de 30 documentos
   const salesQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(collection(firestore, 'purchases'), orderBy('timestamp', 'desc'));
@@ -241,44 +220,20 @@ export default function PortalDoChefe() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'headerAvatar' | 'teamAvatar') => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > 800000) { // Limite de ~800KB para Base64 no Firestore
+    if (file.size > 800000) {
         toast({ variant: "destructive", title: "Imagem muito grande", description: "Use uma imagem menor que 800KB." });
         return;
     }
-
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
       setConfigForm(prev => ({ ...prev, [field]: base64String }));
-      toast({ title: "Imagem carregada!", description: "Clique em Salvar para aplicar as mudanças." });
     };
     reader.readAsDataURL(file);
   };
 
   const handleRemovePhoto = (field: 'headerAvatar' | 'teamAvatar') => {
     setConfigForm(prev => ({ ...prev, [field]: '' }));
-    toast({ title: "Foto removida!", description: "Clique em Salvar para confirmar." });
-  };
-
-  const handleSearchId = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchId || !firestore) return;
-    setIsSearching(true);
-    try {
-      const docRef = doc(firestore, 'purchases', searchId.trim());
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setSearchResult({ ...docSnap.data(), id: docSnap.id });
-      } else {
-        setSearchResult('not_found');
-      }
-    } catch (error) { console.error(error); } finally { setIsSearching(false); }
-  };
-
-  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const hsl = hexToHSL(e.target.value);
-    setConfigForm({ ...configForm, primaryColor: hsl });
   };
 
   if (!mounted) return null;
@@ -386,76 +341,41 @@ export default function PortalDoChefe() {
               </Card>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
-              <Card className="bg-card/40 border-border/50 md:col-span-2 overflow-hidden shadow-xl">
-                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 border-b border-border/30">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg font-bold flex items-center gap-2">Análise de Tráfego <Sparkles className="h-4 w-4 text-primary" /></CardTitle>
-                    <p className="text-xs text-muted-foreground">Comparativo diário de visitas e intenções de compra.</p>
-                  </div>
-                  <Tabs defaultValue="7d" onValueChange={(v) => setTimeRange(v as any)} className="w-full sm:w-auto">
-                    <TabsList className="bg-background/50 h-10 p-1 rounded-lg">
-                      <TabsTrigger value="7d" className="text-xs h-8 px-4 font-bold">7 DIAS</TabsTrigger>
-                      <TabsTrigger value="30d" className="text-xs h-8 px-4 font-bold">30 DIAS</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </CardHeader>
-                <CardContent className="p-6 pt-10">
-                  <div className="h-[350px] w-full">
-                    <ChartContainer config={chartConfig} className="h-full w-full">
-                      <ResponsiveContainer>
-                        <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                          <CartesianGrid vertical={false} strokeOpacity={0.05} />
-                          <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} fontBold />
-                          <YAxis fontSize={10} axisLine={false} tickLine={false} fontBold />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <ChartLegend content={<ChartLegendContent />} />
-                          <Bar dataKey="visits" name="Visitas" radius={[6, 6, 0, 0]} fill="var(--color-visits)" barSize={30} />
-                          <Bar dataKey="checkouts" name="Checkouts" radius={[6, 6, 0, 0]} fill="var(--color-checkouts)" barSize={30} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card/40 border-border/50 h-fit shadow-xl border-primary/20">
-                <CardHeader className="p-6 border-b border-border/30">
-                  <CardTitle className="text-lg font-bold flex items-center gap-2 uppercase italic tracking-tighter">
-                    <Search className="h-5 w-5 text-primary" /> Consultar ID
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 space-y-4">
-                  <form onSubmit={handleSearchId} className="space-y-2">
-                    <Input placeholder="ID da transação..." value={searchId} onChange={(e) => setSearchId(e.target.value)} className="h-14 bg-background/50 font-mono text-sm border-primary/10 focus:border-primary/50" />
-                    <Button type="submit" className="w-full font-bold h-14 text-lg shadow-lg shadow-primary/10" disabled={isSearching}>
-                      {isSearching ? <Loader2 className="animate-spin h-6 w-6" /> : 'LOCALIZAR'}
-                    </Button>
-                  </form>
-                  {searchResult && searchResult !== 'not_found' && (
-                    <div className="p-5 rounded-2xl border border-green-500/30 bg-green-500/5 space-y-4 animate-in zoom-in duration-300">
-                      <div className="flex items-center gap-2 text-green-500"><CheckCircle2 className="h-5 w-5" /><p className="text-xs font-black uppercase tracking-widest">Encontrado com Sucesso</p></div>
-                      <div className="text-[11px] space-y-3 pt-3 border-t border-green-500/10">
-                        <p className="flex justify-between font-mono"><span>EMAIL:</span> <span className="text-foreground font-bold">{searchResult.email}</span></p>
-                        <p className="flex justify-between font-mono"><span>STATUS:</span> <span className="text-green-500 font-bold uppercase">{searchResult.status}</span></p>
-                        <p className="flex justify-between font-mono"><span>ACESSO:</span> <span className={cn("font-bold px-2 py-0.5 rounded", searchResult.accessed ? 'bg-orange-500/10 text-orange-500' : 'bg-green-500/10 text-green-500')}>{searchResult.accessed ? 'USADO' : 'DISPONÍVEL'}</span></p>
-                      </div>
-                    </div>
-                  )}
-                  {searchResult === 'not_found' && (
-                    <div className="p-6 rounded-2xl border border-destructive/30 bg-destructive/5 text-center animate-in zoom-in duration-300">
-                      <XCircle className="h-10 w-10 text-destructive mx-auto mb-3" />
-                      <p className="text-xs font-black uppercase text-destructive tracking-widest">Transação Inexistente</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            <Card className="bg-card/40 border-border/50 overflow-hidden shadow-xl">
+              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 border-b border-border/30">
+                <div className="space-y-1">
+                  <CardTitle className="text-lg font-bold flex items-center gap-2">Análise de Tráfego <Sparkles className="h-4 w-4 text-primary" /></CardTitle>
+                  <p className="text-xs text-muted-foreground">Comparativo diário de visitas e intenções de compra.</p>
+                </div>
+                <Tabs defaultValue="7d" onValueChange={(v) => setTimeRange(v as any)} className="w-full sm:w-auto">
+                  <TabsList className="bg-background/50 h-10 p-1 rounded-lg">
+                    <TabsTrigger value="7d" className="text-xs h-8 px-4 font-bold">7 DIAS</TabsTrigger>
+                    <TabsTrigger value="30d" className="text-xs h-8 px-4 font-bold">30 DIAS</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </CardHeader>
+              <CardContent className="p-6 pt-10">
+                <div className="h-[350px] w-full">
+                  <ChartContainer config={chartConfig} className="h-full w-full">
+                    <ResponsiveContainer>
+                      <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid vertical={false} strokeOpacity={0.05} />
+                        <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} fontBold />
+                        <YAxis fontSize={10} axisLine={false} tickLine={false} fontBold />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <ChartLegend content={<ChartLegendContent />} />
+                        <Bar dataKey="visits" name="Visitas" radius={[6, 6, 0, 0]} fill="var(--color-visits)" barSize={30} />
+                        <Bar dataKey="checkouts" name="Checkouts" radius={[6, 6, 0, 0]} fill="var(--color-checkouts)" barSize={30} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="config" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid gap-6 md:grid-cols-2">
-              {/* Identidade */}
               <Card className="bg-card/40 border-border/50 backdrop-blur-sm shadow-xl">
                 <CardHeader className="p-6 border-b border-border/30">
                   <div className="flex items-center gap-3">
@@ -478,177 +398,105 @@ export default function PortalDoChefe() {
                 </CardContent>
               </Card>
 
-              {/* Cores */}
               <Card className="bg-card/40 border-border/50 backdrop-blur-sm shadow-xl">
                 <CardHeader className="p-6 border-b border-border/30">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-primary/10 rounded-2xl"><Palette className="h-6 w-6 text-primary" /></div>
                     <div>
                         <CardTitle className="text-xl">Cores do Site</CardTitle>
-                        <CardDescription>Injete sua marca visual.</CardDescription>
+                        <CardDescription>Selecione a cor primária.</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
                   <div className="space-y-4">
-                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Cor Primária (Acentos & Botões)</Label>
+                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Cor Primária</Label>
                     <div className="flex gap-6 items-center p-4 bg-muted/20 rounded-2xl border border-border/50">
-                      <div className="relative group overflow-hidden h-20 w-20 rounded-2xl border-2 border-white/10 shadow-2xl flex items-center justify-center bg-background shrink-0 transition-transform active:scale-95">
+                      <div className="relative group h-20 w-20 rounded-2xl border-2 border-white/10 shadow-2xl flex items-center justify-center bg-background shrink-0">
                         <input 
                           type="color" 
                           value={hslToHex(configForm.primaryColor)} 
-                          onChange={handleColorChange}
+                          onChange={(e) => setConfigForm({...configForm, primaryColor: hexToHSL(e.target.value)})}
                           className="absolute inset-0 h-full w-full cursor-pointer opacity-0 z-10"
                         />
                         <div 
-                          className="h-12 w-12 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border-2 border-white/20 animate-pulse" 
+                          className="h-12 w-12 rounded-full border-2 border-white/20" 
                           style={{ backgroundColor: `hsl(${configForm.primaryColor || '48 100% 50%'})` }}
                         />
                       </div>
-                      <div className="flex-1 space-y-2">
-                        <Input 
-                          value={configForm.primaryColor} 
-                          onChange={(e) => setConfigForm({...configForm, primaryColor: e.target.value})} 
-                          placeholder="Ex: 48 100% 50%" 
-                          className="bg-background/50 font-mono text-sm h-10" 
-                        />
-                        <p className="text-[10px] text-muted-foreground italic font-medium uppercase tracking-widest">Código HSL Dinâmico</p>
+                      <div className="flex-1">
+                        <Input value={configForm.primaryColor} onChange={(e) => setConfigForm({...configForm, primaryColor: e.target.value})} placeholder="Ex: 48 100% 50%" className="bg-background/50 font-mono text-sm" />
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Checkout Links */}
               <Card className="bg-card/40 border-border/50 backdrop-blur-sm md:col-span-2 shadow-xl">
                 <CardHeader className="p-6 border-b border-border/30">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-primary/10 rounded-2xl"><Link2 className="h-6 w-6 text-primary" /></div>
                     <div>
                         <CardTitle className="text-xl">Links de Checkout</CardTitle>
-                        <CardDescription>Defina para onde o dinheiro deve ir.</CardDescription>
+                        <CardDescription>Defina os links de pagamento.</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6 grid md:grid-cols-2 gap-8">
                   <div className="space-y-3">
-                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">Brasil (PushinPay) <ImageIcon className="h-3 w-3 opacity-50" /></Label>
+                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Brasil (PT)</Label>
                     <Input value={configForm.checkoutUrlPt} onChange={(e) => setConfigForm({...configForm, checkoutUrlPt: e.target.value})} className="bg-muted/30 h-12" />
                   </div>
                   <div className="space-y-3">
-                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Internacional (Eduzz/Dólar)</Label>
+                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Internacional (EN/ES)</Label>
                     <Input value={configForm.checkoutUrlEnEs} onChange={(e) => setConfigForm({...configForm, checkoutUrlEnEs: e.target.value})} className="bg-muted/30 h-12" />
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Avatares */}
-              <Card className="bg-card/40 border-border/50 backdrop-blur-sm md:col-span-2 shadow-xl border-primary/10">
+              <Card className="bg-card/40 border-border/50 backdrop-blur-sm md:col-span-2 shadow-xl">
                 <CardHeader className="p-6 border-b border-border/30">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-primary/10 rounded-2xl"><UserCircle className="h-6 w-6 text-primary" /></div>
                     <div>
-                        <CardTitle className="text-xl">Avatares & Upload de Fotos</CardTitle>
-                        <CardDescription>Suba as fotos que aparecerão no Header e no Chat.</CardDescription>
+                        <CardTitle className="text-xl">Avatares & Fotos</CardTitle>
+                        <CardDescription>Suba as fotos que aparecerão no site.</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6 grid md:grid-cols-2 gap-10">
-                  {/* Header Avatar */}
                   <div className="space-y-4">
-                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Foto do Header (Logo)</Label>
-                    <div className="flex flex-col gap-4">
-                      <div className="relative h-40 w-full rounded-2xl border-2 border-dashed border-border/50 bg-muted/10 flex items-center justify-center group overflow-hidden">
-                        {configForm.headerAvatar ? (
-                           <>
-                             <img src={configForm.headerAvatar} alt="Header Preview" className="h-full w-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" />
-                             <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                               <Button 
-                                  variant="secondary" 
-                                  size="sm" 
-                                  className="font-bold gap-2"
-                                  onClick={() => headerFileRef.current?.click()}
-                               >
-                                 <Upload className="h-4 w-4" /> TROCAR
-                               </Button>
-                               <Button 
-                                  variant="destructive" 
-                                  size="icon" 
-                                  className="h-9 w-9"
-                                  onClick={() => handleRemovePhoto('headerAvatar')}
-                               >
-                                 <Trash2 className="h-4 w-4" />
-                               </Button>
-                             </div>
-                           </>
-                        ) : (
-                          <Button 
-                            variant="ghost" 
-                            className="h-full w-full flex flex-col gap-2 text-muted-foreground hover:text-primary"
-                            onClick={() => headerFileRef.current?.click()}
-                          >
-                            <ImageIcon className="h-8 w-8" />
-                            <span className="text-xs font-black uppercase">Clique para Subir</span>
-                          </Button>
-                        )}
-                        <input 
-                            type="file" 
-                            ref={headerFileRef} 
-                            className="hidden" 
-                            accept="image/*" 
-                            onChange={(e) => handleFileUpload(e, 'headerAvatar')} 
-                        />
-                      </div>
-                      <Input value={configForm.headerAvatar} onChange={(e) => setConfigForm({...configForm, headerAvatar: e.target.value})} placeholder="Ou cole o link da imagem aqui" className="bg-muted/30 text-[10px] font-mono" />
+                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Header (Logo)</Label>
+                    <div className="relative h-40 w-full rounded-2xl border-2 border-dashed border-border/50 bg-muted/10 flex items-center justify-center group overflow-hidden">
+                      {configForm.headerAvatar ? (
+                         <>
+                           <img src={configForm.headerAvatar} alt="Header Preview" className="h-full w-full object-cover" />
+                           <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 bg-black/40 transition-opacity">
+                             <Button size="sm" onClick={() => headerFileRef.current?.click()}><Upload className="h-4 w-4 mr-2" /> TROCAR</Button>
+                             <Button variant="destructive" size="icon" onClick={() => handleRemovePhoto('headerAvatar')}><Trash2 className="h-4 w-4" /></Button>
+                           </div>
+                         </>
+                      ) : (
+                        <Button variant="ghost" className="h-full w-full" onClick={() => headerFileRef.current?.click()}><ImageIcon className="h-8 w-8" /></Button>
+                      )}
+                      <input type="file" ref={headerFileRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'headerAvatar')} />
                     </div>
                   </div>
-
-                  {/* Team Avatar */}
                   <div className="space-y-4">
-                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Avatar da Equipe (Chat)</Label>
-                    <div className="flex flex-col gap-4">
-                      <div className="relative h-40 w-full rounded-2xl border-2 border-dashed border-border/50 bg-muted/10 flex items-center justify-center group overflow-hidden">
-                        {configForm.teamAvatar ? (
-                           <>
-                             <img src={configForm.teamAvatar} alt="Team Preview" className="h-full w-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" />
-                             <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                               <Button 
-                                  variant="secondary" 
-                                  size="sm" 
-                                  className="font-bold gap-2"
-                                  onClick={() => teamFileRef.current?.click()}
-                               >
-                                 <Upload className="h-4 w-4" /> TROCAR
-                               </Button>
-                               <Button 
-                                  variant="destructive" 
-                                  size="icon" 
-                                  className="h-9 w-9"
-                                  onClick={() => handleRemovePhoto('teamAvatar')}
-                                >
-                                 <Trash2 className="h-4 w-4" />
-                               </Button>
-                             </div>
-                           </>
-                        ) : (
-                          <Button 
-                            variant="ghost" 
-                            className="h-full w-full flex flex-col gap-2 text-muted-foreground hover:text-primary"
-                            onClick={() => teamFileRef.current?.click()}
-                          >
-                            <ImageIcon className="h-8 w-8" />
-                            <span className="text-xs font-black uppercase">Clique para Subir</span>
-                          </Button>
-                        )}
-                        <input 
-                            type="file" 
-                            ref={teamFileRef} 
-                            className="hidden" 
-                            accept="image/*" 
-                            onChange={(e) => handleFileUpload(e, 'teamAvatar')} 
-                        />
-                      </div>
-                      <Input value={configForm.teamAvatar} onChange={(e) => setConfigForm({...configForm, teamAvatar: e.target.value})} placeholder="Ou cole o link da imagem aqui" className="bg-muted/30 text-[10px] font-mono" />
+                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Equipe (Chat)</Label>
+                    <div className="relative h-40 w-full rounded-2xl border-2 border-dashed border-border/50 bg-muted/10 flex items-center justify-center group overflow-hidden">
+                      {configForm.teamAvatar ? (
+                         <>
+                           <img src={configForm.teamAvatar} alt="Team Preview" className="h-full w-full object-cover" />
+                           <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 bg-black/40 transition-opacity">
+                             <Button size="sm" onClick={() => teamFileRef.current?.click()}><Upload className="h-4 w-4 mr-2" /> TROCAR</Button>
+                             <Button variant="destructive" size="icon" onClick={() => handleRemovePhoto('teamAvatar')}><Trash2 className="h-4 w-4" /></Button>
+                           </div>
+                         </>
+                      ) : (
+                        <Button variant="ghost" className="h-full w-full" onClick={() => teamFileRef.current?.click()}><ImageIcon className="h-8 w-8" /></Button>
+                      )}
+                      <input type="file" ref={teamFileRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'teamAvatar')} />
                     </div>
                   </div>
                 </CardContent>
@@ -656,8 +504,8 @@ export default function PortalDoChefe() {
             </div>
 
             <div className="flex justify-end pt-10 pb-20">
-              <Button onClick={handleSaveConfig} disabled={isSavingConfig} size="lg" className="px-16 font-black h-16 text-xl gap-3 shadow-2xl shadow-primary/40 hover:scale-[1.03] transition-transform rounded-2xl">
-                {isSavingConfig ? <Loader2 className="animate-spin" /> : <><Save /> APLICAR TODAS AS MUDANÇAS</>}
+              <Button onClick={handleSaveConfig} disabled={isSavingConfig} size="lg" className="px-16 font-black h-16 text-xl gap-3">
+                {isSavingConfig ? <Loader2 className="animate-spin" /> : <><Save /> APLICAR MUDANÇAS</>}
               </Button>
             </div>
           </TabsContent>
