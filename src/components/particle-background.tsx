@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -10,28 +9,28 @@ export default function ParticleBackground() {
 
   useEffect(() => {
     const newParticles = Array.from({ length: NUM_PARTICLES }).map(() => {
-      const size = Math.random() * 3 + 1.5;
+      const size = Math.random() * 4 + 2; // Partículas levemente maiores para visibilidade
       return {
         position: 'absolute',
         left: `${Math.random() * 100}vw`,
-        top: '105%', // Inicia fora da tela, na parte inferior
+        top: '100%', // Começa exatamente na base
         width: `${size}px`,
         height: `${size}px`,
-        // Cor primária com opacidade baixa para um visual nítido porém discreto
-        backgroundColor: 'hsla(var(--primary) / 0.35)',
+        // Cor sólida baseada na variável primária com alta opacidade
+        backgroundColor: 'hsl(var(--primary))',
+        opacity: 0.8,
         borderRadius: '50%',
-        // Desfoque e brilho removidos para manter a nitidez absoluta
-        filter: 'none',
-        boxShadow: 'none',
-        animation: `rise ${Math.random() * 12 + 18}s linear infinite`,
+        pointerEvents: 'none',
+        animation: `rise ${Math.random() * 10 + 15}s linear infinite`,
         animationDelay: `-${Math.random() * 20}s`,
+        zIndex: 1,
       };
     });
     setParticles(newParticles as React.CSSProperties[]);
   }, []);
 
   return (
-    <div className="absolute inset-0 -z-10 h-full w-full overflow-hidden bg-background pointer-events-none">
+    <div className="fixed inset-0 -z-10 h-full w-full overflow-hidden bg-background pointer-events-none">
         {particles.map((style, index) => (
           <div key={index} style={style} />
         ))}
