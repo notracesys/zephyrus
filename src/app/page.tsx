@@ -8,7 +8,7 @@ import BrowserCheckDialog from '@/components/browser-check-dialog';
 
 export default function Home() {
   return (
-    <div className="relative min-h-full animate-in fade-in duration-700">
+    <div className="relative min-h-full">
       <BrowserCheckDialog />
       <ParticleBackground />
       <div className="relative flex min-h-full flex-col">

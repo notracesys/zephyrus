@@ -32,8 +32,12 @@ const DEFAULT_CONFIG: AppConfig = {
 
 export function ConfigProvider({ children }: { children: ReactNode }) {
   const firestore = useFirestore();
-  const [isReady, setIsReady] = useState(false);
+  const [mounted, setMounted] = useState(false);
   
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const configRef = useMemoFirebase(() => {
     if (!firestore) return null;
     return doc(firestore, 'config', 'global');
@@ -41,12 +45,21 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
 
   const { data: configData, isLoading } = useDoc<AppConfig>(configRef);
 
-  useEffect(() => {
-    if (!isLoading) {
-      setIsReady(true);
-    }
-  }, [isLoading]);
+  // Enquanto estiver buscando os dados do Firestore ou montando o componente no cliente
+  if (!mounted || isLoading) {
+    return (
+      <div className="fixed inset-0 bg-[#080808] flex items-center justify-center z-[9999]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground animate-pulse">
+            Carregando Sistema...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
+  // Prepara as configurações (usa o que veio do banco ou o padrão)
   const config = {
     siteName: configData?.siteName || DEFAULT_CONFIG.siteName,
     primaryColor: configData?.primaryColor || DEFAULT_CONFIG.primaryColor,
@@ -60,14 +73,6 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
 
   const primaryForeground = config.ctaTextColor === 'white' ? '210 20% 98%' : '0 0% 3%';
 
-  if (!isReady) {
-    return (
-      <div className="fixed inset-0 bg-background flex items-center justify-center z-[9999]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
     <ConfigContext.Provider value={config}>
       <style jsx global>{`
@@ -77,7 +82,9 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
           --ring: ${config.primaryColor};
         }
       `}</style>
-      {children}
+      <div className="animate-in fade-in duration-500">
+        {children}
+      </div>
     </ConfigContext.Provider>
   );
 }
