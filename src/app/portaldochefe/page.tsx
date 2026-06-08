@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -10,7 +9,9 @@ import {
   ResponsiveContainer, 
   XAxis, 
   YAxis,
-  CartesianGrid
+  CartesianGrid,
+  Line,
+  ComposedChart
 } from 'recharts';
 import { 
   ChartContainer, 
@@ -45,8 +46,8 @@ const chartConfig = {
     label: "Checkouts",
     color: "hsl(var(--chart-2))",
   },
-  conversion: {
-    label: "Conversão",
+  conversionRate: {
+    label: "Taxa de Conversão (%)",
     color: "hsl(var(--foreground))",
   }
 };
@@ -212,7 +213,7 @@ export default function PortalDoChefe() {
         name, 
         visits: vCount, 
         checkouts: cCount,
-        conversion: `${conversion.toFixed(1)}%`
+        conversionRate: parseFloat(conversion.toFixed(1))
       });
     }
     return data;
@@ -406,15 +407,17 @@ export default function PortalDoChefe() {
                 <div className="h-[350px] w-full">
                   <ChartContainer config={chartConfig} className="h-full w-full">
                     <ResponsiveContainer>
-                      <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid vertical={false} strokeOpacity={0.05} />
                         <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} fontBold />
-                        <YAxis fontSize={10} axisLine={false} tickLine={false} fontBold />
+                        <YAxis yAxisId="left" fontSize={10} axisLine={false} tickLine={false} fontBold />
+                        <YAxis yAxisId="right" orientation="right" fontSize={10} axisLine={false} tickLine={false} fontBold />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <ChartLegend content={<ChartLegendContent />} />
-                        <Bar dataKey="visits" name="Visitas" radius={[6, 6, 0, 0]} fill="var(--color-visits)" barSize={30} />
-                        <Bar dataKey="checkouts" name="Checkouts" radius={[6, 6, 0, 0]} fill="var(--color-checkouts)" barSize={30} />
-                      </BarChart>
+                        <Bar yAxisId="left" dataKey="visits" name="Visitas" radius={[6, 6, 0, 0]} fill="var(--color-visits)" barSize={30} />
+                        <Bar yAxisId="left" dataKey="checkouts" name="Checkouts" radius={[6, 6, 0, 0]} fill="var(--color-checkouts)" barSize={30} />
+                        <Line yAxisId="right" type="monotone" dataKey="conversionRate" name="Taxa de Conversão (%)" stroke="var(--color-conversionRate)" strokeWidth={2} dot={{ fill: 'var(--color-conversionRate)' }} />
+                      </ComposedChart>
                     </ResponsiveContainer>
                   </ChartContainer>
                 </div>

@@ -2,26 +2,25 @@
 
 import React, { useState, useEffect } from 'react';
 
-const NUM_PARTICLES = 60;
+const NUM_PARTICLES = 80;
 
 export default function ParticleBackground() {
   const [particles, setParticles] = useState<React.CSSProperties[]>([]);
 
   useEffect(() => {
     const newParticles = Array.from({ length: NUM_PARTICLES }).map(() => {
-      const size = Math.random() * 4 + 2; // Partículas levemente maiores para visibilidade
+      const size = Math.random() * 3 + 1;
       return {
         position: 'absolute',
         left: `${Math.random() * 100}vw`,
-        top: '100%', // Começa exatamente na base
+        bottom: '-20px',
         width: `${size}px`,
         height: `${size}px`,
-        // Cor sólida baseada na variável primária com alta opacidade
         backgroundColor: 'hsl(var(--primary))',
-        opacity: 0.8,
+        opacity: 0.7,
         borderRadius: '50%',
         pointerEvents: 'none',
-        animation: `rise ${Math.random() * 10 + 15}s linear infinite`,
+        animation: `rise ${Math.random() * 10 + 10}s linear infinite`,
         animationDelay: `-${Math.random() * 20}s`,
         zIndex: 1,
       };
