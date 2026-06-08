@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { useAppConfig } from '@/components/config-provider';
 
 interface IntroAnimationProps {
   onAnimationComplete: () => void;
@@ -9,7 +10,8 @@ interface IntroAnimationProps {
 
 export default function IntroAnimation({ onAnimationComplete }: IntroAnimationProps) {
   const [phase, setPhase] = useState<'pulsing' | 'glitching' | 'fading' | 'hidden'>('pulsing');
-  const siteName = "UNBAN STRATEGY";
+  const config = useAppConfig();
+  const siteName = config.siteName.toUpperCase();
 
   useEffect(() => {
     const pulseTimer = setTimeout(() => {

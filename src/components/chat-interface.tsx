@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -69,6 +68,10 @@ export default function ChatInterface() {
   const [showPurchaseButton, setShowPurchaseButton] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  const formatText = (text: string) => {
+    return text.replace(/\{siteName\}/g, config.siteName);
+  };
+
   const generateId = () => Math.random().toString(36).substr(2, 9) + Date.now();
 
   useEffect(() => {
@@ -80,7 +83,7 @@ export default function ChatInterface() {
   useEffect(() => {
     if (!isReady) return;
 
-    const initialMessageContent = `${t.chat_initial_msg}
+    const initialMessageContent = `${formatText(t.chat_initial_msg)}
 ${t.chat_label_suspension_time}: ${searchParams.get('suspensionTime') || 'N/A'}.
 ${t.chat_label_software}: ${searchParams.get('thirdPartySoftware') || 'N/A'}.
 ${t.chat_label_reason}: ${searchParams.get('banReason') || 'N/A'}.
@@ -104,7 +107,7 @@ ${t.chat_label_description}:
         const t2 = setTimeout(() => {
             const teamResponse: Message = {
                 id: 'team-1', sender: 'team',
-                content: t.chat_initial_response,
+                content: formatText(t.chat_initial_response),
                 type: 'text',
             };
             setMessages((prev) => [...prev, teamResponse]);
@@ -115,7 +118,7 @@ ${t.chat_label_description}:
               const t4 = setTimeout(() => {
                 const teamResponse2: Message = {
                   id: 'team-2', sender: 'team',
-                  content: t.chat_msg_2,
+                  content: formatText(t.chat_msg_2),
                   type: 'text',
                 };
                 setMessages((prev) => [...prev, teamResponse2]);
@@ -125,7 +128,7 @@ ${t.chat_label_description}:
                     const t6 = setTimeout(() => {
                         const teamResponse3: Message = {
                             id: 'team-3', sender: 'team',
-                            content: t.chat_msg_3,
+                            content: formatText(t.chat_msg_3),
                             type: 'text',
                         };
                         setMessages((prev) => [...prev, teamResponse3]);
@@ -145,7 +148,7 @@ ${t.chat_label_description}:
     }, 4000); 
 
     return () => timeouts.forEach(t => clearTimeout(t));
-  }, [searchParams, t, isReady]);
+  }, [searchParams, t, isReady, config.siteName]);
 
   const handleTrackCheckout = (url: string) => {
     if (!firestore) return;
@@ -171,19 +174,19 @@ ${t.chat_label_description}:
         setTimeout(() => {
             setIsTyping(true);
             setTimeout(() => {
-                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_great_choice, type: 'text' }]);
+                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_great_choice), type: 'text' }]);
                 setIsTyping(false);
                 setTimeout(() => {
                     setShowImportantNotice(true);
                     setTimeout(() => {
                         setIsTyping(true);
                         setTimeout(() => {
-                            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg, type: 'text' }]);
+                            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg), type: 'text' }]);
                             setIsTyping(false);
                             setTimeout(() => {
                               setIsTyping(true);
                               setTimeout(() => {
-                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_2, type: 'text' }]);
+                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_2), type: 'text' }]);
                                 setIsTyping(false);
                                 
                                 setTimeout(() => {
@@ -201,12 +204,12 @@ ${t.chat_label_description}:
                                         setTimeout(() => {
                                             setIsTyping(true);
                                             setTimeout(() => {
-                                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_3, type: 'text' }]);
+                                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_3), type: 'text' }]);
                                                 setIsTyping(false);
                                                 setTimeout(() => {
                                                     setIsTyping(true);
                                                     setTimeout(() => {
-                                                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_4, type: 'text' }]);
+                                                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_4), type: 'text' }]);
                                                         setIsTyping(false);
                                                         setShowPurchaseButton(true);
                                                     }, 3000);
@@ -241,9 +244,9 @@ ${t.chat_label_description}:
       <div className="flex flex-col h-[calc(100vh-4rem)]">
           <div className="border-b bg-card">
             <div className="container mx-auto px-4 h-20 flex items-center gap-4">
-                <Avatar className="h-12 w-12 border-2 border-primary"><AvatarImage src={config.teamAvatar} /><AvatarFallback>Z</AvatarFallback></Avatar>
+                <Avatar className="h-12 w-12 border-2 border-primary"><AvatarImage src={config.teamAvatar} /><AvatarFallback>{config.siteName.slice(0,1)}</AvatarFallback></Avatar>
                 <div>
-                    <h2 className="font-bold text-lg">{`${t.chat_team.replace('Zephyrus', config.siteName)}`}</h2>
+                    <h2 className="font-bold text-lg">{formatText(t.chat_team)}</h2>
                     <div className="flex items-center gap-2"><div className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span></div><p className="text-sm text-muted-foreground">{t.chat_online}</p></div>
                 </div>
             </div>
@@ -259,7 +262,7 @@ ${t.chat_label_description}:
 
                       return (
                       <div key={msg.id} className={cn('flex items-end gap-2', isUser ? 'justify-end' : 'justify-start')}>
-                          {isTeam && (<div className="w-8">{nextMessage?.sender !== 'team' && (<Avatar className="h-8 w-8"><AvatarImage src={config.teamAvatar} /><AvatarFallback>Z</AvatarFallback></Avatar>)}</div>)}
+                          {isTeam && (<div className="w-8">{nextMessage?.sender !== 'team' && (<Avatar className="h-8 w-8"><AvatarImage src={config.teamAvatar} /><AvatarFallback>{config.siteName.slice(0,1)}</AvatarFallback></Avatar>)}</div>)}
                           
                           {msg.type === 'feedback' && msg.feedbackData ? (
                             <FeedbackCard data={msg.feedbackData} />
@@ -271,7 +274,7 @@ ${t.chat_label_description}:
                           )}
                       </div>
                   )})}
-                  {isTyping && (<div className="flex items-end gap-2 justify-start"><Avatar className="h-8 w-8"><AvatarImage src={config.teamAvatar} /><AvatarFallback>Z</AvatarFallback></Avatar><div className="max-w-md rounded-lg p-2 bg-secondary"><TypingIndicator text={t.chat_typing} /></div></div>)}
+                  {isTyping && (<div className="flex items-end gap-2 justify-start"><Avatar className="h-8 w-8"><AvatarImage src={config.teamAvatar} /><AvatarFallback>{config.siteName.slice(0,1)}</AvatarFallback></Avatar><div className="max-w-md rounded-lg p-2 bg-secondary"><TypingIndicator text={t.chat_typing} /></div></div>)}
                    <div ref={chatEndRef} />
               </div>
           </div>
