@@ -8,18 +8,23 @@ export default function ParticleBackground() {
   const [particles, setParticles] = useState<React.CSSProperties[]>([]);
 
   useEffect(() => {
-    const newParticles = Array.from({ length: NUM_PARTICLES }).map(() => ({
-      position: 'absolute',
-      left: `${Math.random() * 100}vw`,
-      top: `${Math.random() * 100}vh`,
-      width: `${Math.random() * 4 + 2}px`,
-      height: `${Math.random() * 4 + 2}px`,
-      // Usa a variável CSS --primary com opacidade para seguir o tema do site
-      backgroundColor: 'hsla(var(--primary) / 0.3)',
-      borderRadius: '50%',
-      animation: `rise ${Math.random() * 2 + 3}s linear infinite`,
-      animationDelay: `-${Math.random() * 5}s`,
-    }));
+    const newParticles = Array.from({ length: NUM_PARTICLES }).map(() => {
+      const size = Math.random() * 4 + 2;
+      return {
+        position: 'absolute',
+        left: `${Math.random() * 100}vw`,
+        top: `${Math.random() * 100}vh`,
+        width: `${size}px`,
+        height: `${size}px`,
+        // Opacidade aumentada para 0.8 para ficar mais "acesa"
+        backgroundColor: 'hsla(var(--primary) / 0.8)',
+        borderRadius: '50%',
+        // Adiciona um brilho externo (glow) usando a cor primária
+        boxShadow: '0 0 10px 2px hsla(var(--primary) / 0.5)',
+        animation: `rise ${Math.random() * 2 + 3}s linear infinite`,
+        animationDelay: `-${Math.random() * 5}s`,
+      };
+    });
     setParticles(newParticles as React.CSSProperties[]);
   }, []);
 
