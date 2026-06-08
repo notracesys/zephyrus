@@ -45,6 +45,10 @@ const chartConfig = {
     label: "Checkouts",
     color: "hsl(var(--chart-2))",
   },
+  conversion: {
+    label: "Conversão",
+    color: "hsl(var(--foreground))",
+  }
 };
 
 function hexToHSL(hex: string) {
@@ -102,9 +106,6 @@ function hslToHex(hslStr: string) {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-/**
- * Comprime uma imagem client-side para garantir que o Base64 seja pequeno.
- */
 async function compressImage(file: File, maxWidth = 400, quality = 0.7): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -126,8 +127,6 @@ async function compressImage(file: File, maxWidth = 400, quality = 0.7): Promise
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
-        
-        // Retorna como JPEG para compressão eficiente
         resolve(canvas.toDataURL('image/jpeg', quality));
       };
       img.onerror = reject;
@@ -144,7 +143,6 @@ export default function PortalDoChefe() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d'>('7d');
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   
-  // Estado inicial com valores padrão para evitar que fiquem vazios ao salvar
   const [configForm, setConfigForm] = useState({
     siteName: 'Zephyrus',
     primaryColor: '48 100% 50%',
@@ -190,8 +188,6 @@ export default function PortalDoChefe() {
   useEffect(() => {
     setMounted(true);
     if (configData) {
-      // Sincroniza o formulário com o banco apenas uma vez ao carregar ou quando o banco mudar externamente
-      // Mas evita sobrescrever se o usuário estiver editando ativamente
       setConfigForm(prev => ({
         ...prev,
         ...configData
@@ -209,7 +205,15 @@ export default function PortalDoChefe() {
       const vCount = (visitsData || []).filter(v => v.timestamp?.toDate ? isSameDay(v.timestamp.toDate(), currentDay) : false).length;
       const cCount = (clicksData || []).filter(c => c.timestamp?.toDate ? isSameDay(c.timestamp.toDate(), currentDay) : false).length;
       let name = timeRange === '7d' ? format(currentDay, 'EEE', { locale: ptBR }).replace('.', '').slice(0, 3).toUpperCase() : format(currentDay, 'dd/MM');
-      data.push({ name, visits: vCount, checkouts: cCount });
+      
+      const conversion = vCount > 0 ? (cCount / vCount) * 100 : 0;
+      
+      data.push({ 
+        name, 
+        visits: vCount, 
+        checkouts: cCount,
+        conversion: `${conversion.toFixed(1)}%`
+      });
     }
     return data;
   }, [visitsData, clicksData, timeRange]);
@@ -243,7 +247,6 @@ export default function PortalDoChefe() {
     if (!firestore || !user) return;
     setIsSavingConfig(true);
     try {
-      // Usamos setDoc com merge para garantir persistência
       await setDoc(doc(firestore, 'config', 'global'), configForm, { merge: true });
       toast({ title: "Configurações aplicadas!", description: "O site foi atualizado com sucesso." });
     } catch (error: any) {
@@ -266,7 +269,6 @@ export default function PortalDoChefe() {
 
     try {
       setIsSavingConfig(true);
-      // Comprime a imagem para garantir que o Base64 seja pequeno e não quebre o Firestore
       const compressedBase64 = await compressImage(file, 400, 0.7);
       setConfigForm(prev => ({ ...prev, [field]: compressedBase64 }));
       toast({ title: "Imagem carregada", description: "Clique em 'Aplicar Mudanças' para salvar." });
@@ -391,7 +393,7 @@ export default function PortalDoChefe() {
               <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 border-b border-border/30">
                 <div className="space-y-1">
                   <CardTitle className="text-lg font-bold flex items-center gap-2">Análise de Tráfego <Sparkles className="h-4 w-4 text-primary" /></CardTitle>
-                  <p className="text-xs text-muted-foreground">Comparativo diário de visitas e intenções de compra.</p>
+                  <p className="text-xs text-muted-foreground">Comparativo diário de visitas e intenções de compra com taxa de conversão.</p>
                 </div>
                 <Tabs defaultValue="7d" onValueChange={(v) => setTimeRange(v as any)} className="w-full sm:w-auto">
                   <TabsList className="bg-background/50 h-10 p-1 rounded-lg">
