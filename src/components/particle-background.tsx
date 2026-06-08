@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -9,21 +10,20 @@ export default function ParticleBackground() {
 
   useEffect(() => {
     const newParticles = Array.from({ length: NUM_PARTICLES }).map(() => {
-      const size = Math.random() * 5 + 3;
+      const size = Math.random() * 3 + 1.5;
       return {
         position: 'absolute',
         left: `${Math.random() * 100}vw`,
         top: '105%', // Inicia fora da tela, na parte inferior
         width: `${size}px`,
         height: `${size}px`,
-        // Cor primária com opacidade reduzida para um brilho mais sutil
-        backgroundColor: 'hsla(var(--primary) / 0.4)',
+        // Cor primária com opacidade baixa para um visual nítido porém discreto
+        backgroundColor: 'hsla(var(--primary) / 0.35)',
         borderRadius: '50%',
-        // Desfoque aumentado para um visual mais atmosférico
-        filter: 'blur(3px)',
-        // Brilho difuso mais suave
-        boxShadow: '0 0 12px 2px hsla(var(--primary) / 0.2)',
-        animation: `rise ${Math.random() * 10 + 15}s linear infinite`,
+        // Desfoque e brilho removidos para manter a nitidez absoluta
+        filter: 'none',
+        boxShadow: 'none',
+        animation: `rise ${Math.random() * 12 + 18}s linear infinite`,
         animationDelay: `-${Math.random() * 20}s`,
       };
     });
