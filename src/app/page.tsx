@@ -1,13 +1,22 @@
+
 'use client';
 
+import { useState } from 'react';
 import Header from '@/components/header';
 import Landing from '@/components/landing';
 import ParticleBackground from '@/components/particle-background';
 import BrowserCheckDialog from '@/components/browser-check-dialog';
+import IntroAnimation from '@/components/intro-animation';
 
 export default function Home() {
+  const [showIntro, setShowIntro] = useState(true);
+
+  if (showIntro) {
+    return <IntroAnimation onAnimationComplete={() => setShowIntro(false)} />;
+  }
+
   return (
-    <div className="relative min-h-full">
+    <div className="relative min-h-full animate-in fade-in duration-700">
       <BrowserCheckDialog />
       <ParticleBackground />
       <div className="relative flex min-h-full flex-col">
