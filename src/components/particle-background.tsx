@@ -16,11 +16,12 @@ export default function ParticleBackground() {
         top: `${Math.random() * 100}vh`,
         width: `${size}px`,
         height: `${size}px`,
-        // Opacidade aumentada para 0.8 para ficar mais "acesa"
+        // Cor primária com opacidade para brilho
         backgroundColor: 'hsla(var(--primary) / 0.8)',
         borderRadius: '50%',
-        // Adiciona um brilho externo (glow) usando a cor primária
-        boxShadow: '0 0 10px 2px hsla(var(--primary) / 0.5)',
+        // Efeito de desfoque e brilho difuso
+        filter: 'blur(1.5px)',
+        boxShadow: '0 0 15px 4px hsla(var(--primary) / 0.4)',
         animation: `rise ${Math.random() * 2 + 3}s linear infinite`,
         animationDelay: `-${Math.random() * 5}s`,
       };
