@@ -42,7 +42,6 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const { data: configData, isLoading } = useDoc<AppConfig>(configRef);
 
   useEffect(() => {
-    // Quando terminar de carregar o doc (mesmo que não exista), marcamos como pronto
     if (!isLoading) {
       setIsReady(true);
     }
@@ -61,16 +60,10 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
 
   const primaryForeground = config.ctaTextColor === 'white' ? '210 20% 98%' : '0 0% 3%';
 
-  // Se ainda estiver carregando a config inicial, mostra um loader neutro para evitar o flash das cores originais
   if (!isReady) {
     return (
       <div className="fixed inset-0 bg-background flex items-center justify-center z-[9999]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-muted-foreground opacity-20" />
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground animate-pulse">
-            LOADING SYSTEM
-          </p>
-        </div>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
