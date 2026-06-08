@@ -47,6 +47,7 @@
       "properties": {
         "siteName": { "type": "string" },
         "primaryColor": { "type": "string", "description": "Cor primária em HSL" },
+        "ctaTextColor": { "type": "string", "enum": ["black", "white"], "description": "Cor do texto nos botões principais" },
         "checkoutUrlPt": { "type": "string" },
         "checkoutUrlEnEs": { "type": "string" },
         "headerAvatar": { "type": "string" },

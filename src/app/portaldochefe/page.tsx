@@ -25,7 +25,7 @@ import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { 
   Eye, Activity, ShoppingCart, Lock, Loader2, LogOut, Package, 
   BarChart3, Settings, Save,
-  Palette, Link2, UserCircle, Type, Upload, Image as ImageIcon, Sparkles, Trash2, TrendingUp
+  Palette, Link2, UserCircle, Type, Upload, Image as ImageIcon, Sparkles, Trash2, TrendingUp, CheckCircle2
 } from 'lucide-react';
 import { format, isSameDay, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -34,6 +34,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const chartConfig = {
   visits: {
@@ -109,10 +110,10 @@ export default function PortalDoChefe() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d'>('7d');
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   
-  // Valores padrão de fallback para evitar campos vazios no banco
   const [configForm, setConfigForm] = useState({
     siteName: 'Zephyrus',
     primaryColor: '48 100% 50%',
+    ctaTextColor: 'black' as 'black' | 'white',
     checkoutUrlPt: 'https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6',
     checkoutUrlEnEs: 'https://chk.eduzz.com/aziwk6nz?currency=USD',
     headerAvatar: '/eu.png',
@@ -154,7 +155,6 @@ export default function PortalDoChefe() {
   useEffect(() => {
     setMounted(true);
     if (configData) {
-      // Atualiza o formulário apenas com o que existe no banco, mantendo os fallbacks para o resto
       setConfigForm(prev => ({
         ...prev,
         ...configData
@@ -206,7 +206,6 @@ export default function PortalDoChefe() {
     if (!firestore || !user) return;
     setIsSavingConfig(true);
     try {
-      // Salva o objeto completo que já contém os valores padrão para evitar que campos fiquem vazios
       await setDoc(doc(firestore, 'config', 'global'), configForm, { merge: true });
       toast({ title: "Configurações aplicadas!", description: "O site foi atualizado com sucesso." });
     } catch (error) {
@@ -402,8 +401,8 @@ export default function PortalDoChefe() {
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-primary/10 rounded-2xl"><Palette className="h-6 w-6 text-primary" /></div>
                     <div>
-                        <CardTitle className="text-xl">Cores do Site</CardTitle>
-                        <CardDescription>Selecione a cor primária.</CardDescription>
+                        <CardTitle className="text-xl">Cores & Contraste</CardTitle>
+                        <CardDescription>Estilo visual dos botões e temas.</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -427,6 +426,24 @@ export default function PortalDoChefe() {
                         <Input value={configForm.primaryColor} onChange={(e) => setConfigForm({...configForm, primaryColor: e.target.value})} placeholder="Ex: 48 100% 50%" className="bg-background/50 font-mono text-sm" />
                       </div>
                     </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label className="text-xs uppercase font-black text-muted-foreground tracking-widest">Cor do Texto nos Botões (CTA)</Label>
+                    <RadioGroup 
+                      value={configForm.ctaTextColor} 
+                      onValueChange={(val) => setConfigForm({...configForm, ctaTextColor: val as 'black' | 'white'})}
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2 bg-muted/20 p-3 rounded-xl border border-border/50 cursor-pointer">
+                        <RadioGroupItem value="black" id="black" />
+                        <Label htmlFor="black" className="cursor-pointer font-bold">Preto</Label>
+                      </div>
+                      <div className="flex items-center space-x-2 bg-muted/20 p-3 rounded-xl border border-border/50 cursor-pointer">
+                        <RadioGroupItem value="white" id="white" />
+                        <Label htmlFor="white" className="cursor-pointer font-bold">Branco</Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                 </CardContent>
               </Card>
