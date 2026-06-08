@@ -69,15 +69,18 @@
 }
 
 @keyframes rise {
-  from {
-    transform: translateY(50vh) scale(0.5);
+  0% {
+    transform: translateY(0) scale(0.3);
     opacity: 0;
   }
-  50% {
-    opacity: 1;
+  20% {
+    opacity: 0.3;
   }
-  to {
-    transform: translateY(-50vh) scale(1);
+  80% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(-120vh) scale(1.2);
     opacity: 0;
   }
 }
