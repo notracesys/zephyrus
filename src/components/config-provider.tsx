@@ -1,14 +1,15 @@
 
 'use client';
 
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect, Suspense } from 'react';
 import { useDoc, useMemoFirebase, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 
 interface AppConfig {
   siteName: string;
-  primaryColor: string; // Ex: "48 100% 50%"
+  primaryColor: string;
   ctaTextColor: 'black' | 'white';
   checkoutUrlPt: string;
   checkoutUrlEnEs: string;
@@ -30,22 +31,25 @@ const DEFAULT_CONFIG: AppConfig = {
   ctaText: '',
 };
 
-export function ConfigProvider({ children }: { children: ReactNode }) {
+function ConfigLoader({ children }: { children: ReactNode }) {
+  const searchParams = useSearchParams();
   const firestore = useFirestore();
   const [mounted, setMounted] = useState(false);
   
+  // O siteId vem do parâmetro ?s= na URL, ou 'global' por padrão
+  const siteId = searchParams.get('s') || 'global';
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const configRef = useMemoFirebase(() => {
     if (!firestore) return null;
-    return doc(firestore, 'config', 'global');
-  }, [firestore]);
+    return doc(firestore, 'configs', siteId);
+  }, [firestore, siteId]);
 
   const { data: configData, isLoading } = useDoc<AppConfig>(configRef);
 
-  // Enquanto estiver buscando os dados do Firestore ou montando o componente no cliente
   if (!mounted || isLoading) {
     return (
       <div className="fixed inset-0 bg-black flex items-center justify-center z-[9999]">
@@ -59,7 +63,6 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  // Prepara as configurações (usa o que veio do banco ou o padrão)
   const config = {
     siteName: configData?.siteName || DEFAULT_CONFIG.siteName,
     primaryColor: configData?.primaryColor || DEFAULT_CONFIG.primaryColor,
@@ -86,6 +89,18 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
         {children}
       </div>
     </ConfigContext.Provider>
+  );
+}
+
+export function ConfigProvider({ children }: { children: ReactNode }) {
+  return (
+    <Suspense fallback={
+        <div className="fixed inset-0 bg-black flex items-center justify-center z-[9999]">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+    }>
+      <ConfigLoader>{children}</ConfigLoader>
+    </Suspense>
   );
 }
 

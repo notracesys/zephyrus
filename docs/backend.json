@@ -21,7 +21,8 @@
         "id": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" },
         "source": { "type": "string", "description": "De onde veio o clique" },
-        "url": { "type": "string", "description": "URL do checkout clicado" }
+        "url": { "type": "string", "description": "URL do checkout clicado" },
+        "siteId": { "type": "string", "description": "ID do site de onde veio o clique" }
       },
       "required": ["id", "timestamp"]
     },
@@ -43,8 +44,9 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "AppConfig",
       "type": "object",
-      "description": "Configurações globais do site editáveis pelo admin.",
+      "description": "Configurações de branding para um site específico.",
       "properties": {
+        "id": { "type": "string" },
         "siteName": { "type": "string" },
         "primaryColor": { "type": "string", "description": "Cor primária em HSL" },
         "ctaTextColor": { "type": "string", "enum": ["black", "white"], "description": "Cor do texto nos botões principais" },
@@ -86,11 +88,11 @@
         }
       },
       {
-        "path": "/config/global",
+        "path": "/configs/{configId}",
         "definition": {
           "entityName": "AppConfig",
           "schema": { "$ref": "#/backend/entities/AppConfig" },
-          "description": "Documento único de configurações do app."
+          "description": "Configurações de branding para múltiplos sites."
         }
       }
     ]
