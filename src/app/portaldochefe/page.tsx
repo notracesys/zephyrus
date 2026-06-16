@@ -82,6 +82,17 @@ async function compressImage(file: File, maxWidth = 400, quality = 0.7): Promise
   });
 }
 
+const DEFAULT_FORM_STATE = {
+  siteName: 'Zephyrus',
+  primaryColor: '48 100% 50%',
+  ctaTextColor: 'black' as 'black' | 'white',
+  checkoutUrlPt: '',
+  checkoutUrlEnEs: '',
+  headerAvatar: '',
+  teamAvatar: '',
+  ctaText: ''
+};
+
 export default function PortalDoChefe() {
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
@@ -93,16 +104,7 @@ export default function PortalDoChefe() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newProfileId, setNewProfileId] = useState('');
   
-  const [configForm, setConfigForm] = useState({
-    siteName: 'Zephyrus',
-    primaryColor: '48 100% 50%',
-    ctaTextColor: 'black' as 'black' | 'white',
-    checkoutUrlPt: '',
-    checkoutUrlEnEs: '',
-    headerAvatar: '',
-    teamAvatar: '',
-    ctaText: ''
-  });
+  const [configForm, setConfigForm] = useState(DEFAULT_FORM_STATE);
 
   const headerFileRef = useRef<HTMLInputElement>(null);
   const teamFileRef = useRef<HTMLInputElement>(null);
@@ -111,12 +113,14 @@ export default function PortalDoChefe() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
+  // Buscar todos os perfis disponíveis
   const configsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return collection(firestore, 'configs');
   }, [firestore, user]);
   const { data: configsList } = useCollection<any>(configsQuery);
 
+  // Dados de tráfego (Globais por enquanto, ou você pode filtrar no futuro)
   const visitsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return collection(firestore, 'visits');
@@ -135,21 +139,32 @@ export default function PortalDoChefe() {
   }, [firestore, user]);
   const { data: salesData, isLoading: salesLoading } = useCollection(salesQuery);
 
+  // Documento específico do perfil selecionado
   const configDocRef = useMemoFirebase(() => {
     if (!firestore || !user || !selectedConfigId) return null;
     return doc(firestore, 'configs', selectedConfigId);
   }, [firestore, user, selectedConfigId]);
-  const { data: configData } = useDoc<any>(configDocRef);
+  const { data: configData, isLoading: isConfigDataLoading } = useDoc<any>(configDocRef);
 
+  // Sincronizar formulário ao trocar de perfil ou carregar dados
   useEffect(() => {
     setMounted(true);
     if (configData) {
-      setConfigForm(prev => ({
-        ...prev,
-        ...configData
-      }));
+      setConfigForm({
+        siteName: configData.siteName || DEFAULT_FORM_STATE.siteName,
+        primaryColor: configData.primaryColor || DEFAULT_FORM_STATE.primaryColor,
+        ctaTextColor: configData.ctaTextColor || DEFAULT_FORM_STATE.ctaTextColor,
+        checkoutUrlPt: configData.checkoutUrlPt || '',
+        checkoutUrlEnEs: configData.checkoutUrlEnEs || '',
+        headerAvatar: configData.headerAvatar || '',
+        teamAvatar: configData.teamAvatar || '',
+        ctaText: configData.ctaText || ''
+      });
+    } else if (!isConfigDataLoading && selectedConfigId === 'global') {
+        // Se for o global e não tiver dados, mantém o default mas reseta para garantir
+        setConfigForm(DEFAULT_FORM_STATE);
     }
-  }, [configData]);
+  }, [configData, isConfigDataLoading, selectedConfigId]);
 
   const chartData = useMemo(() => {
     if (!visitsData || !clicksData) return [];
@@ -206,7 +221,10 @@ export default function PortalDoChefe() {
     setIsSavingConfig(true);
     try {
       await setDoc(doc(firestore, 'configs', selectedConfigId), configForm, { merge: true });
-      toast({ title: "Configurações aplicadas!", description: `Perfil "${selectedConfigId}" atualizado.` });
+      toast({ 
+        title: "Configurações aplicadas!", 
+        description: `O perfil "${selectedConfigId}" foi atualizado com sucesso.` 
+      });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erro ao salvar", description: error.message });
     } finally {
@@ -229,14 +247,8 @@ export default function PortalDoChefe() {
 
     setIsSavingConfig(true);
     const newConfig = {
-      siteName: 'Novo Site',
-      primaryColor: '48 100% 50%',
-      ctaTextColor: 'black',
-      checkoutUrlPt: '',
-      checkoutUrlEnEs: '',
-      headerAvatar: '',
-      teamAvatar: '',
-      ctaText: '',
+      ...DEFAULT_FORM_STATE,
+      siteName: `Novo Site (${cleanId})`,
       createdAt: serverTimestamp()
     };
 
@@ -246,7 +258,7 @@ export default function PortalDoChefe() {
       setConfigForm(newConfig as any);
       setIsCreateDialogOpen(false);
       setNewProfileId('');
-      toast({ title: "Perfil Criado!", description: `O site "${cleanId}" já está disponível.` });
+      toast({ title: "Perfil Criado!", description: `O site "${cleanId}" já está pronto para edição.` });
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erro ao criar", description: e.message });
     } finally {
@@ -260,7 +272,7 @@ export default function PortalDoChefe() {
       toast({ variant: "destructive", title: "Não permitido", description: "O perfil global não pode ser excluído." });
       return;
     }
-    if (confirm(`Tem certeza que deseja excluir o perfil "${selectedConfigId}"?`)) {
+    if (confirm(`Tem certeza que deseja excluir permanentemente o perfil "${selectedConfigId}"?`)) {
       await deleteDoc(doc(firestore, 'configs', selectedConfigId));
       setSelectedConfigId('global');
       toast({ title: "Perfil excluído" });
@@ -274,7 +286,7 @@ export default function PortalDoChefe() {
       setIsSavingConfig(true);
       const compressedBase64 = await compressImage(file, 400, 0.7);
       setConfigForm(prev => ({ ...prev, [field]: compressedBase64 }));
-      toast({ title: "Imagem carregada" });
+      toast({ title: "Imagem carregada no formulário" });
     } catch (error) {
       toast({ variant: "destructive", title: "Erro no upload" });
     } finally {
@@ -285,7 +297,7 @@ export default function PortalDoChefe() {
   const handleCopyLink = () => {
     const url = `${window.location.origin}/?s=${selectedConfigId}`;
     navigator.clipboard.writeText(url);
-    toast({ title: "Link copiado!", description: "Use este link para o branding deste site." });
+    toast({ title: "Link copiado!", description: "Use este link para enviar aos clientes com este branding." });
   };
 
   if (!mounted) return null;
@@ -329,7 +341,6 @@ export default function PortalDoChefe() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 space-y-8">
         
-        {/* Modal de Criação de Perfil */}
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogContent className="sm:max-w-md bg-card border-primary/20">
             <DialogHeader>
@@ -337,15 +348,15 @@ export default function PortalDoChefe() {
                 <Plus className="text-primary" /> Criar Novo Perfil de Site
               </DialogTitle>
               <DialogDescription>
-                Defina um ID único para o seu novo branding. Use apenas letras e hifens.
+                Defina um ID único (slug) para este branding.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="profile-id">ID do Site (Slug)</Label>
+                <Label htmlFor="profile-id">ID do Site</Label>
                 <Input 
                   id="profile-id" 
-                  placeholder="ex: site-gaming-premium" 
+                  placeholder="ex: promocao-especial" 
                   value={newProfileId}
                   onChange={(e) => setNewProfileId(e.target.value)}
                   className="bg-muted/30"
@@ -368,11 +379,9 @@ export default function PortalDoChefe() {
              </h1>
              <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Controle Multitenant de Branding</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => signOut(auth)} className="border-destructive/30 text-destructive hover:bg-destructive/10 rounded-full px-6">
-              <LogOut className="h-4 w-4 mr-2" /> Sair
-            </Button>
-          </div>
+          <Button variant="outline" size="sm" onClick={() => signOut(auth)} className="border-destructive/30 text-destructive hover:bg-destructive/10 rounded-full px-6">
+            <LogOut className="h-4 w-4 mr-2" /> Sair
+          </Button>
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
@@ -410,7 +419,7 @@ export default function PortalDoChefe() {
               </Card>
               <Card className="bg-card/40 border-border/50 backdrop-blur-sm pt-6 px-4 pb-4">
                   <div className="flex justify-between items-center mb-1">
-                    <p className="text-[10px] font-black uppercase text-zinc-500">Eficiência</p>
+                    <p className="text-[10px] font-black uppercase text-zinc-500">Conversão</p>
                     <TrendingUp className="h-3 w-3 text-primary" />
                   </div>
                   <div className="text-3xl font-black text-primary">{stats.closingRate.toFixed(1)}%</div>
@@ -480,103 +489,117 @@ export default function PortalDoChefe() {
               </div>
             </div>
 
-            <Card className="bg-primary/5 border-primary/20">
-               <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg"><Link2 className="text-primary h-5 w-5" /></div>
-                    <p className="text-sm font-bold italic">Link deste Branding: <span className="text-primary font-mono select-all">?s={selectedConfigId}</span></p>
-                  </div>
-                  <Button variant="secondary" onClick={handleCopyLink} size="sm" className="gap-2 font-bold">
-                    <Copy className="h-4 w-4" /> COPIAR LINK COMPLETO
+            {isConfigDataLoading ? (
+               <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                  <p className="text-muted-foreground animate-pulse">Sincronizando formulário com o perfil...</p>
+               </div>
+            ) : (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+                <Card className="bg-primary/5 border-primary/20">
+                   <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg"><Link2 className="text-primary h-5 w-5" /></div>
+                        <p className="text-sm font-bold italic">Link deste Branding: <span className="text-primary font-mono select-all">?s={selectedConfigId}</span></p>
+                      </div>
+                      <Button variant="secondary" onClick={handleCopyLink} size="sm" className="gap-2 font-bold">
+                        <Copy className="h-4 w-4" /> COPIAR LINK COMPLETO
+                      </Button>
+                   </CardContent>
+                </Card>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  <Card className="bg-card/40">
+                    <CardHeader className="border-b border-border/30">
+                      <CardTitle className="text-lg flex items-center gap-2"><Type className="w-5 h-5" /> Identidade</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                      <div className="space-y-2">
+                        <Label>Nome do Sistema</Label>
+                        <Input value={configForm.siteName} onChange={(e) => setConfigForm({...configForm, siteName: e.target.value})} className="bg-muted/30" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Texto do Botão CTA (Home)</Label>
+                        <Input value={configForm.ctaText} onChange={(e) => setConfigForm({...configForm, ctaText: e.target.value})} placeholder="Ex: Quero Recuperar" className="bg-muted/30" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-card/40">
+                    <CardHeader className="border-b border-border/30">
+                      <CardTitle className="text-lg flex items-center gap-2"><Palette className="w-5 h-5" /> Visual</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-6">
+                      <div className="space-y-2">
+                        <Label>Cor Primária (HSL)</Label>
+                        <div className="flex gap-4 items-center">
+                          <div className="h-10 w-10 rounded border" style={{ backgroundColor: `hsl(${configForm.primaryColor})` }} />
+                          <Input value={configForm.primaryColor} onChange={(e) => setConfigForm({...configForm, primaryColor: e.target.value})} className="bg-muted/30 font-mono" />
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Formato: H S% L% (Ex: 48 100% 50%)</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Cor do Texto nos Botões</Label>
+                        <RadioGroup value={configForm.ctaTextColor} onValueChange={(v) => setConfigForm({...configForm, ctaTextColor: v as any})} className="flex gap-4">
+                          <div className="flex items-center space-x-2"><RadioGroupItem value="black" id="c-black" /><Label htmlFor="c-black">Preto</Label></div>
+                          <div className="flex items-center space-x-2"><RadioGroupItem value="white" id="c-white" /><Label htmlFor="c-white">Branco</Label></div>
+                        </RadioGroup>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-card/40 md:col-span-2">
+                    <CardHeader className="border-b border-border/30">
+                      <CardTitle className="text-lg">Links de Checkout</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 grid md:grid-cols-2 gap-4">
+                       <div className="space-y-2">
+                        <Label>Link Brasil (Português)</Label>
+                        <Input value={configForm.checkoutUrlPt} onChange={(e) => setConfigForm({...configForm, checkoutUrlPt: e.target.value})} className="bg-muted/30" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Link Internacional (Inglês/Espanhol)</Label>
+                        <Input value={configForm.checkoutUrlEnEs} onChange={(e) => setConfigForm({...configForm, checkoutUrlEnEs: e.target.value})} className="bg-muted/30" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-card/40 md:col-span-2">
+                    <CardHeader className="border-b border-border/30">
+                      <CardTitle className="text-lg">Fotos do Branding</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 grid md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <Label>Logo do Header (Canto Superior)</Label>
+                        <div className="h-40 bg-muted/20 rounded-xl border-2 border-dashed flex items-center justify-center relative overflow-hidden group">
+                           {configForm.headerAvatar ? <img src={configForm.headerAvatar} className="h-full object-contain p-4" /> : <ImageIcon className="text-zinc-600 h-10 w-10" />}
+                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Button size="sm" onClick={() => headerFileRef.current?.click()}>Alterar Logo</Button>
+                           </div>
+                        </div>
+                        <input type="file" ref={headerFileRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'headerAvatar')} />
+                      </div>
+                      <div className="space-y-4">
+                        <Label>Foto da Equipe (Chat)</Label>
+                        <div className="h-40 bg-muted/20 rounded-xl border-2 border-dashed flex items-center justify-center relative overflow-hidden group">
+                           {configForm.teamAvatar ? <img src={configForm.teamAvatar} className="h-full object-contain p-4" /> : <ImageIcon className="text-zinc-600 h-10 w-10" />}
+                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Button size="sm" onClick={() => teamFileRef.current?.click()}>Alterar Foto</Button>
+                           </div>
+                        </div>
+                        <input type="file" ref={teamFileRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'teamAvatar')} />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="flex justify-end pt-10 pb-20">
+                  <Button onClick={handleSaveConfig} disabled={isSavingConfig} size="lg" className="px-16 font-black h-16 text-xl gap-3 shadow-xl shadow-primary/20">
+                    {isSavingConfig ? <Loader2 className="animate-spin" /> : <><Save /> SALVAR ALTERAÇÕES EM "{selectedConfigId.toUpperCase()}"</>}
                   </Button>
-               </CardContent>
-            </Card>
-
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card className="bg-card/40">
-                <CardHeader className="border-b border-border/30">
-                  <CardTitle className="text-lg flex items-center gap-2"><Type className="w-5 h-5" /> Identidade</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 space-y-4">
-                  <div className="space-y-2">
-                    <Label>Nome do Sistema</Label>
-                    <Input value={configForm.siteName} onChange={(e) => setConfigForm({...configForm, siteName: e.target.value})} className="bg-muted/30" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Texto do Botão CTA</Label>
-                    <Input value={configForm.ctaText} onChange={(e) => setConfigForm({...configForm, ctaText: e.target.value})} placeholder="Ex: Quero Recuperar" className="bg-muted/30" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card/40">
-                <CardHeader className="border-b border-border/30">
-                  <CardTitle className="text-lg flex items-center gap-2"><Palette className="w-5 h-5" /> Visual</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 space-y-6">
-                  <div className="space-y-2">
-                    <Label>Cor Primária (HSL)</Label>
-                    <div className="flex gap-4 items-center">
-                      <div className="h-10 w-10 rounded border" style={{ backgroundColor: `hsl(${configForm.primaryColor})` }} />
-                      <Input value={configForm.primaryColor} onChange={(e) => setConfigForm({...configForm, primaryColor: e.target.value})} className="bg-muted/30 font-mono" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Texto nos Botões</Label>
-                    <RadioGroup value={configForm.ctaTextColor} onValueChange={(v) => setConfigForm({...configForm, ctaTextColor: v as any})} className="flex gap-4">
-                      <div className="flex items-center space-x-2"><RadioGroupItem value="black" id="c-black" /><Label htmlFor="c-black">Preto</Label></div>
-                      <div className="flex items-center space-x-2"><RadioGroupItem value="white" id="c-white" /><Label htmlFor="c-white">Branco</Label></div>
-                    </RadioGroup>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card/40 md:col-span-2">
-                <CardHeader className="border-b border-border/30">
-                  <CardTitle className="text-lg">Checkouts</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 grid md:grid-cols-2 gap-4">
-                   <div className="space-y-2">
-                    <Label>Link Brasil (PT)</Label>
-                    <Input value={configForm.checkoutUrlPt} onChange={(e) => setConfigForm({...configForm, checkoutUrlPt: e.target.value})} className="bg-muted/30" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Link Internacional (EN/ES)</Label>
-                    <Input value={configForm.checkoutUrlEnEs} onChange={(e) => setConfigForm({...configForm, checkoutUrlEnEs: e.target.value})} className="bg-muted/30" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card/40 md:col-span-2">
-                <CardHeader className="border-b border-border/30">
-                  <CardTitle className="text-lg">Fotos do Site</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 grid md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <Label>Header (Logo)</Label>
-                    <div className="h-32 bg-muted/20 rounded border-2 border-dashed flex items-center justify-center relative overflow-hidden">
-                       {configForm.headerAvatar ? <img src={configForm.headerAvatar} className="h-full object-contain" /> : <ImageIcon className="text-zinc-600" />}
-                       <Button size="sm" className="absolute bottom-2 right-2" onClick={() => headerFileRef.current?.click()}>Alterar</Button>
-                    </div>
-                    <input type="file" ref={headerFileRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'headerAvatar')} />
-                  </div>
-                  <div className="space-y-4">
-                    <Label>Equipe (Chat)</Label>
-                    <div className="h-32 bg-muted/20 rounded border-2 border-dashed flex items-center justify-center relative overflow-hidden">
-                       {configForm.teamAvatar ? <img src={configForm.teamAvatar} className="h-full object-contain" /> : <ImageIcon className="text-zinc-600" />}
-                       <Button size="sm" className="absolute bottom-2 right-2" onClick={() => teamFileRef.current?.click()}>Alterar</Button>
-                    </div>
-                    <input type="file" ref={teamFileRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'teamAvatar')} />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="flex justify-end pt-10 pb-20">
-              <Button onClick={handleSaveConfig} disabled={isSavingConfig} size="lg" className="px-16 font-black h-16 text-xl gap-3">
-                {isSavingConfig ? <Loader2 className="animate-spin" /> : <><Save /> SALVAR ALTERAÇÕES NO PERFIL</>}
-              </Button>
-            </div>
+                </div>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </main>
