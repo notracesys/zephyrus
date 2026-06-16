@@ -55,6 +55,48 @@ const chartConfig = {
   }
 };
 
+// Funções de utilidade para conversão de cores
+function hexToHsl(hex: string): string {
+  hex = hex.replace(/^#/, '');
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s, l = (max + min) / 2;
+
+  if (max === min) {
+    h = s = 0;
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+
+  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
+function hslToHex(hslStr: string): string {
+  const parts = hslStr.replace(/%/g, '').split(' ');
+  if (parts.length < 3) return "#ffcc00";
+  let h = parseInt(parts[0]);
+  let s = parseInt(parts[1]) / 100;
+  let l = parseInt(parts[2]) / 100;
+
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
 async function compressImage(file: File, maxWidth = 400, quality = 0.7): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -108,19 +150,18 @@ export default function PortalDoChefe() {
 
   const headerFileRef = useRef<HTMLInputElement>(null);
   const teamFileRef = useRef<HTMLInputElement>(null);
+  const colorPickerRef = useRef<HTMLInputElement>(null);
 
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
-  // Buscar todos os perfis disponíveis
   const configsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return collection(firestore, 'configs');
   }, [firestore, user]);
   const { data: configsList } = useCollection<any>(configsQuery);
 
-  // Dados de tráfego (Globais por enquanto, ou você pode filtrar no futuro)
   const visitsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return collection(firestore, 'visits');
@@ -139,14 +180,12 @@ export default function PortalDoChefe() {
   }, [firestore, user]);
   const { data: salesData, isLoading: salesLoading } = useCollection(salesQuery);
 
-  // Documento específico do perfil selecionado
   const configDocRef = useMemoFirebase(() => {
     if (!firestore || !user || !selectedConfigId) return null;
     return doc(firestore, 'configs', selectedConfigId);
   }, [firestore, user, selectedConfigId]);
   const { data: configData, isLoading: isConfigDataLoading } = useDoc<any>(configDocRef);
 
-  // Sincronizar formulário ao trocar de perfil ou carregar dados
   useEffect(() => {
     setMounted(true);
     if (configData) {
@@ -161,7 +200,6 @@ export default function PortalDoChefe() {
         ctaText: configData.ctaText || ''
       });
     } else if (!isConfigDataLoading && selectedConfigId === 'global') {
-        // Se for o global e não tiver dados, mantém o default mas reseta para garantir
         setConfigForm(DEFAULT_FORM_STATE);
     }
   }, [configData, isConfigDataLoading, selectedConfigId]);
@@ -292,6 +330,12 @@ export default function PortalDoChefe() {
     } finally {
       setIsSavingConfig(false);
     }
+  };
+
+  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const hex = e.target.value;
+    const hsl = hexToHsl(hex);
+    setConfigForm(prev => ({ ...prev, primaryColor: hsl }));
   };
 
   const handleCopyLink = () => {
@@ -531,12 +575,29 @@ export default function PortalDoChefe() {
                     </CardHeader>
                     <CardContent className="p-6 space-y-6">
                       <div className="space-y-2">
-                        <Label>Cor Primária (HSL)</Label>
+                        <Label>Cor Primária</Label>
                         <div className="flex gap-4 items-center">
-                          <div className="h-10 w-10 rounded border" style={{ backgroundColor: `hsl(${configForm.primaryColor})` }} />
-                          <Input value={configForm.primaryColor} onChange={(e) => setConfigForm({...configForm, primaryColor: e.target.value})} className="bg-muted/30 font-mono" />
+                          {/* Quadradinho clicável que abre o seletor visual */}
+                          <div 
+                            className="h-10 w-10 rounded-lg border-2 border-white/20 shadow-lg cursor-pointer transition-transform hover:scale-110 active:scale-95" 
+                            style={{ backgroundColor: `hsl(${configForm.primaryColor})` }}
+                            onClick={() => colorPickerRef.current?.click()}
+                          />
+                          <Input 
+                            value={configForm.primaryColor} 
+                            onChange={(e) => setConfigForm({...configForm, primaryColor: e.target.value})} 
+                            className="bg-muted/30 font-mono text-xs" 
+                          />
+                          {/* Input de cor escondido */}
+                          <input 
+                            type="color" 
+                            ref={colorPickerRef}
+                            className="hidden"
+                            value={hslToHex(configForm.primaryColor)}
+                            onChange={handleColorChange}
+                          />
                         </div>
-                        <p className="text-[10px] text-muted-foreground">Formato: H S% L% (Ex: 48 100% 50%)</p>
+                        <p className="text-[10px] text-muted-foreground">Clique no quadrado para escolher a cor ou digite o HSL manual.</p>
                       </div>
                       <div className="space-y-2">
                         <Label>Cor do Texto nos Botões</Label>
