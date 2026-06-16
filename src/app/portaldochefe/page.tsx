@@ -27,7 +27,7 @@ import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { 
   Eye, Activity, ShoppingCart, Lock, Loader2, LogOut, Package, 
   BarChart3, Settings, Save,
-  Palette, Link2, UserCircle, Type, Upload, Image as ImageIcon, Sparkles, Trash2, TrendingUp, Plus, Layout, Copy, Check
+  Palette, Link2, UserCircle, Type, Upload, Image as ImageIcon, Sparkles, Trash2, TrendingUp, Plus, Layout, Copy, Check, Globe
 } from 'lucide-react';
 import { format, isSameDay, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -38,6 +38,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 
 const chartConfig = {
   visits: {
@@ -89,13 +90,15 @@ export default function PortalDoChefe() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d'>('7d');
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [selectedConfigId, setSelectedConfigId] = useState('global');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [newProfileId, setNewProfileId] = useState('');
   
   const [configForm, setConfigForm] = useState({
     siteName: 'Zephyrus',
     primaryColor: '48 100% 50%',
     ctaTextColor: 'black' as 'black' | 'white',
-    checkoutUrlPt: 'https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6',
-    checkoutUrlEnEs: 'https://chk.eduzz.com/aziwk6nz?currency=USD',
+    checkoutUrlPt: '',
+    checkoutUrlEnEs: '',
     headerAvatar: '',
     teamAvatar: '',
     ctaText: ''
@@ -155,8 +158,12 @@ export default function PortalDoChefe() {
     const today = startOfDay(new Date());
     for (let i = daysCount - 1; i >= 0; i--) {
       const currentDay = subDays(today, i);
-      const vCount = (visitsData || []).filter(v => v.timestamp?.toDate ? isSameDay(v.timestamp.toDate(), currentDay) : false).length;
-      const cCount = (clicksData || []).filter(c => c.timestamp?.toDate ? isSameDay(c.timestamp.toDate(), currentDay) : false).length;
+      const dayVisits = (visitsData || []).filter(v => v.timestamp?.toDate ? isSameDay(v.timestamp.toDate(), currentDay) : false);
+      const dayClicks = (clicksData || []).filter(c => c.timestamp?.toDate ? isSameDay(c.timestamp.toDate(), currentDay) : false);
+      
+      const vCount = dayVisits.length;
+      const cCount = dayClicks.length;
+      
       let name = timeRange === '7d' ? format(currentDay, 'EEE', { locale: ptBR }).replace('.', '').slice(0, 3).toUpperCase() : format(currentDay, 'dd/MM');
       const conversion = vCount > 0 ? (cCount / vCount) * 100 : 0;
       data.push({ 
@@ -208,42 +215,42 @@ export default function PortalDoChefe() {
   };
 
   const handleCreateNewConfig = async () => {
-    if (!firestore || !user) return;
-    const newId = prompt("Digite um ID para o novo site (ex: site-gaming, premium-box):");
-    if (newId) {
-      const cleanId = newId.trim().toLowerCase().replace(/\s+/g, '-');
-      
-      // Verifica se já existe para não sobrescrever acidentalmente via prompt
-      const existing = configsList?.find(c => c.id === cleanId);
-      if (existing) {
-        setSelectedConfigId(cleanId);
-        toast({ title: "Perfil já existe", description: "Alternando para o perfil existente." });
-        return;
-      }
+    if (!firestore || !user || !newProfileId) return;
+    
+    const cleanId = newProfileId.trim().toLowerCase().replace(/\s+/g, '-');
+    const existing = configsList?.find(c => c.id === cleanId);
+    
+    if (existing) {
+      setSelectedConfigId(cleanId);
+      setIsCreateDialogOpen(false);
+      toast({ title: "Perfil já existe", description: "Alternando para o perfil existente." });
+      return;
+    }
 
-      setIsSavingConfig(true);
-      const newConfig = {
-        siteName: 'Novo Site',
-        primaryColor: '48 100% 50%',
-        ctaTextColor: 'black',
-        checkoutUrlPt: '',
-        checkoutUrlEnEs: '',
-        headerAvatar: '',
-        teamAvatar: '',
-        ctaText: '',
-        createdAt: serverTimestamp()
-      };
+    setIsSavingConfig(true);
+    const newConfig = {
+      siteName: 'Novo Site',
+      primaryColor: '48 100% 50%',
+      ctaTextColor: 'black',
+      checkoutUrlPt: '',
+      checkoutUrlEnEs: '',
+      headerAvatar: '',
+      teamAvatar: '',
+      ctaText: '',
+      createdAt: serverTimestamp()
+    };
 
-      try {
-        await setDoc(doc(firestore, 'configs', cleanId), newConfig);
-        setSelectedConfigId(cleanId);
-        setConfigForm(newConfig as any);
-        toast({ title: "Perfil Criado!", description: `O site "${cleanId}" já está disponível.` });
-      } catch (e: any) {
-        toast({ variant: "destructive", title: "Erro ao criar", description: e.message });
-      } finally {
-        setIsSavingConfig(false);
-      }
+    try {
+      await setDoc(doc(firestore, 'configs', cleanId), newConfig);
+      setSelectedConfigId(cleanId);
+      setConfigForm(newConfig as any);
+      setIsCreateDialogOpen(false);
+      setNewProfileId('');
+      toast({ title: "Perfil Criado!", description: `O site "${cleanId}" já está disponível.` });
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Erro ao criar", description: e.message });
+    } finally {
+      setIsSavingConfig(false);
     }
   };
 
@@ -321,12 +328,45 @@ export default function PortalDoChefe() {
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 space-y-8">
+        
+        {/* Modal de Criação de Perfil */}
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogContent className="sm:max-w-md bg-card border-primary/20">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Plus className="text-primary" /> Criar Novo Perfil de Site
+              </DialogTitle>
+              <DialogDescription>
+                Defina um ID único para o seu novo branding. Use apenas letras e hifens.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="profile-id">ID do Site (Slug)</Label>
+                <Input 
+                  id="profile-id" 
+                  placeholder="ex: site-gaming-premium" 
+                  value={newProfileId}
+                  onChange={(e) => setNewProfileId(e.target.value)}
+                  className="bg-muted/30"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={handleCreateNewConfig} disabled={!newProfileId || isSavingConfig}>
+                {isSavingConfig ? <Loader2 className="animate-spin" /> : "Criar Perfil"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="space-y-1">
              <h1 className="text-2xl md:text-3xl font-black italic flex items-center gap-3 tracking-tighter uppercase">
                 Comando Central <Activity className="text-primary h-6 w-6" />
              </h1>
-             <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Controle de Múltiplos Brandings</p>
+             <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Controle Multitenant de Branding</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => signOut(auth)} className="border-destructive/30 text-destructive hover:bg-destructive/10 rounded-full px-6">
@@ -400,7 +440,7 @@ export default function PortalDoChefe() {
                         <ChartLegend content={<ChartLegendContent />} />
                         <Bar yAxisId="left" dataKey="visits" name="Visitas" radius={[4, 4, 0, 0]} fill="var(--color-visits)" barSize={20} />
                         <Bar yAxisId="left" dataKey="checkouts" name="Checkouts" radius={[4, 4, 0, 0]} fill="var(--color-checkouts)" barSize={20} />
-                        <Line yAxisId="right" type="monotone" dataKey="conversionRate" name="Taxa de Conversão (%)" stroke="var(--color-conversionRate)" strokeWidth={2} dot />
+                        <Line yAxisId="right" type="monotone" dataKey="conversionRate" name="Conversão (%)" stroke="var(--color-conversionRate)" strokeWidth={2} dot />
                       </ComposedChart>
                     </ResponsiveContainer>
                   </ChartContainer>
@@ -415,7 +455,7 @@ export default function PortalDoChefe() {
                 <Label className="text-xs font-black uppercase tracking-widest text-zinc-500">Selecionar Perfil de Site</Label>
                 <Select value={selectedConfigId} onValueChange={setSelectedConfigId}>
                   <SelectTrigger className="h-14 bg-card/60 border-primary/20 text-lg font-bold italic">
-                    <Layout className="w-5 h-5 mr-2 text-primary" />
+                    <Globe className="w-5 h-5 mr-2 text-primary" />
                     <SelectValue placeholder="Escolha um site" />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border">
@@ -429,7 +469,7 @@ export default function PortalDoChefe() {
                 </Select>
               </div>
               <div className="flex gap-2">
-                <Button onClick={handleCreateNewConfig} className="h-14 px-8 font-black gap-2">
+                <Button onClick={() => setIsCreateDialogOpen(true)} className="h-14 px-8 font-black gap-2">
                   <Plus className="w-5 h-5" /> NOVO PERFIL
                 </Button>
                 {selectedConfigId !== 'global' && (
