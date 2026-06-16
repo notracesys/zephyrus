@@ -35,16 +35,28 @@ function ConfigLoader({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const firestore = useFirestore();
   const [mounted, setMounted] = useState(false);
-  
-  // O siteId vem do parâmetro ?s= na URL, ou 'global' por padrão
-  const siteId = searchParams.get('s') || 'global';
+  const [siteId, setSiteId] = useState<string>('global');
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // 1. Prioridade: Parâmetro na URL (?s=)
+    const urlSiteId = searchParams.get('s');
+    // 2. Segunda opção: Memória da sessão (sessionStorage)
+    const storedSiteId = sessionStorage.getItem('active_site_id');
+
+    if (urlSiteId) {
+      setSiteId(urlSiteId);
+      sessionStorage.setItem('active_site_id', urlSiteId);
+    } else if (storedSiteId) {
+      setSiteId(storedSiteId);
+    } else {
+      setSiteId('global');
+    }
+  }, [searchParams]);
 
   const configRef = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore || !siteId) return null;
     return doc(firestore, 'configs', siteId);
   }, [firestore, siteId]);
 
