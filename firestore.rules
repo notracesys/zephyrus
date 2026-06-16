@@ -23,7 +23,8 @@ service cloud.firestore {
       allow list, update, delete: if isSignedIn(); 
     }
 
-    match /config/global {
+    // Corrigido para /configs/ e permitindo leitura para todos (visitantes)
+    match /configs/{configId} {
       allow read: if true;
       allow write: if isSignedIn();
     }
