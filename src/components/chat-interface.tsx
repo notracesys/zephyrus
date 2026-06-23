@@ -52,7 +52,6 @@ const FeedbackCard = ({ data }: { data: FeedbackData }) => (
         src={data.imageUrl} 
         alt="Feedback" 
         className="rounded-2xl border-2 border-primary/20 shadow-2xl w-full h-auto"
-        data-ai-hint="Email support response"
     />
   </div>
 );
@@ -172,60 +171,84 @@ ${t.chat_label_description}:
     setShowOptions(false);
 
     if (option === 'sim') {
-        setTimeout(() => {
+        const flow = async () => {
+            const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+            // Great choice
+            await delay(1500);
             setIsTyping(true);
-            setTimeout(() => {
-                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_great_choice), type: 'text' }]);
-                setIsTyping(false);
-                setTimeout(() => {
-                    setIsTyping(true);
-                    setTimeout(() => {
-                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg), type: 'text' }]);
-                        setIsTyping(false);
-                        
-                        setTimeout(() => {
-                            // Envia a imagem do email automático (email.jpg)
-                            const emailFeedback: Message = {
-                                id: generateId(),
-                                sender: 'team',
-                                type: 'feedback',
-                                feedbackData: { imageUrl: 'https://picsum.photos/seed/email-auto/400/300' }
-                            };
-                            setMessages(prev => [...prev, emailFeedback]);
+            await delay(3000);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_great_choice), type: 'text' }]);
+            setIsTyping(false);
 
-                            setTimeout(() => {
-                                setIsTyping(true);
-                                setTimeout(() => {
-                                    setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_2), type: 'text' }]);
-                                    setIsTyping(false);
-                                    
-                                    setTimeout(() => {
-                                        setShowImportantNotice(true);
-                                        setTimeout(() => {
-                                            setIsTyping(true);
-                                            setTimeout(() => {
-                                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_3), type: 'text' }]);
-                                                setIsTyping(false);
-                                                
-                                                setTimeout(() => {
-                                                    setIsTyping(true);
-                                                    setTimeout(() => {
-                                                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_4), type: 'text' }]);
-                                                        setIsTyping(false);
-                                                        setShowPurchaseButton(true);
-                                                    }, 3000);
-                                                }, 6000);
-                                            }, 3000);
-                                        }, 2000);
-                                    }, 6000);
+            // Unban Story 1
+            await delay(4000);
+            setIsTyping(true);
+            await delay(5000);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_unban_story), type: 'text' }]);
+            setIsTyping(false);
 
-                                }, 3000);
-                            }, 4000);
-                        }, 3000);
-                    }, 4000);
-                }, 3000);
-            }, 3000);
-        }, 6000);
+            // Final Msg (Introduction to email.jpg)
+            await delay(6000);
+            setIsTyping(true);
+            await delay(4000);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg), type: 'text' }]);
+            setIsTyping(false);
+
+            // Email Image
+            await delay(3000);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/email.jpg' } }]);
+
+            // Unban Story 2 (Robots vs Human)
+            await delay(6000);
+            setIsTyping(true);
+            await delay(5000);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_2), type: 'text' }]);
+            setIsTyping(false);
+
+            // Feedback Intro
+            await delay(6000);
+            setIsTyping(true);
+            await delay(4000);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_feedback_intro), type: 'text' }]);
+            setIsTyping(false);
+
+            // Feedback 1
+            await delay(2000);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/feedback1.png' } }]);
+
+            // Feedback 2
+            await delay(3000);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/feedback2.png' } }]);
+
+            // Unban Strategy Intro
+            await delay(5000);
+            setIsTyping(true);
+            await delay(4000);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_unban_strategy_intro), type: 'text' }]);
+            setIsTyping(false);
+
+            // Important Notice Popup
+            await delay(2000);
+            setShowImportantNotice(true);
+
+            // Pricing Msg
+            await delay(3000);
+            setIsTyping(true);
+            await delay(4000);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_3), type: 'text' }]);
+            setIsTyping(false);
+
+            // Final CTA
+            await delay(6000);
+            setIsTyping(true);
+            await delay(3000);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_4), type: 'text' }]);
+            setIsTyping(false);
+            setShowPurchaseButton(true);
+        };
+
+        flow();
     }
   }
 
