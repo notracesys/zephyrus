@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -8,6 +9,7 @@ import { CheckCheck, AlertTriangle, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -50,7 +52,7 @@ const FeedbackCard = ({ data }: { data: FeedbackData }) => (
         src={data.imageUrl} 
         alt="Feedback" 
         className="rounded-2xl border-2 border-primary/20 shadow-2xl w-full h-auto"
-        data-ai-hint="Email feedback screenshot"
+        data-ai-hint="Email support response"
     />
   </div>
 );
@@ -182,12 +184,12 @@ ${t.chat_label_description}:
                         setIsTyping(false);
                         
                         setTimeout(() => {
-                            // Envia a imagem do email automático
+                            // Envia a imagem do email automático (email.jpg)
                             const emailFeedback: Message = {
                                 id: generateId(),
                                 sender: 'team',
                                 type: 'feedback',
-                                feedbackData: { imageUrl: 'https://picsum.photos/seed/email-auto/400/300' } // Placeholder para email.jpg
+                                feedbackData: { imageUrl: 'https://picsum.photos/seed/email-auto/400/300' }
                             };
                             setMessages(prev => [...prev, emailFeedback]);
 
@@ -235,7 +237,11 @@ ${t.chat_label_description}:
             <AlertDialogTitle className="flex items-center gap-2"><AlertTriangle className="text-destructive" /> {t.chat_warning_title}</AlertDialogTitle>
             <AlertDialogDescription>{t.chat_warning}</AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogAction onClick={() => setShowImportantNotice(false)} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">Entendi</AlertDialogAction></AlertDialogFooter>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowImportantNotice(false)} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
+              Entendi
+            </AlertDialogAction>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 

@@ -1,3 +1,4 @@
+
 export type Language = 'en' | 'es' | 'pt';
 
 export const translations = {
@@ -144,8 +145,8 @@ export const translations = {
     analysis_questions: [
       {
         id: "suspensionTime",
-        label: "¿Hace cuánto tempo fue suspendida su cuenta?",
-        options: ["Menos de 1 semana", "Entre 1 semana y 1 mes", "Entre 1 y 6 meses", "Más de 6 meses"],
+        label: "¿Hace cuánto tempo foi suspendida su cuenta?",
+        options: ["Menos de 1 semana", "Entre 1 semana y 1 mes", "Entre 1 e 6 meses", "Más de 6 meses"],
       },
       {
         id: "thirdPartySoftware",
@@ -224,7 +225,7 @@ export const translations = {
     terms_title: "Termos e Condições de Responsabilidade",
     terms_desc: "Por favor, leia atentamente antes de prosseguir com sua solicitação de Unban.",
     terms_body: [
-      "É expressamente reconhecido que o CONTRATADO não garante, promete ou assegura a reversão, desbloqueio, recuperação ou restabelecimento de contas, itens virtuais, progressos, patentes ou quaisquer ativos digitais, visto que a decisão final e soberana pertence exclusivamente à plataforma responsável (Garena).",
+      "É expressamente reconhecido que o CONTRATADO não garante, promete ou assegura a reversão, desbloqueio, recuperação ou restabelecimentos de contas, itens virtuais, progressos, patentes ou quaisquer ativos digitais, visto que a decisão final e soberana pertence exclusivamente à plataforma responsável (Garena).",
       "Este site destina-se à prestação de serviços de análise técnica independente, orientação e suporte informativo, exclusivamente voltados para recursos administrativos de banimento.",
       "O CLIENTE declara conhecimento inequívoco de que o CONTRATADO não possui qualquer vínculo, parceria ou filiação com a Garena, sendo todas as marcas mencionadas de propriedade exclusiva de seus respectivos titulares.",
       "O CONTRATADO não realiza, sob hipótese alguma, acesso direto ou indireto a servidores internos da plataforma.",
@@ -287,7 +288,7 @@ export const translations = {
     chat_label_suspension_time: "Tempo de suspensão",
     chat_label_software: "Usou software de terceiros",
     chat_label_reason: "Motivo do banimento",
-    chat_label_first_offense: "Primeira infração",
+    chat_label_first_infra: "Primeira infração",
     chat_label_purchases: "Fez compras",
     chat_label_warnings: "Avisos prévios",
     chat_label_description: "Descrição",
@@ -305,7 +306,7 @@ export const translations = {
     chat_final_msg_4: "Mas atenção: esse valor promocional é válido apenas para HOJE. Clique no botão abaixo para garantir sua vaga e recuperar sua conta agora.",
     chat_purchase_btn: "Recuperar Conta",
     chat_feedbacks: [],
-    delivery_title: "ÁREA DE ACCESO",
+    delivery_title: "ÁREA DE ACESSO",
     delivery_subtitle: "Insira o ID da sua transação recebido por e-mail.",
     delivery_placeholder: "Ex: A1B2C3D4...",
     delivery_btn: "Liberar Acesso",
@@ -313,7 +314,7 @@ export const translations = {
     delivery_authorized: "ACESSO LIBERADO!",
     delivery_authorized_subtitle: "Não feche esta página antes de concluir o download.",
     delivery_download_btn: "Baixar Agora",
-    delivery_expired: "Acesso Expirado",
+    delivery_expired: "Acesso Expired",
     delivery_expired_desc: "Este ID de transação já foi utilizado para acessar o download.",
     delivery_expired_help: "Por segurança, cada compra permite um único acesso. Se você não conseguiu concluir o download, entre em contato com o suporte.",
     lang_selection: "Selecione seu idioma",
