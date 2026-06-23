@@ -221,16 +221,16 @@ ${t.chat_label_description}:
             await delay(3000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/feedback2.png' } }]);
 
-            // Unban Strategy Intro (TRINULTIMA MENSAGEM - Aumentando delay)
-            await delay(9000); // Aumentado de 5000
-            setIsTyping(true);
-            await delay(8000); // Aumentado de 4000 (Simulando uma digitação longa e pensada)
-            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_unban_strategy_intro), type: 'text' }]);
-            setIsTyping(false);
-
-            // Important Notice Popup
+            // Important Notice Popup - APÓS O ULTIMO FEEDBACK
             await delay(2000);
             setShowImportantNotice(true);
+
+            // Unban Strategy Intro (TRINULTIMA MENSAGEM - Aumentando delay)
+            await delay(9000); 
+            setIsTyping(true);
+            await delay(8000); // Simulando uma digitação longa e pensada
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_unban_strategy_intro), type: 'text' }]);
+            setIsTyping(false);
 
             // Pricing Msg
             await delay(3000);
