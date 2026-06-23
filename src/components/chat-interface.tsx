@@ -71,6 +71,19 @@ export default function ChatInterface() {
     return text.replace(/\{siteName\}/g, config.siteName);
   };
 
+  const renderContent = (text: string) => {
+    if (!text) return null;
+    const formatted = formatText(text);
+    // Split by Markdown bold syntax **text**
+    const parts = formatted.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i} className="font-black text-primary">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
   const generateId = () => Math.random().toString(36).substr(2, 9) + Date.now();
 
   useEffect(() => {
@@ -294,7 +307,9 @@ ${t.chat_label_description}:
                             <FeedbackCard data={msg.feedbackData} />
                           ) : (
                             <div className={cn('relative p-3 max-w-[85%] md:max-w-lg shadow-md', isUser ? 'bg-primary text-primary-foreground rounded-t-xl rounded-bl-xl' : 'bg-secondary text-secondary-foreground rounded-t-xl rounded-br-xl', (isUser && prevMessage?.sender === 'user') && 'rounded-tr-none', (isUser && nextMessage?.sender === 'user') && 'rounded-bl-none', (isTeam && prevMessage?.sender === 'team') && 'rounded-tl-none', (isTeam && nextMessage?.sender === 'team') && 'rounded-br-none')}>
-                                <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                                <p className="text-sm whitespace-pre-wrap break-words">
+                                    {renderContent(msg.content || '')}
+                                </p>
                                 {isUser && (<div className="flex justify-end items-center gap-1 mt-1"><CheckCheck className={cn("h-4 w-4", msg.status === 'read' ? "text-blue-500" : "text-muted-foreground")} /></div>)}
                             </div>
                           )}
