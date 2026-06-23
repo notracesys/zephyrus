@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -215,11 +214,11 @@ ${t.chat_label_description}:
 
             // Feedback 1
             await delay(2000);
-            setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/feedback1.png' } }]);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/feedback1.jpg' } }]);
 
             // Feedback 2
             await delay(3000);
-            setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/feedback2.png' } }]);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/feedback2.jpg' } }]);
 
             // Important Notice Popup - APÓS O ULTIMO FEEDBACK
             await delay(2000);
