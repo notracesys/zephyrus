@@ -221,10 +221,10 @@ ${t.chat_label_description}:
             await delay(3000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/feedback2.png' } }]);
 
-            // Unban Strategy Intro
-            await delay(5000);
+            // Unban Strategy Intro (TRINULTIMA MENSAGEM - Aumentando delay)
+            await delay(9000); // Aumentado de 5000
             setIsTyping(true);
-            await delay(4000);
+            await delay(8000); // Aumentado de 4000 (Simulando uma digitação longa e pensada)
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_unban_strategy_intro), type: 'text' }]);
             setIsTyping(false);
 
