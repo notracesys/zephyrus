@@ -8,7 +8,6 @@ import { CheckCheck, AlertTriangle, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -51,7 +50,7 @@ const FeedbackCard = ({ data }: { data: FeedbackData }) => (
         src={data.imageUrl} 
         alt="Feedback" 
         className="rounded-2xl border-2 border-primary/20 shadow-2xl w-full h-auto"
-        data-ai-hint="Customer feedback screenshot"
+        data-ai-hint="Email feedback screenshot"
     />
   </div>
 );
@@ -177,35 +176,35 @@ ${t.chat_label_description}:
                 setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_great_choice), type: 'text' }]);
                 setIsTyping(false);
                 setTimeout(() => {
-                    setShowImportantNotice(true);
+                    setIsTyping(true);
                     setTimeout(() => {
-                        setIsTyping(true);
+                        setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg), type: 'text' }]);
+                        setIsTyping(false);
+                        
                         setTimeout(() => {
-                            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg), type: 'text' }]);
-                            setIsTyping(false);
-                            setTimeout(() => {
-                              setIsTyping(true);
-                              setTimeout(() => {
-                                setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_2), type: 'text' }]);
-                                setIsTyping(false);
-                                
-                                setTimeout(() => {
-                                    setIsTyping(true);
-                                    setTimeout(() => {
-                                        const feedbackMsgs: Message[] = (t.chat_feedbacks || []).map((f: any, i: number) => ({
-                                          id: `feedback-${i}-${Date.now()}`,
-                                          sender: 'team' as const,
-                                          type: 'feedback' as const,
-                                          feedbackData: f
-                                        }));
-                                        setMessages(prev => [...prev, ...feedbackMsgs]);
-                                        setIsTyping(false);
+                            // Envia a imagem do email automático
+                            const emailFeedback: Message = {
+                                id: generateId(),
+                                sender: 'team',
+                                type: 'feedback',
+                                feedbackData: { imageUrl: 'https://picsum.photos/seed/email-auto/400/300' } // Placeholder para email.jpg
+                            };
+                            setMessages(prev => [...prev, emailFeedback]);
 
+                            setTimeout(() => {
+                                setIsTyping(true);
+                                setTimeout(() => {
+                                    setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_2), type: 'text' }]);
+                                    setIsTyping(false);
+                                    
+                                    setTimeout(() => {
+                                        setShowImportantNotice(true);
                                         setTimeout(() => {
                                             setIsTyping(true);
                                             setTimeout(() => {
                                                 setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_3), type: 'text' }]);
                                                 setIsTyping(false);
+                                                
                                                 setTimeout(() => {
                                                     setIsTyping(true);
                                                     setTimeout(() => {
@@ -214,16 +213,15 @@ ${t.chat_label_description}:
                                                         setShowPurchaseButton(true);
                                                     }, 3000);
                                                 }, 6000);
-                                            }, 3000)
-                                        }, 6000)
-                                    }, 3000);
-                                }, 4000);
+                                            }, 3000);
+                                        }, 2000);
+                                    }, 6000);
 
-                              }, 3000);
-                            }, 6000);
+                                }, 3000);
+                            }, 4000);
                         }, 3000);
-                    }, 6000);
-                }, 2000);
+                    }, 4000);
+                }, 3000);
             }, 3000);
         }, 6000);
     }
@@ -237,7 +235,7 @@ ${t.chat_label_description}:
             <AlertDialogTitle className="flex items-center gap-2"><AlertTriangle className="text-destructive" /> {t.chat_warning_title}</AlertDialogTitle>
             <AlertDialogDescription>{t.chat_warning}</AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogAction onClick={() => setShowImportantNotice(false)} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">Close</AlertDialogAction></AlertDialogFooter>
+          <AlertDialogFooter><AlertDialogAction onClick={() => setShowImportantNotice(false)} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">Entendi</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
