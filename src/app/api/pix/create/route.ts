@@ -13,22 +13,47 @@ export async function POST(request: Request) {
 
     const price = amount || 1990;
 
-    // Estrutura EXATA conforme a documentação pública da IronPay
+    // Payload seguindo EXATAMENTE o exemplo da documentação
     const payload = {
       amount: price,
-      payment_method: 'pix',
+      offer_hash: process.env.IRONPAY_OFFER_HASH || "7becb", // Hash da Oferta (deve estar no .env)
+      payment_method: "pix",
       customer: {
-        name: (customerName || 'Jogador FF').trim(),
-        email: (customerEmail || 'contato@zephyrus.com').trim(),
-        cpf: (customerCpf || '00000000000').replace(/\D/g, ''),
+        name: (customerName || "Jogador FF").trim(),
+        email: (customerEmail || "contato@zephyrus.com").trim(),
+        phone_number: "21999999999",
+        document: (customerCpf || "00000000000").replace(/\D/g, ""),
+        street_name: "Rua das Flores",
+        number: "123",
+        complement: "Apt 45",
+        neighborhood: "Centro",
+        city: "Rio de Janeiro",
+        state: "RJ",
+        zip_code: "20040020"
       },
-      items: [
+      cart: [
         {
-          title: 'Unban Strategy - Recuperação de Conta',
-          unit_price: price,
-          quantity: 1
+          product_hash: process.env.IRONPAY_PRODUCT_HASH || "7tjdfkshdv", // Hash do Produto (deve estar no .env)
+          title: "Unban Strategy - Recuperação de Conta",
+          cover: null,
+          price: price,
+          quantity: 1,
+          operation_type: 1,
+          tangible: false
         }
-      ]
+      ],
+      expire_in_days: 1,
+      transaction_origin: "api",
+      tracking: {
+        src: "",
+        utm_source: "direct",
+        utm_medium: "cpc",
+        utm_campaign: "unban-strategy",
+        utm_term: "",
+        utm_content: ""
+      },
+      // URL de Webhook para confirmação automática
+      postback_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://zephyrus.com'}/api/pix/webhook`
     };
 
     // Autenticação via Query String conforme padrão da API
@@ -44,17 +69,15 @@ export async function POST(request: Request) {
     const data = await ironPayResponse.json();
 
     if (!ironPayResponse.ok) {
-      console.error('Erro IronPay:', data);
+      console.error('Erro detalhado IronPay:', data);
       return NextResponse.json({ 
         error: 'Erro na operadora', 
         details: data.message || data.error || 'Verifique os dados enviados.'
       }, { status: ironPayResponse.status });
     }
 
-    // A resposta costuma vir em data ou na raiz
-    const result = data.data || data;
-    
     // Mapeamento dos campos de retorno para o Pix
+    const result = data.data || data;
     const hash = result.transaction_hash || result.hash || result.id;
     const pixCode = result.pix_code || result.pix_copy_paste || result.copy_paste || result.brcode || result.qrcode_string;
     const qrCodeImage = result.qr_code || result.qr_code_base64;
@@ -62,7 +85,7 @@ export async function POST(request: Request) {
     if (!hash || !pixCode) {
       return NextResponse.json({ 
         error: 'Resposta incompleta da operadora', 
-        details: 'Hash ou Código Pix não encontrados.' 
+        details: 'Hash ou Código Pix não encontrados no retorno.' 
       }, { status: 500 });
     }
 
