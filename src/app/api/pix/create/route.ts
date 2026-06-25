@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     // A IronPay costuma retornar os dados dentro de um objeto 'data'
     const data = result.data || result;
     
-    // Mapeamento ULTRA flexível para encontrar os dados do Pix
+    // Mapeamento ULTRA flexível para encontrar os dados do Pix na resposta
     const hash = data.transaction_hash || data.hash || data.id || data.reference || (data.transaction && data.transaction.hash);
     
     // Procura o código copia e cola em todos os campos possíveis usados por gateways brasileiros
@@ -94,19 +94,22 @@ export async function POST(request: Request) {
                     data.qrcode_string || 
                     data.pix_qrcode || 
                     data.pix_code_raw ||
-                    (data.payment && data.payment.pix_code);
+                    data.pix_code_url ||
+                    (data.payment && (data.payment.pix_code || data.payment.brcode));
 
     const qrCodeImage = data.qr_code || 
                         data.qr_code_base64 || 
                         data.pix_qrcode_base64 || 
                         data.qrcode || 
+                        data.pix_qrcode ||
                         (data.payment && data.payment.qr_code);
 
     if (!hash || !pixCode) {
       console.error('[IronPay] Resposta sem dados Pix. Objeto recebido:', JSON.stringify(result, null, 2));
       return NextResponse.json({ 
-        error: 'A IronPay aceitou o pedido, mas não gerou o código Pix. Verifique se o método Pix está ativo na sua conta.',
-        debug_keys: Object.keys(data)
+        error: 'A venda foi criada no seu painel, mas o sistema não conseguiu ler o código Pix. Verifique se o método Pix está configurado corretamente na sua Oferta na IronPay.',
+        debug_keys: Object.keys(data),
+        full_response: result
       }, { status: 500 });
     }
 
