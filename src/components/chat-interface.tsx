@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -17,11 +16,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
 import { useAppConfig } from '@/components/config-provider';
 import PixModal from '@/components/pix-modal';
 import { toast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 type FeedbackData = {
   imageUrl: string;
@@ -58,7 +59,7 @@ const FeedbackCard = ({ data }: { data: FeedbackData }) => (
 );
 
 export default function ChatInterface() {
-  const { t, isReady, lang } = useLanguage();
+  const { t, isReady } = useLanguage();
   const config = useAppConfig();
   const searchParams = useSearchParams();
   const firestore = useFirestore();
@@ -174,29 +175,44 @@ ${t.chat_label_description}:
           amount: 1990,
           customerName: 'Jogador FF',
           customerEmail: 'contato@zephyrus.com',
-          siteId: sessionStorage.getItem('active_site_id') || 'global'
         })
       });
 
       const data = await response.json();
-      if (data.success) {
+      
+      if (response.ok && data.success) {
         setPixData(data);
         setPixModalOpen(true);
+        
+        // Salva a intenção de compra no Firestore (Client Side)
         if (firestore) {
-          addDoc(collection(firestore, 'checkoutClicks'), {
+          const purchaseRef = doc(firestore, 'purchases', String(data.hash));
+          const purchaseData = {
+            id: String(data.hash),
+            status: 'pending',
+            amount: 1990,
+            email: 'contato@zephyrus.com',
             timestamp: serverTimestamp(),
-            source: 'chat-pix-native',
-            url: 'native-modal'
+            siteId: sessionStorage.getItem('active_site_id') || 'global',
+            accessed: false
+          };
+          
+          setDoc(purchaseRef, purchaseData).catch((err) => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+              path: purchaseRef.path,
+              operation: 'create',
+              requestResourceData: purchaseData
+            }));
           });
         }
       } else {
-        throw new Error(data.error || 'Erro desconhecido');
+        throw new Error(data.details || data.error || 'Erro ao gerar pagamento');
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro ao gerar Pix",
-        description: "Não foi possível gerar o QR Code. Tente novamente.",
+        description: error.message || "Não foi possível gerar o QR Code. Tente novamente.",
       });
     } finally {
       setIsGeneratingPix(false);
@@ -333,9 +349,9 @@ ${t.chat_label_description}:
                             <FeedbackCard data={msg.feedbackData} />
                           ) : (
                             <div className={cn('relative p-3 max-w-[85%] md:max-w-lg shadow-md', isUser ? 'bg-primary text-primary-foreground rounded-t-xl rounded-bl-xl' : 'bg-secondary text-secondary-foreground rounded-t-xl rounded-br-xl', (isUser && prevMessage?.sender === 'user') && 'rounded-tr-none', (isUser && nextMessage?.sender === 'user') && 'rounded-bl-none', (isTeam && prevMessage?.sender === 'team') && 'rounded-tl-none', (isTeam && nextMessage?.sender === 'team') && 'rounded-br-none')}>
-                                <p className="text-sm whitespace-pre-wrap break-words">
+                                <div className="text-sm whitespace-pre-wrap break-words">
                                     {renderContent(msg.content || '')}
-                                </p>
+                                </div>
                                 {isUser && (<div className="flex justify-end items-center gap-1 mt-1"><CheckCheck className={cn("h-4 w-4", msg.status === 'read' ? "text-blue-500" : "text-muted-foreground")} /></div>)}
                             </div>
                           )}

@@ -13,6 +13,10 @@ import { Loader2, Copy, Check, ShieldCheck } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { useFirestore } from '@/firebase';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 interface PixModalProps {
   isOpen: boolean;
@@ -29,6 +33,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
   const [isCopied, setIsCopied] = useState(false);
   const [status, setStatus] = useState<'pending' | 'paid' | 'failed'>('pending');
   const router = useRouter();
+  const firestore = useFirestore();
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -41,6 +46,22 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
           if (data.status === 'paid') {
             setStatus('paid');
             clearInterval(interval);
+            
+            // Atualiza o status no Firestore (Client Side)
+            if (firestore) {
+                const purchaseRef = doc(firestore, 'purchases', String(pixData.hash));
+                updateDoc(purchaseRef, { 
+                    status: 'paid',
+                    paidAt: serverTimestamp()
+                }).catch((err) => {
+                    errorEmitter.emit('permission-error', new FirestorePermissionError({
+                        path: purchaseRef.path,
+                        operation: 'update',
+                        requestResourceData: { status: 'paid' }
+                    }));
+                });
+            }
+
             toast({
               title: "Pagamento Confirmado!",
               description: "Redirecionando para sua entrega...",
@@ -58,7 +79,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isOpen, pixData, status, router]);
+  }, [isOpen, pixData, status, router, firestore]);
 
   const copyPixCode = () => {
     if (!pixData?.pixCode) return;

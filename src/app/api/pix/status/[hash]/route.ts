@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 
 const IRONPAY_TOKEN = process.env.IRONPAY_API_TOKEN;
@@ -14,13 +13,19 @@ export async function GET(
       return NextResponse.json({ error: 'Token não configurado' }, { status: 500 });
     }
 
-    const response = await fetch(`${IRONPAY_URL}/${hash}?api_token=${IRONPAY_TOKEN}`);
-    const data = await response.json();
+    // Consulta direta na IronPay pelo status do hash
+    const response = await fetch(`${IRONPAY_URL}/${hash}?api_token=${IRONPAY_TOKEN}`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    
+    if (!response.ok) {
+      return NextResponse.json({ status: 'pending', error: 'Falha ao consultar operadora' });
+    }
 
-    const rawStatus = data.status || '';
+    const data = await response.json();
+    const rawStatus = data.status || (data.data && data.data.status) || '';
     const status = String(rawStatus).toLowerCase();
 
-    // Mapeamento de status para um padrão simples
     let finalStatus = 'pending';
     if (['paid', 'approved', 'succeeded', 'pago', 'aprovado'].includes(status)) {
       finalStatus = 'paid';
@@ -28,9 +33,9 @@ export async function GET(
       finalStatus = 'failed';
     }
 
-    return NextResponse.json({ status: finalStatus, originalStatus: status });
+    return NextResponse.json({ status: finalStatus });
 
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ status: 'pending', error: error.message });
   }
 }
