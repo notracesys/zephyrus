@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -18,12 +17,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Token da API não configurado' }, { status: 500 });
     }
 
-    // Criar transação na IronPay
     const ironPayResponse = await fetch(`${IRONPAY_URL}?api_token=${IRONPAY_TOKEN}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        amount: amount || 1990, // Padrão 19.90
+        amount: amount || 1990,
         payment_method: 'pix',
         customer: {
           name: customerName || 'Cliente FF',
@@ -47,12 +45,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Erro ao gerar Pix na IronPay' }, { status: 500 });
     }
 
-    // Identificar os campos de Pix retornados
     const hash = data.transaction_hash || data.id || data.hash;
     const pixCode = data.pix_code || data.pixCode || data.pix_copy_paste || data.copy_paste || data.brcode || data.qrcode_string;
     const qrCodeImage = data.qr_code || data.qrCode || data.qr_code_base64;
 
-    // Salvar no Firebase como pendente
     if (hash) {
       await setDoc(doc(db, 'purchases', String(hash)), {
         id: String(hash),

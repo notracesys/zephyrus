@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,7 +9,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, Check, QrCode, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Loader2, Copy, Check, ShieldCheck } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
