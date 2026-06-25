@@ -184,7 +184,6 @@ ${t.chat_label_description}:
         setPixData(data);
         setPixModalOpen(true);
         
-        // Salva a intenção de compra no Firestore (Client Side)
         if (firestore) {
           const purchaseRef = doc(firestore, 'purchases', String(data.hash));
           const purchaseData = {
@@ -206,13 +205,15 @@ ${t.chat_label_description}:
           });
         }
       } else {
-        throw new Error(data.details || data.error || 'Erro ao gerar pagamento');
+        // Se falhar, tenta mostrar a mensagem específica da IronPay
+        const errorMsg = data.error || data.message || "Ocorreu um erro ao processar o pagamento.";
+        throw new Error(errorMsg);
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro ao gerar Pix",
-        description: error.message || "Não foi possível gerar o QR Code. Tente novamente.",
+        description: error.message || "Tente novamente mais tarde.",
       });
     } finally {
       setIsGeneratingPix(false);
@@ -368,7 +369,7 @@ ${t.chat_label_description}:
                   <Button 
                     disabled={isGeneratingPix}
                     onClick={handleCreatePix} 
-                    className="w-full sm:w-auto font-bold relative overflow-hidden bg-primary text-primary-foreground h-14"
+                    className="w-full sm:w-auto font-bold relative overflow-hidden bg-primary text-primary-foreground h-14 px-8"
                   >
                     {isGeneratingPix ? (
                       <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> GERANDO PIX...</>
