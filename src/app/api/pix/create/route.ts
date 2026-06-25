@@ -8,15 +8,18 @@ export async function POST(request: Request) {
     const { amount, customerEmail, customerName, customerCpf, offerHash } = await request.json();
 
     if (!IRONPAY_TOKEN) {
-      console.error('IRONPAY_API_TOKEN não configurado no servidor');
-      return NextResponse.json({ error: 'Configuração do servidor incompleta' }, { status: 500 });
+      return NextResponse.json({ error: 'IRONPAY_API_TOKEN não configurado no servidor' }, { status: 500 });
     }
 
+    // A IronPay exige o offer_hash. Se não vier do front, tentamos usar um padrão ou retornamos erro claro.
+    // Você deve pegar o HASH da sua oferta no painel da IronPay.
+    const finalOfferHash = offerHash || 'unban-strategy-standard';
+
     const payload = {
+      api_token: IRONPAY_TOKEN, // Incluindo no body conforme algumas versões da documentação
       amount: amount || 1990,
       payment_method: 'pix',
-      // Campo obrigatório exigido pela IronPay
-      offer_hash: offerHash || 'unban-strategy-standard',
+      offer_hash: finalOfferHash,
       customer: {
         name: (customerName || 'Jogador FF').trim(),
         email: (customerEmail || 'contato@zephyrus.com').trim(),
@@ -32,7 +35,7 @@ export async function POST(request: Request) {
       ]
     };
 
-    // Envio do token via query string e body para garantir compatibilidade
+    // Envio do token via query string conforme o passo 2 da imagem da documentação
     const ironPayResponse = await fetch(`${IRONPAY_URL}?api_token=${IRONPAY_TOKEN}`, {
       method: 'POST',
       headers: { 
@@ -48,19 +51,16 @@ export async function POST(request: Request) {
       console.error('Erro retornado pela IronPay:', data);
       return NextResponse.json({ 
         error: 'Erro na operadora de pagamento', 
-        details: data.message || data.error || (data.errors ? JSON.stringify(data.errors) : 'Erro desconhecido') 
+        details: data.message || data.error || (data.errors ? JSON.stringify(data.errors) : 'Verifique se o offer_hash está correto no painel da IronPay') 
       }, { status: ironPayResponse.status });
     }
 
-    // Mapeamento flexível de campos para capturar o hash e o código pix
-    // A IronPay pode retornar os dados dentro de um objeto 'data' ou na raiz
     const result = data.data || data;
     const hash = result.transaction_hash || result.id || result.hash;
     const pixCode = result.pix_code || result.pix_copy_paste || result.copy_paste || result.brcode || result.qrcode_string;
     const qrCodeImage = result.qr_code || result.qr_code_base64 || result.qrcode;
 
     if (!hash || !pixCode) {
-      console.error('Resposta da IronPay incompleta ou formato inesperado:', data);
       return NextResponse.json({ error: 'Resposta inválida da operadora. Campos hash ou pixCode ausentes.' }, { status: 500 });
     }
 
@@ -73,7 +73,6 @@ export async function POST(request: Request) {
     });
 
   } catch (error: any) {
-    console.error('Exceção na rota Pix Create:', error);
     return NextResponse.json({ error: 'Erro interno ao processar Pix' }, { status: 500 });
   }
 }

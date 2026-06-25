@@ -8,12 +8,12 @@ export async function GET(
   { params }: { params: { hash: string } }
 ) {
   try {
-    const hash = params.hash;
+    const { hash } = params;
     if (!IRONPAY_TOKEN) {
       return NextResponse.json({ error: 'Token não configurado' }, { status: 500 });
     }
 
-    // Consulta direta na IronPay pelo status do hash
+    // Consulta incluindo o token em todas as requisições conforme passo 2
     const response = await fetch(`${IRONPAY_URL}/${hash}?api_token=${IRONPAY_TOKEN}`, {
       headers: { 'Accept': 'application/json' }
     });
@@ -23,7 +23,8 @@ export async function GET(
     }
 
     const data = await response.json();
-    const rawStatus = data.status || (data.data && data.data.status) || '';
+    const result = data.data || data;
+    const rawStatus = result.status || '';
     const status = String(rawStatus).toLowerCase();
 
     let finalStatus = 'pending';
