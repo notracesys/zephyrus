@@ -16,13 +16,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useFirestore } from '@/firebase';
-import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
 import { useAppConfig } from '@/components/config-provider';
-import PixModal from '@/components/pix-modal';
 import { toast } from '@/hooks/use-toast';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 type FeedbackData = {
   imageUrl: string;
@@ -59,7 +56,7 @@ const FeedbackCard = ({ data }: { data: FeedbackData }) => (
 );
 
 export default function ChatInterface() {
-  const { t, isReady } = useLanguage();
+  const { t, lang, isReady } = useLanguage();
   const config = useAppConfig();
   const searchParams = useSearchParams();
   const firestore = useFirestore();
@@ -68,9 +65,7 @@ export default function ChatInterface() {
   const [showOptions, setShowOptions] = useState(false);
   const [showImportantNotice, setShowImportantNotice] = useState(false);
   const [showPurchaseButton, setShowPurchaseButton] = useState(false);
-  const [isGeneratingPix, setIsGeneratingPix] = useState(false);
-  const [pixModalOpen, setPixModalOpen] = useState(false);
-  const [pixData, setPixData] = useState<any>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const formatText = (text: string) => {
@@ -165,59 +160,24 @@ ${t.chat_label_description}:
     return () => timeouts.forEach(t => clearTimeout(t));
   }, [searchParams, t, isReady, config.siteName]);
 
-  const handleCreatePix = async () => {
-    setIsGeneratingPix(true);
-    try {
-      const response = await fetch('/api/pix/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: 1990,
-          customerName: 'Jogador FF',
-          customerEmail: 'contato@zephyrus.com',
-        })
-      });
+  const handlePurchase = async () => {
+    setIsRedirecting(true);
+    const checkoutUrl = lang === 'pt' ? config.checkoutUrlPt : config.checkoutUrlEnEs;
 
-      const data = await response.json();
-      
-      if (response.ok && data.success) {
-        setPixData(data);
-        setPixModalOpen(true);
-        
-        if (firestore) {
-          const purchaseRef = doc(firestore, 'purchases', String(data.hash));
-          const purchaseData = {
-            id: String(data.hash),
-            status: 'pending',
-            amount: 1990,
-            email: 'contato@zephyrus.com',
-            timestamp: serverTimestamp(),
-            siteId: sessionStorage.getItem('active_site_id') || 'global',
-            accessed: false
-          };
-          
-          setDoc(purchaseRef, purchaseData).catch((err) => {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-              path: purchaseRef.path,
-              operation: 'create',
-              requestResourceData: purchaseData
-            }));
-          });
-        }
-      } else {
-        // Se falhar, tenta mostrar a mensagem específica da IronPay
-        const errorMsg = data.error || data.message || "Ocorreu um erro ao processar o pagamento.";
-        throw new Error(errorMsg);
+    try {
+      if (firestore) {
+        await addDoc(collection(firestore, 'checkoutClicks'), {
+          timestamp: serverTimestamp(),
+          source: 'chat-purchase-btn',
+          url: checkoutUrl,
+          siteId: sessionStorage.getItem('active_site_id') || 'global'
+        });
       }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao gerar Pix",
-        description: error.message || "Tente novamente mais tarde.",
-      });
-    } finally {
-      setIsGeneratingPix(false);
+    } catch (e) {
+      console.error("Tracking error:", e);
     }
+
+    window.location.href = checkoutUrl;
   };
 
   const handleOptionClick = (option: 'sim' | 'nao') => {
@@ -303,12 +263,6 @@ ${t.chat_label_description}:
 
   return (
     <>
-      <PixModal 
-        isOpen={pixModalOpen} 
-        onClose={() => setPixModalOpen(false)} 
-        pixData={pixData} 
-      />
-
       <AlertDialog open={showImportantNotice} onOpenChange={setShowImportantNotice}>
         <AlertDialogContent className="w-[90%] rounded-2xl">
           <AlertDialogHeader>
@@ -367,12 +321,12 @@ ${t.chat_label_description}:
               {showPurchaseButton && (
                 <div className="flex justify-center max-w-4xl mx-auto animate-in fade-in-50 duration-500">
                   <Button 
-                    disabled={isGeneratingPix}
-                    onClick={handleCreatePix} 
+                    disabled={isRedirecting}
+                    onClick={handlePurchase} 
                     className="w-full sm:w-auto font-bold relative overflow-hidden bg-primary text-primary-foreground h-14 px-8"
                   >
-                    {isGeneratingPix ? (
-                      <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> GERANDO PIX...</>
+                    {isRedirecting ? (
+                      <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> REDIRECIONANDO...</>
                     ) : (
                       <>{t.chat_purchase_btn} <ArrowRight className="ml-2 h-5 w-5" /></>
                     )}
