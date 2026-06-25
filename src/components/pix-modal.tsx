@@ -37,7 +37,6 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
     let interval: NodeJS.Timeout;
 
     if (isOpen && pixData?.hash && status === 'pending') {
-      // Polling para verificar se o pagamento foi aprovado
       interval = setInterval(async () => {
         try {
           const res = await fetch(`/api/pix/status/${pixData.hash}`);
@@ -46,7 +45,6 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
             setStatus('paid');
             clearInterval(interval);
             
-            // Atualiza localmente no Firestore se possível
             if (firestore) {
                 const purchaseRef = doc(firestore, 'purchases', String(pixData.hash));
                 updateDoc(purchaseRef, { 

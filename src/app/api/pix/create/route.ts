@@ -8,11 +8,9 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { customerEmail, customerName, customerCpf } = body;
 
-    console.log('[IronPay] Iniciando criação de Pix...');
-
     if (!IRONPAY_TOKEN) {
       return NextResponse.json({ 
-        error: 'IRONPAY_API_TOKEN não configurado no servidor.',
+        error: 'IRONPAY_API_TOKEN não configurado.',
       }, { status: 500 });
     }
 
@@ -27,7 +25,7 @@ export async function POST(request: Request) {
 
     const amountInCents = 1990;
 
-    // Payload seguindo rigorosamente o exemplo da documentação para Checkout Transparente
+    // Payload seguindo rigorosamente o exemplo da documentação
     const payload = {
       amount: amountInCents,
       offer_hash: offerHash.trim(),
@@ -72,43 +70,34 @@ export async function POST(request: Request) {
     const result = await response.json();
 
     if (!response.ok) {
-      console.error(`[IronPay] Erro da API (${response.status}):`, JSON.stringify(result, null, 2));
       return NextResponse.json({ 
         error: result.message || result.error || 'Erro na operadora de pagamentos.',
-        details: result.errors || result
+        details: result
       }, { status: response.status });
     }
 
-    // A IronPay costuma retornar os dados dentro de um objeto 'data'
     const data = result.data || result;
     
-    // Mapeamento ULTRA flexível para encontrar os dados do Pix na resposta
-    const hash = data.transaction_hash || data.hash || data.id || data.reference || (data.transaction && data.transaction.hash);
+    // Mapeamento exaustivo para encontrar o código Pix e QR Code
+    const hash = data.transaction_hash || data.hash || data.id || data.reference;
     
-    // Procura o código copia e cola em todos os campos possíveis usados por gateways brasileiros
+    // Procura o código copia e cola em múltiplos campos possíveis
     const pixCode = data.pix_code || 
                     data.pix_copy_paste || 
                     data.copy_paste || 
-                    data.pix_copia_e_cola || 
                     data.brcode || 
-                    data.qrcode_string || 
-                    data.pix_qrcode || 
-                    data.pix_code_raw ||
-                    data.pix_code_url ||
+                    data.qrcode_string ||
                     (data.payment && (data.payment.pix_code || data.payment.brcode));
 
     const qrCodeImage = data.qr_code || 
                         data.qr_code_base64 || 
                         data.pix_qrcode_base64 || 
-                        data.qrcode || 
-                        data.pix_qrcode ||
+                        data.qrcode ||
                         (data.payment && data.payment.qr_code);
 
     if (!hash || !pixCode) {
-      console.error('[IronPay] Resposta sem dados Pix. Objeto recebido:', JSON.stringify(result, null, 2));
       return NextResponse.json({ 
-        error: 'A venda foi criada no seu painel, mas o sistema não conseguiu ler o código Pix. Verifique se o método Pix está configurado corretamente na sua Oferta na IronPay.',
-        debug_keys: Object.keys(data),
+        error: 'Transação criada, mas dados do Pix não encontrados na resposta. Verifique as configurações de Pix na IronPay.',
         full_response: result
       }, { status: 500 });
     }
@@ -122,7 +111,6 @@ export async function POST(request: Request) {
     });
 
   } catch (error: any) {
-    console.error('[IronPay] Erro fatal no servidor:', error);
     return NextResponse.json({ error: 'Erro interno ao processar Pix.' }, { status: 500 });
   }
 }
