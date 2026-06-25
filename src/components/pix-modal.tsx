@@ -15,8 +15,6 @@ import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 interface PixModalProps {
   isOpen: boolean;
@@ -39,6 +37,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
     let interval: NodeJS.Timeout;
 
     if (isOpen && pixData?.hash && status === 'pending') {
+      // Polling para verificar se o pagamento foi aprovado
       interval = setInterval(async () => {
         try {
           const res = await fetch(`/api/pix/status/${pixData.hash}`);
@@ -47,6 +46,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
             setStatus('paid');
             clearInterval(interval);
             
+            // Atualiza localmente no Firestore se possível
             if (firestore) {
                 const purchaseRef = doc(firestore, 'purchases', String(pixData.hash));
                 updateDoc(purchaseRef, { 
@@ -64,7 +64,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
             }, 2000);
           }
         } catch (e) {
-          console.error("Erro ao checar status:", e);
+          console.error("Erro ao checar status do Pix:", e);
         }
       }, 5000);
     }
@@ -113,7 +113,11 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
             <>
               <div className="bg-white p-4 rounded-xl border shadow-xl">
                 {pixData.qrCodeImage ? (
-                  <img src={pixData.qrCodeImage.startsWith('data:') ? pixData.qrCodeImage : `data:image/png;base64,${pixData.qrCodeImage}`} alt="QR Code Pix" className="w-48 h-48" />
+                  <img 
+                    src={pixData.qrCodeImage.startsWith('data:') ? pixData.qrCodeImage : `data:image/png;base64,${pixData.qrCodeImage}`} 
+                    alt="QR Code Pix" 
+                    className="w-48 h-48 object-contain" 
+                  />
                 ) : (
                   <QRCodeSVG value={pixData.pixCode} size={200} />
                 )}
