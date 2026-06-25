@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { CheckCheck, AlertTriangle, ArrowRight } from 'lucide-react';
+import { CheckCheck, AlertTriangle, ArrowRight, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -15,11 +16,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import Link from 'next/link';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
 import { useAppConfig } from '@/components/config-provider';
+import PixModal from '@/components/pix-modal';
+import { toast } from '@/hooks/use-toast';
 
 type FeedbackData = {
   imageUrl: string;
@@ -65,6 +67,9 @@ export default function ChatInterface() {
   const [showOptions, setShowOptions] = useState(false);
   const [showImportantNotice, setShowImportantNotice] = useState(false);
   const [showPurchaseButton, setShowPurchaseButton] = useState(false);
+  const [isGeneratingPix, setIsGeneratingPix] = useState(false);
+  const [pixModalOpen, setPixModalOpen] = useState(false);
+  const [pixData, setPixData] = useState<any>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const formatText = (text: string) => {
@@ -74,7 +79,6 @@ export default function ChatInterface() {
   const renderContent = (text: string) => {
     if (!text) return null;
     const formatted = formatText(text);
-    // Split by Markdown bold syntax **text**
     const parts = formatted.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, i) => {
       if (part.startsWith('**') && part.endsWith('**')) {
@@ -89,8 +93,6 @@ export default function ChatInterface() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
-
-  const checkoutUrl = lang === 'pt' ? config.checkoutUrlPt : config.checkoutUrlEnEs;
 
   useEffect(() => {
     if (!isReady) return;
@@ -162,13 +164,43 @@ ${t.chat_label_description}:
     return () => timeouts.forEach(t => clearTimeout(t));
   }, [searchParams, t, isReady, config.siteName]);
 
-  const handleTrackCheckout = (url: string) => {
-    if (!firestore) return;
-    addDoc(collection(firestore, 'checkoutClicks'), {
-      timestamp: serverTimestamp(),
-      source: 'chat',
-      url: url
-    });
+  const handleCreatePix = async () => {
+    setIsGeneratingPix(true);
+    try {
+      const response = await fetch('/api/pix/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: 1990,
+          customerName: 'Jogador FF',
+          customerEmail: 'contato@zephyrus.com',
+          siteId: sessionStorage.getItem('active_site_id') || 'global'
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setPixData(data);
+        setPixModalOpen(true);
+        if (firestore) {
+          addDoc(collection(firestore, 'checkoutClicks'), {
+            timestamp: serverTimestamp(),
+            source: 'chat-pix-native',
+            url: 'native-modal'
+          });
+        }
+      } else {
+        throw new Error(data.error || 'Erro desconhecido');
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao gerar Pix",
+        description: "Não foi possível gerar o QR Code. Tente novamente.",
+      });
+    } finally {
+      setIsGeneratingPix(false);
+    }
   };
 
   const handleOptionClick = (option: 'sim' | 'nao') => {
@@ -186,72 +218,60 @@ ${t.chat_label_description}:
         const flow = async () => {
             const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-            // Great choice
             await delay(1500);
             setIsTyping(true);
             await delay(3000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_great_choice), type: 'text' }]);
             setIsTyping(false);
 
-            // Unban Story 1
             await delay(4000);
             setIsTyping(true);
             await delay(5000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_unban_story), type: 'text' }]);
             setIsTyping(false);
 
-            // Final Msg (Introduction to email.jpg)
             await delay(6000);
             setIsTyping(true);
             await delay(4000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg), type: 'text' }]);
             setIsTyping(false);
 
-            // Email Image
             await delay(3000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/email.jpg' } }]);
 
-            // Unban Story 2 (Robots vs Human)
             await delay(6000);
             setIsTyping(true);
             await delay(5000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_2), type: 'text' }]);
             setIsTyping(false);
 
-            // Feedback Intro
             await delay(6000);
             setIsTyping(true);
             await delay(4000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_feedback_intro), type: 'text' }]);
             setIsTyping(false);
 
-            // Feedback 1
             await delay(2000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/feedback1.jpg' } }]);
 
-            // Feedback 2
             await delay(3000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/feedback2.jpg' } }]);
 
-            // Important Notice Popup - APÓS O ULTIMO FEEDBACK
             await delay(2000);
             setShowImportantNotice(true);
 
-            // Unban Strategy Intro (TRINULTIMA MENSAGEM - Aumentando delay)
             await delay(9000); 
             setIsTyping(true);
-            await delay(8000); // Simulando uma digitação longa e pensada
+            await delay(8000); 
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_unban_strategy_intro), type: 'text' }]);
             setIsTyping(false);
 
-            // Pricing Msg
             await delay(3000);
             setIsTyping(true);
             await delay(4000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_3), type: 'text' }]);
             setIsTyping(false);
 
-            // Final CTA
             await delay(6000);
             setIsTyping(true);
             await delay(3000);
@@ -266,6 +286,12 @@ ${t.chat_label_description}:
 
   return (
     <>
+      <PixModal 
+        isOpen={pixModalOpen} 
+        onClose={() => setPixModalOpen(false)} 
+        pixData={pixData} 
+      />
+
       <AlertDialog open={showImportantNotice} onOpenChange={setShowImportantNotice}>
         <AlertDialogContent className="w-[90%] rounded-2xl">
           <AlertDialogHeader>
@@ -324,14 +350,15 @@ ${t.chat_label_description}:
               {showPurchaseButton && (
                 <div className="flex justify-center max-w-4xl mx-auto animate-in fade-in-50 duration-500">
                   <Button 
-                    asChild 
-                    size="lg" 
-                    onClick={() => handleTrackCheckout(checkoutUrl)} 
+                    disabled={isGeneratingPix}
+                    onClick={handleCreatePix} 
                     className="w-full sm:w-auto font-bold relative overflow-hidden bg-primary text-primary-foreground h-14"
                   >
-                    <Link href={checkoutUrl} target="_blank">
-                      {t.chat_purchase_btn} <ArrowRight className="ml-2 h-5 w-5" />
-                    </Link>
+                    {isGeneratingPix ? (
+                      <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> GERANDO PIX...</>
+                    ) : (
+                      <>{t.chat_purchase_btn} <ArrowRight className="ml-2 h-5 w-5" /></>
+                    )}
                   </Button>
                 </div>
               )}
