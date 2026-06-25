@@ -5,18 +5,20 @@ const IRONPAY_URL = 'https://api.ironpayapp.com.br/api/public/v1/transactions';
 
 export async function POST(request: Request) {
   try {
-    const { amount, customerEmail, customerName, customerCpf } = await request.json();
+    const body = await request.json();
+    const { customerEmail, customerName, customerCpf } = body;
 
     if (!IRONPAY_TOKEN) {
-      return NextResponse.json({ error: 'IRONPAY_API_TOKEN não configurado' }, { status: 500 });
+      console.error('[IronPay] Erro: IRONPAY_API_TOKEN não configurado.');
+      return NextResponse.json({ error: 'Configuração do servidor incompleta.' }, { status: 500 });
     }
 
-    const price = amount || 1990;
+    const amountInCents = 1990; // R$ 19,90 fixo conforme solicitado
 
-    // Payload seguindo EXATAMENTE o exemplo da documentação
+    // Payload estruturado conforme o exemplo de documentação de checkout transparente
     const payload = {
-      amount: price,
-      offer_hash: process.env.IRONPAY_OFFER_HASH || "7becb", // Hash da Oferta (deve estar no .env)
+      amount: amountInCents,
+      offer_hash: process.env.IRONPAY_OFFER_HASH || "7becb", // Valor do .env ou fallback de teste
       payment_method: "pix",
       customer: {
         name: (customerName || "Jogador FF").trim(),
@@ -33,10 +35,9 @@ export async function POST(request: Request) {
       },
       cart: [
         {
-          product_hash: process.env.IRONPAY_PRODUCT_HASH || "7tjdfkshdv", // Hash do Produto (deve estar no .env)
+          product_hash: process.env.IRONPAY_PRODUCT_HASH || "7tjdfkshdv", // Valor do .env ou fallback de teste
           title: "Unban Strategy - Recuperação de Conta",
-          cover: null,
-          price: price,
+          price: amountInCents,
           quantity: 1,
           operation_type: 1,
           tangible: false
@@ -44,20 +45,13 @@ export async function POST(request: Request) {
       ],
       expire_in_days: 1,
       transaction_origin: "api",
-      tracking: {
-        src: "",
-        utm_source: "direct",
-        utm_medium: "cpc",
-        utm_campaign: "unban-strategy",
-        utm_term: "",
-        utm_content: ""
-      },
-      // URL de Webhook para confirmação automática
       postback_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://zephyrus.com'}/api/pix/webhook`
     };
 
-    // Autenticação via Query String conforme padrão da API
-    const ironPayResponse = await fetch(`${IRONPAY_URL}?api_token=${IRONPAY_TOKEN}`, {
+    // Log do payload para depuração (removendo o token por segurança)
+    console.log('[IronPay] Enviando transação:', JSON.stringify(payload, null, 2));
+
+    const response = await fetch(`${IRONPAY_URL}?api_token=${IRONPAY_TOKEN}`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -66,27 +60,25 @@ export async function POST(request: Request) {
       body: JSON.stringify(payload),
     });
 
-    const data = await ironPayResponse.json();
+    const result = await response.json();
 
-    if (!ironPayResponse.ok) {
-      console.error('Erro detalhado IronPay:', data);
+    if (!response.ok) {
+      console.error(`[IronPay] Erro ${response.status}:`, JSON.stringify(result, null, 2));
       return NextResponse.json({ 
         error: 'Erro na operadora', 
-        details: data.message || data.error || 'Verifique os dados enviados.'
-      }, { status: ironPayResponse.status });
+        details: result.message || result.error || 'Verifique os logs do servidor.'
+      }, { status: response.status });
     }
 
-    // Mapeamento dos campos de retorno para o Pix
-    const result = data.data || data;
-    const hash = result.transaction_hash || result.hash || result.id;
-    const pixCode = result.pix_code || result.pix_copy_paste || result.copy_paste || result.brcode || result.qrcode_string;
-    const qrCodeImage = result.qr_code || result.qr_code_base64;
+    // Mapeamento flexível dos campos de retorno para o Pix
+    const data = result.data || result;
+    const hash = data.transaction_hash || data.hash || data.id;
+    const pixCode = data.pix_code || data.pix_copy_paste || data.copy_paste || data.brcode || data.qrcode_string;
+    const qrCodeImage = data.qr_code || data.qr_code_base64;
 
     if (!hash || !pixCode) {
-      return NextResponse.json({ 
-        error: 'Resposta incompleta da operadora', 
-        details: 'Hash ou Código Pix não encontrados no retorno.' 
-      }, { status: 500 });
+      console.error('[IronPay] Resposta incompleta:', result);
+      return NextResponse.json({ error: 'Resposta incompleta da operadora.' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -94,11 +86,11 @@ export async function POST(request: Request) {
       hash,
       pixCode,
       qrCodeImage,
-      amount: price
+      amount: amountInCents
     });
 
   } catch (error: any) {
-    console.error('Erro interno criar Pix:', error);
+    console.error('[IronPay] Erro interno:', error);
     return NextResponse.json({ error: 'Erro interno ao processar Pix' }, { status: 500 });
   }
 }
