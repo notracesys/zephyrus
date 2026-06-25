@@ -13,30 +13,31 @@ export async function GET(
       return NextResponse.json({ error: 'Token não configurado' }, { status: 500 });
     }
 
-    // Consulta incluindo o token em todas as requisições conforme passo 2
+    // Consulta seguindo o padrão de autenticação da IronPay
     const response = await fetch(`${IRONPAY_URL}/${hash}?api_token=${IRONPAY_TOKEN}`, {
+      method: 'GET',
       headers: { 'Accept': 'application/json' }
     });
     
     if (!response.ok) {
-      return NextResponse.json({ status: 'pending', error: 'Falha ao consultar operadora' });
+      return NextResponse.json({ status: 'pending' });
     }
 
     const data = await response.json();
     const result = data.data || data;
-    const rawStatus = result.status || '';
-    const status = String(rawStatus).toLowerCase();
+    const rawStatus = String(result.status || '').toLowerCase();
 
+    // Mapeamento de status da IronPay para o nosso sistema
     let finalStatus = 'pending';
-    if (['paid', 'approved', 'succeeded', 'pago', 'aprovado'].includes(status)) {
+    if (['paid', 'approved', 'succeeded', 'pago', 'aprovado'].includes(rawStatus)) {
       finalStatus = 'paid';
-    } else if (['canceled', 'expired', 'failed', 'cancelado', 'expirado'].includes(status)) {
+    } else if (['canceled', 'expired', 'failed', 'cancelado', 'expirado', 'falhou'].includes(rawStatus)) {
       finalStatus = 'failed';
     }
 
     return NextResponse.json({ status: finalStatus });
 
   } catch (error: any) {
-    return NextResponse.json({ status: 'pending', error: error.message });
+    return NextResponse.json({ status: 'pending' });
   }
 }
