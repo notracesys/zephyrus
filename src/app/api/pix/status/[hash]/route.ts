@@ -13,7 +13,7 @@ export async function GET(
       return NextResponse.json({ error: 'Token não configurado' }, { status: 500 });
     }
 
-    // Consulta seguindo o padrão de autenticação da IronPay
+    // Consulta de transação conforme documentação
     const response = await fetch(`${IRONPAY_URL}/${hash}?api_token=${IRONPAY_TOKEN}`, {
       method: 'GET',
       headers: { 'Accept': 'application/json' }
@@ -27,7 +27,7 @@ export async function GET(
     const result = data.data || data;
     const rawStatus = String(result.status || '').toLowerCase();
 
-    // Mapeamento de status da IronPay para o nosso sistema
+    // Mapeamento de status comum
     let finalStatus = 'pending';
     if (['paid', 'approved', 'succeeded', 'pago', 'aprovado'].includes(rawStatus)) {
       finalStatus = 'paid';
