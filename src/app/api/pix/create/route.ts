@@ -8,13 +8,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { customerEmail, customerName, customerCpf } = body;
 
-    // Log para depuração no console do servidor
     console.log('[IronPay] Iniciando criação de Pix...');
 
     if (!IRONPAY_TOKEN) {
-      console.error('[IronPay] ERRO: IRONPAY_API_TOKEN não encontrado no .env');
       return NextResponse.json({ 
-        error: 'Configuração do servidor incompleta (Token ausente).',
+        error: 'IRONPAY_API_TOKEN não configurado no servidor.',
       }, { status: 500 });
     }
 
@@ -22,24 +20,23 @@ export async function POST(request: Request) {
     const productHash = process.env.IRONPAY_PRODUCT_HASH;
 
     if (!offerHash || !productHash) {
-      console.error('[IronPay] ERRO: IRONPAY_OFFER_HASH ou IRONPAY_PRODUCT_HASH não configurados.');
       return NextResponse.json({ 
         error: 'Hashes de oferta ou produto não configurados no .env.',
       }, { status: 500 });
     }
 
-    const amountInCents = 1990; // R$ 19,90 fixo
+    const amountInCents = 1990;
 
-    // Payload seguindo estritamente o exemplo da documentação
+    // Payload seguindo rigorosamente o exemplo da documentação para Checkout Transparente
     const payload = {
       amount: amountInCents,
-      offer_hash: offerHash,
+      offer_hash: offerHash.trim(),
       payment_method: "pix",
       customer: {
         name: (customerName || "Jogador Zephyrus").trim(),
         email: (customerEmail || "contato@zephyrus.com").trim(),
         phone_number: "21988887777",
-        document: (customerCpf || "12345678909").replace(/\D/g, ""), // CPF "fictício" mas no formato correto
+        document: (customerCpf || "12345678909").replace(/\D/g, ""),
         street_name: "Rua Principal",
         number: "100",
         complement: "Apto",
@@ -50,7 +47,7 @@ export async function POST(request: Request) {
       },
       cart: [
         {
-          product_hash: productHash,
+          product_hash: productHash.trim(),
           title: "Estratégia Unban FF",
           price: amountInCents,
           quantity: 1,
@@ -82,16 +79,35 @@ export async function POST(request: Request) {
       }, { status: response.status });
     }
 
+    // A IronPay costuma retornar os dados dentro de um objeto 'data'
     const data = result.data || result;
     
-    // Mapeamento flexível de campos de retorno do Pix
-    const hash = data.transaction_hash || data.hash || data.id || data.reference;
-    const pixCode = data.pix_code || data.pix_copy_paste || data.copy_paste || data.brcode || data.qrcode_string || data.pix_qrcode || data.pix_code_raw;
-    const qrCodeImage = data.qr_code || data.qr_code_base64 || data.qrcode;
+    // Mapeamento ULTRA flexível para encontrar os dados do Pix
+    const hash = data.transaction_hash || data.hash || data.id || data.reference || (data.transaction && data.transaction.hash);
+    
+    // Procura o código copia e cola em todos os campos possíveis usados por gateways brasileiros
+    const pixCode = data.pix_code || 
+                    data.pix_copy_paste || 
+                    data.copy_paste || 
+                    data.pix_copia_e_cola || 
+                    data.brcode || 
+                    data.qrcode_string || 
+                    data.pix_qrcode || 
+                    data.pix_code_raw ||
+                    (data.payment && data.payment.pix_code);
+
+    const qrCodeImage = data.qr_code || 
+                        data.qr_code_base64 || 
+                        data.pix_qrcode_base64 || 
+                        data.qrcode || 
+                        (data.payment && data.payment.qr_code);
 
     if (!hash || !pixCode) {
-      console.error('[IronPay] Sucesso na API, mas campos Pix não encontrados:', result);
-      return NextResponse.json({ error: 'Resposta da API incompleta (faltam dados do Pix).' }, { status: 500 });
+      console.error('[IronPay] Resposta sem dados Pix. Objeto recebido:', JSON.stringify(result, null, 2));
+      return NextResponse.json({ 
+        error: 'A IronPay aceitou o pedido, mas não gerou o código Pix. Verifique se o método Pix está ativo na sua conta.',
+        debug_keys: Object.keys(data)
+      }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -104,6 +120,6 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('[IronPay] Erro fatal no servidor:', error);
-    return NextResponse.json({ error: 'Erro interno ao processar Pix. Tente novamente.' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno ao processar Pix.' }, { status: 500 });
   }
 }
