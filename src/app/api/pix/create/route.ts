@@ -15,9 +15,11 @@ export async function POST(request: Request) {
     const finalOfferHash = offerHash || 'unban-strategy-standard';
 
     // Definindo os itens do carrinho conforme exigência da API
+    // O erro indicou que 'cart.0.price' é obrigatório, então usamos 'price' em vez de 'unit_price'
     const cartItems = [
       {
         title: 'Unban Strategy - Recuperação de Conta',
+        price: amount || 1990,
         unit_price: amount || 1990,
         quantity: 1,
         tangible: false
@@ -34,7 +36,7 @@ export async function POST(request: Request) {
         email: (customerEmail || 'contato@zephyrus.com').trim(),
         cpf: (customerCpf || '00000000000').replace(/\D/g, ''),
       },
-      // Adicionando 'cart' conforme erro reportado de campo obrigatório
+      // Enviando 'cart' e 'items' para garantir compatibilidade
       cart: cartItems,
       items: cartItems
     };
