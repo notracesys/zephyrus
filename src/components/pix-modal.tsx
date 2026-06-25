@@ -47,19 +47,12 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
             setStatus('paid');
             clearInterval(interval);
             
-            // Atualiza o status no Firestore (Client Side)
             if (firestore) {
                 const purchaseRef = doc(firestore, 'purchases', String(pixData.hash));
                 updateDoc(purchaseRef, { 
                     status: 'paid',
                     paidAt: serverTimestamp()
-                }).catch((err) => {
-                    errorEmitter.emit('permission-error', new FirestorePermissionError({
-                        path: purchaseRef.path,
-                        operation: 'update',
-                        requestResourceData: { status: 'paid' }
-                    }));
-                });
+                }).catch(() => {});
             }
 
             toast({
@@ -118,9 +111,9 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
             </div>
           ) : (
             <>
-              <div className="bg-white p-4 rounded-xl border shadow-xl transition-transform hover:scale-105 duration-300">
+              <div className="bg-white p-4 rounded-xl border shadow-xl">
                 {pixData.qrCodeImage ? (
-                  <img src={pixData.qrCodeImage} alt="QR Code Pix" className="w-48 h-48" />
+                  <img src={pixData.qrCodeImage.startsWith('data:') ? pixData.qrCodeImage : `data:image/png;base64,${pixData.qrCodeImage}`} alt="QR Code Pix" className="w-48 h-48" />
                 ) : (
                   <QRCodeSVG value={pixData.pixCode} size={200} />
                 )}
@@ -132,14 +125,14 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
                   <span className="text-lg font-black italic text-primary">R$ {(pixData.amount / 100).toFixed(2).replace('.', ',')}</span>
                 </div>
 
-                <div className="relative group">
-                  <div className="bg-muted/50 p-4 rounded-lg border border-primary/20 break-all text-[10px] font-mono leading-relaxed h-24 overflow-y-auto pr-10">
+                <div className="relative">
+                  <div className="bg-muted/50 p-4 rounded-lg border border-primary/20 break-all text-[10px] font-mono leading-relaxed h-24 overflow-y-auto">
                     {pixData.pixCode}
                   </div>
                   <Button 
                     size="icon" 
-                    variant="secondary" 
-                    className="absolute top-2 right-2 h-8 w-8 shadow-lg"
+                    variant="ghost" 
+                    className="absolute top-1 right-1 h-8 w-8"
                     onClick={copyPixCode}
                   >
                     {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
@@ -160,7 +153,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
         </div>
 
         <div className="text-[10px] text-center text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2">
-          <ShieldCheck className="h-3 w-3" /> Transação Criptografada e Segura
+          <ShieldCheck className="h-3 w-3" /> Transação Segura via IronPay
         </div>
       </DialogContent>
     </Dialog>
