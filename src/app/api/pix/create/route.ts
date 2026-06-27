@@ -42,7 +42,7 @@ function normalizeIronPayResponse(data: any) {
   const pixCopyPaste = findDeepValue(data, [
     "pix_copy_paste", "pixCopyPaste", "copy_paste", "copyPaste", "copia_cola", 
     "pix_copia_cola", "brcode", "br_code", "emv", "qr_code_text", "qrCodeText", 
-    "payment_code", "paymentCode", "pix_code", "pix_key", "payload"
+    "payment_code", "paymentCode", "pix_code", "pix_key", "payload", "code"
   ]);
 
   // Chaves possíveis para o QR Code (Base64 ou URL)
@@ -131,9 +131,11 @@ export async function POST(request: Request) {
 
     const data = await response.json();
     
-    // Log de diagnóstico detalhado no terminal
+    // LOGS DE DIAGNÓSTICO - Procure por isso na aba OUTPUT/SAÍDA
+    console.log("==========================================");
     console.log("IRONPAY_STATUS:", response.status);
     console.log("IRONPAY_RAW_RESPONSE:", JSON.stringify(sanitizeIronPayResponse(data), null, 2));
+    console.log("==========================================");
 
     if (!response.ok) {
       return NextResponse.json({ 
