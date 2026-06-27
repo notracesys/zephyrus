@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -16,10 +17,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
 import { useAppConfig } from '@/components/config-provider';
 import { toast } from '@/hooks/use-toast';
+import CustomerDataModal from '@/components/customer-data-modal';
+import PixModal from '@/components/pix-modal';
 
 type FeedbackData = {
   imageUrl: string;
@@ -65,7 +68,10 @@ export default function ChatInterface() {
   const [showOptions, setShowOptions] = useState(false);
   const [showImportantNotice, setShowImportantNotice] = useState(false);
   const [showPurchaseButton, setShowPurchaseButton] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isDataModalOpen, setIsDataModalOpen] = useState(false);
+  const [isPixModalOpen, setIsPixModalOpen] = useState(false);
+  const [isGeneratingPix, setIsGeneratingPix] = useState(false);
+  const [pixData, setPixData] = useState<any>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const formatText = (text: string) => {
@@ -160,24 +166,78 @@ ${t.chat_label_description}:
     return () => timeouts.forEach(t => clearTimeout(t));
   }, [searchParams, t, isReady, config.siteName]);
 
-  const handlePurchase = async () => {
-    setIsRedirecting(true);
-    const checkoutUrl = lang === 'pt' ? config.checkoutUrlPt : config.checkoutUrlEnEs;
+  const handlePurchaseInitiation = () => {
+    setIsDataModalOpen(true);
+  };
+
+  const handleCustomerSubmit = async (data: any) => {
+    setIsGeneratingPix(true);
+    
+    // Captura UTMs para o tracking
+    const tracking = {
+      utm_source: searchParams.get('utm_source') || '',
+      utm_medium: searchParams.get('utm_medium') || '',
+      utm_campaign: searchParams.get('utm_campaign') || '',
+      utm_term: searchParams.get('utm_term') || '',
+      utm_content: searchParams.get('utm_content') || '',
+      src: searchParams.get('src') || '',
+    };
 
     try {
+      const response = await fetch('/api/pix/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: data.name,
+          customerEmail: data.email,
+          customerPhone: data.phone,
+          customerCpf: data.document,
+          tracking,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao gerar Pix');
+      }
+
+      setPixData(result);
+      setIsDataModalOpen(false);
+      setIsPixModalOpen(true);
+
+      // Salva a intenção de compra no Firestore
       if (firestore) {
+        const purchaseRef = doc(firestore, 'purchases', result.hash);
+        await setDoc(purchaseRef, {
+          id: result.hash,
+          email: data.email,
+          name: data.name,
+          phone: data.phone,
+          cpf: data.document,
+          amount: result.amount,
+          status: 'pending',
+          timestamp: serverTimestamp(),
+          siteId: sessionStorage.getItem('active_site_id') || 'global',
+          tracking,
+        }, { merge: true });
+        
         await addDoc(collection(firestore, 'checkoutClicks'), {
           timestamp: serverTimestamp(),
-          source: 'chat-purchase-btn',
-          url: checkoutUrl,
-          siteId: sessionStorage.getItem('active_site_id') || 'global'
+          source: 'chat-pix-generation',
+          siteId: sessionStorage.getItem('active_site_id') || 'global',
+          transactionHash: result.hash
         });
       }
-    } catch (e) {
-      console.error("Tracking error:", e);
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro no Pagamento',
+        description: error.message || 'Não foi possível gerar o PIX. Tente novamente.',
+      });
+    } finally {
+      setIsGeneratingPix(false);
     }
-
-    window.location.href = checkoutUrl;
   };
 
   const handleOptionClick = (option: 'sim' | 'nao') => {
@@ -263,6 +323,19 @@ ${t.chat_label_description}:
 
   return (
     <>
+      <CustomerDataModal
+        isOpen={isDataModalOpen}
+        onClose={() => setIsDataModalOpen(false)}
+        onSubmit={handleCustomerSubmit}
+        isLoading={isGeneratingPix}
+      />
+      
+      <PixModal
+        isOpen={isPixModalOpen}
+        onClose={() => setIsPixModalOpen(false)}
+        pixData={pixData}
+      />
+
       <AlertDialog open={showImportantNotice} onOpenChange={setShowImportantNotice}>
         <AlertDialogContent className="w-[90%] rounded-2xl">
           <AlertDialogHeader>
@@ -321,12 +394,12 @@ ${t.chat_label_description}:
               {showPurchaseButton && (
                 <div className="flex justify-center max-w-4xl mx-auto animate-in fade-in-50 duration-500">
                   <Button 
-                    disabled={isRedirecting}
-                    onClick={handlePurchase} 
+                    disabled={isGeneratingPix}
+                    onClick={handlePurchaseInitiation} 
                     className="w-full sm:w-auto font-bold relative overflow-hidden bg-primary text-primary-foreground h-14 px-8"
                   >
-                    {isRedirecting ? (
-                      <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> REDIRECIONANDO...</>
+                    {isGeneratingPix ? (
+                      <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> GERANDO PIX...</>
                     ) : (
                       <>{t.chat_purchase_btn} <ArrowRight className="ml-2 h-5 w-5" /></>
                     )}
