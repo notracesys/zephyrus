@@ -8,7 +8,8 @@ function findDeepValue(obj: any, possibleKeys: string[]): any {
   if (!obj || typeof obj !== 'object') return null;
 
   for (const key of Object.keys(obj)) {
-    if (possibleKeys.includes(key)) {
+    // Verifica se a chave atual (em minúsculo) está na lista de chaves possíveis
+    if (possibleKeys.map(k => k.toLowerCase()).includes(key.toLowerCase())) {
       return obj[key];
     }
     const value = obj[key];
@@ -20,7 +21,7 @@ function findDeepValue(obj: any, possibleKeys: string[]): any {
   return null;
 }
 
-// Sanitização básica para logs de servidor
+// Sanitização básica para logs de servidor (protege dados sensíveis)
 function sanitizeIronPayResponse(data: any): any {
   if (!data || typeof data !== 'object') return data;
   const sanitized = Array.isArray(data) ? [...data] : { ...data };
@@ -37,30 +38,33 @@ function sanitizeIronPayResponse(data: any): any {
 }
 
 function normalizeIronPayResponse(data: any) {
+  // Chaves possíveis para o código PIX copia e cola
   const pixCopyPaste = findDeepValue(data, [
     "pix_copy_paste", "pixCopyPaste", "copy_paste", "copyPaste", "copia_cola", 
     "pix_copia_cola", "brcode", "br_code", "emv", "qr_code_text", "qrCodeText", 
-    "payment_code", "paymentCode", "pix_code"
+    "payment_code", "paymentCode", "pix_code", "pix_key", "payload"
   ]);
 
+  // Chaves possíveis para o QR Code (Base64 ou URL)
   const qrCode = findDeepValue(data, [
     "qr_code", "qrCode", "qrcode", "qr_code_base64", "qrCodeBase64", 
-    "qr_code_url", "qrCodeUrl", "pix_qrcode_base64"
+    "qr_code_url", "qrCodeUrl", "pix_qrcode_base64", "image", "base64"
   ]);
 
+  // Chaves possíveis para a URL de checkout (caso o PIX falhe)
   const paymentUrl = findDeepValue(data, [
-    "checkout_url", "payment_url", "paymentUrl", "url", "checkoutUrl"
+    "checkout_url", "payment_url", "paymentUrl", "url", "checkoutUrl", "link"
   ]);
 
   const hash = findDeepValue(data, [
-    "hash", "transaction_hash", "transactionHash", "id", "reference"
+    "hash", "transaction_hash", "transactionHash", "id", "reference", "uuid"
   ]);
 
   const status = findDeepValue(data, [
     "status", "payment_status", "transaction_status"
   ]) || "pending";
 
-  const amount = findDeepValue(data, ["amount", "value", "price", "total"]);
+  const amount = findDeepValue(data, ["amount", "value", "price", "total", "cost"]);
 
   return {
     hash,
@@ -127,7 +131,7 @@ export async function POST(request: Request) {
 
     const data = await response.json();
     
-    // Log de diagnóstico solicitado
+    // Log de diagnóstico detalhado no terminal
     console.log("IRONPAY_STATUS:", response.status);
     console.log("IRONPAY_RAW_RESPONSE:", JSON.stringify(sanitizeIronPayResponse(data), null, 2));
 
@@ -141,6 +145,7 @@ export async function POST(request: Request) {
 
     const normalized = normalizeIronPayResponse(data);
 
+    // PRIORIDADE 1: Se encontrou dados de PIX, exibe o modal
     if (normalized.pixCopyPaste || normalized.qrCode) {
       return NextResponse.json({
         success: true,
@@ -157,6 +162,7 @@ export async function POST(request: Request) {
       });
     }
 
+    // PRIORIDADE 2: Se não tem PIX, mas tem URL, redireciona
     if (normalized.paymentUrl) {
       return NextResponse.json({
         success: true,
@@ -170,10 +176,11 @@ export async function POST(request: Request) {
       });
     }
 
+    // ERRO: Criou na IronPay mas não retornou nada útil para o cliente
     return NextResponse.json({
       success: false,
-      message: "A transação foi criada na IronPay, mas a API não retornou QR Code, código PIX copia e cola ou URL de pagamento.",
-      action: "Verifique o log IRONPAY_RAW_RESPONSE e confirme com o suporte da IronPay."
+      message: "A transação foi criada, mas a IronPay não retornou os dados de pagamento na resposta da API.",
+      action: "Inspecione o log IRONPAY_RAW_RESPONSE no terminal do servidor."
     }, { status: 502 });
 
   } catch (error: any) {
