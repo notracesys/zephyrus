@@ -202,6 +202,11 @@ ${t.chat_label_description}:
         throw new Error(result.message || result.error || 'Erro ao gerar Pix');
       }
 
+      if (result.mode === 'payment_url') {
+        window.location.href = result.paymentUrl;
+        return;
+      }
+
       setPixData(result);
       setIsDataModalOpen(false);
       setIsPixModalOpen(true);

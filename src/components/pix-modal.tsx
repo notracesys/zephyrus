@@ -42,7 +42,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
-    if (isOpen && pixData?.transaction.hash && status === 'pending') {
+    if (isOpen && pixData?.transaction?.hash && status === 'pending') {
       interval = setInterval(async () => {
         try {
           const res = await fetch(`/api/pix/status/${pixData.transaction.hash}`);
@@ -79,7 +79,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
   }, [isOpen, pixData, status, router, firestore]);
 
   const copyPixCode = () => {
-    if (!pixData?.pix.copyPaste) return;
+    if (!pixData?.pix?.copyPaste) return;
     navigator.clipboard.writeText(pixData.pix.copyPaste);
     setIsCopied(true);
     toast({
@@ -91,7 +91,8 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
 
   if (!pixData) return null;
 
-  const hasPaymentData = pixData.pix.copyPaste || pixData.pix.qrCode;
+  const hasPixCode = !!pixData.pix?.copyPaste;
+  const hasQrImage = !!pixData.pix?.qrCode;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -103,7 +104,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
           <DialogDescription className="text-center font-medium">
             {status === 'paid' 
               ? 'Sua conta está sendo processada para recuperação.' 
-              : hasPaymentData 
+              : (hasPixCode || hasQrImage)
                 ? 'Escaneie o QR Code abaixo ou copie o código Pix.'
                 : 'Aguardando dados de pagamento...'}
           </DialogDescription>
@@ -117,21 +118,21 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
               </div>
               <p className="font-bold text-green-500 uppercase tracking-tighter italic">Sistema Liberado</p>
             </div>
-          ) : !hasPaymentData ? (
+          ) : (!hasPixCode && !hasQrImage) ? (
             <div className="flex flex-col items-center text-center p-8 space-y-4">
               <AlertCircle className="h-12 w-12 text-destructive" />
-              <p className="text-sm font-bold">Transação criada, mas não foi possível exibir o PIX. Verifique o retorno da API.</p>
+              <p className="text-sm font-bold">Transação criada, mas não foi possível exibir o PIX. Verifique o retorno da API no servidor.</p>
             </div>
           ) : (
             <>
               <div className="bg-white p-4 rounded-xl border shadow-xl flex items-center justify-center">
-                {pixData.pix.qrCode ? (
+                {hasQrImage ? (
                   <img 
-                    src={pixData.pix.qrCode.startsWith('data:') ? pixData.pix.qrCode : (pixData.pix.qrCode.startsWith('http') ? pixData.pix.qrCode : `data:image/png;base64,${pixData.pix.qrCode}`)} 
+                    src={pixData.pix.qrCode!.startsWith('data:') ? pixData.pix.qrCode : (pixData.pix.qrCode!.startsWith('http') ? pixData.pix.qrCode : `data:image/png;base64,${pixData.pix.qrCode}`)} 
                     alt="QR Code Pix" 
                     className="w-48 h-48 object-contain" 
                   />
-                ) : pixData.pix.copyPaste ? (
+                ) : hasPixCode ? (
                   <QRCodeSVG value={pixData.pix.copyPaste} size={200} />
                 ) : null}
               </div>
@@ -139,10 +140,10 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
               <div className="w-full space-y-4">
                 <div className="flex justify-between items-center bg-muted/30 p-3 rounded-lg border border-border/50">
                   <span className="text-xs font-bold uppercase text-muted-foreground">Valor a pagar:</span>
-                  <span className="text-lg font-black italic text-primary">R$ {(pixData.transaction.amount / 100).toFixed(2).replace('.', ',')}</span>
+                  <span className="text-lg font-black italic text-primary">R$ {((pixData.transaction?.amount || 1990) / 100).toFixed(2).replace('.', ',')}</span>
                 </div>
 
-                {pixData.pix.copyPaste && (
+                {hasPixCode && (
                   <div className="relative">
                     <div className="bg-muted/50 p-4 rounded-lg border border-primary/20 break-all text-[10px] font-mono leading-relaxed h-24 overflow-y-auto pr-10">
                       {pixData.pix.copyPaste}
@@ -158,7 +159,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
                   </div>
                 )}
 
-                <Button onClick={copyPixCode} className="w-full h-14 font-black uppercase italic tracking-tighter text-lg shadow-xl shadow-primary/20">
+                <Button onClick={copyPixCode} className="w-full h-14 font-black uppercase italic tracking-tighter text-lg shadow-xl shadow-primary/20" disabled={!hasPixCode}>
                   {isCopied ? <><Check className="mr-2 h-5 w-5" /> Copiado!</> : <><Copy className="mr-2 h-5 w-5" /> Copiar Código Pix</>}
                 </Button>
               </div>

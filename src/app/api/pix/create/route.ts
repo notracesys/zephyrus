@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 const IRONPAY_TOKEN = process.env.IRONPAY_API_TOKEN;
 const IRONPAY_URL = 'https://api.ironpayapp.com.br/api/public/v1/transactions';
 
-// Função auxiliar para busca profunda de valores no JSON
+// Função para busca profunda de valores no objeto retornado pela API
 function findDeepValue(obj: any, possibleKeys: string[]): any {
   if (!obj || typeof obj !== 'object') return null;
 
@@ -13,14 +13,14 @@ function findDeepValue(obj: any, possibleKeys: string[]): any {
     }
     const value = obj[key];
     if (value && typeof value === 'object') {
-      const nested = findDeepValue(value, possibleKeys);
-      if (nested) return nested;
+      const found = findDeepValue(value, possibleKeys);
+      if (found) return found;
     }
   }
   return null;
 }
 
-// Sanitização básica para logs
+// Sanitização básica para logs de servidor
 function sanitizeIronPayResponse(data: any): any {
   if (!data || typeof data !== 'object') return data;
   const sanitized = Array.isArray(data) ? [...data] : { ...data };
@@ -36,33 +36,39 @@ function sanitizeIronPayResponse(data: any): any {
   return sanitized;
 }
 
-function normalizeIronPayPixResponse(data: any) {
-  const copyPasteKeys = [
-    "pixCopyPaste", "pix_copy_paste", "pix_copia_cola", "copyPaste", "copy_paste", 
-    "copia_cola", "brcode", "br_code", "emv", "qr_code_text", "qrCodeText", 
-    "paymentCode", "payment_code", "code", "pix_code"
-  ];
+function normalizeIronPayResponse(data: any) {
+  const pixCopyPaste = findDeepValue(data, [
+    "pix_copy_paste", "pixCopyPaste", "copy_paste", "copyPaste", "copia_cola", 
+    "pix_copia_cola", "brcode", "br_code", "emv", "qr_code_text", "qrCodeText", 
+    "payment_code", "paymentCode", "pix_code"
+  ]);
 
-  const qrCodeKeys = [
-    "qrCode", "qr_code", "qrcode", "qr_code_base64", "qrCodeBase64", 
+  const qrCode = findDeepValue(data, [
+    "qr_code", "qrCode", "qrcode", "qr_code_base64", "qrCodeBase64", 
     "qr_code_url", "qrCodeUrl", "pix_qrcode_base64"
-  ];
+  ]);
 
-  const hashKeys = ["hash", "transaction_hash", "transactionHash", "id", "reference"];
-  const statusKeys = ["status", "payment_status", "transaction_status"];
-  const amountKeys = ["amount", "value", "price", "total"];
+  const paymentUrl = findDeepValue(data, [
+    "checkout_url", "payment_url", "paymentUrl", "url", "checkoutUrl"
+  ]);
+
+  const hash = findDeepValue(data, [
+    "hash", "transaction_hash", "transactionHash", "id", "reference"
+  ]);
+
+  const status = findDeepValue(data, [
+    "status", "payment_status", "transaction_status"
+  ]) || "pending";
+
+  const amount = findDeepValue(data, ["amount", "value", "price", "total"]);
 
   return {
-    transaction: {
-      hash: findDeepValue(data, hashKeys),
-      status: findDeepValue(data, statusKeys) || "pending",
-      amount: findDeepValue(data, amountKeys)
-    },
-    pix: {
-      copyPaste: findDeepValue(data, copyPasteKeys),
-      qrCode: findDeepValue(data, qrCodeKeys),
-      expiresAt: findDeepValue(data, ["expires_at", "expiresAt", "expiration", "expire_at", "expire_in"])
-    }
+    hash,
+    status,
+    pixCopyPaste,
+    qrCode,
+    paymentUrl,
+    amount
   };
 }
 
@@ -72,17 +78,14 @@ export async function POST(request: Request) {
     const { customerEmail, customerName, customerCpf, customerPhone, tracking } = body;
 
     if (!IRONPAY_TOKEN) {
-      return NextResponse.json({ error: 'Erro de autenticação no pagamento. Contate o suporte.' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Erro de autenticação no pagamento. Contate o suporte.' }, { status: 401 });
     }
 
-    const offerHash = process.env.IRONPAY_OFFER_HASH;
-    const productHash = process.env.IRONPAY_PRODUCT_HASH;
     const amountInCents = Number(process.env.PRODUCT_PRICE) || 1990;
-    const productTitle = process.env.PRODUCT_TITLE || "Estratégia Unban FF";
-
+    
     const payload = {
       amount: amountInCents,
-      offer_hash: offerHash?.trim(),
+      offer_hash: (process.env.IRONPAY_OFFER_HASH || "").trim(),
       payment_method: "pix",
       customer: {
         name: (customerName || "Jogador").trim(),
@@ -99,8 +102,8 @@ export async function POST(request: Request) {
       },
       cart: [
         {
-          product_hash: productHash?.trim(),
-          title: productTitle,
+          product_hash: (process.env.IRONPAY_PRODUCT_HASH || "").trim(),
+          title: process.env.PRODUCT_TITLE || "Estratégia Unban FF",
           price: amountInCents,
           quantity: 1,
           operation_type: 1,
@@ -124,8 +127,9 @@ export async function POST(request: Request) {
 
     const data = await response.json();
     
-    // Log detalhado e sanitizado no backend
-    console.log("IRONPAY_RAW_RESPONSE", JSON.stringify(sanitizeIronPayResponse(data), null, 2));
+    // Log de diagnóstico solicitado
+    console.log("IRONPAY_STATUS:", response.status);
+    console.log("IRONPAY_RAW_RESPONSE:", JSON.stringify(sanitizeIronPayResponse(data), null, 2));
 
     if (!response.ok) {
       return NextResponse.json({ 
@@ -135,22 +139,42 @@ export async function POST(request: Request) {
       }, { status: response.status });
     }
 
-    const normalized = normalizeIronPayPixResponse(data);
+    const normalized = normalizeIronPayResponse(data);
 
-    if (!normalized.pix.copyPaste && !normalized.pix.qrCode) {
+    if (normalized.pixCopyPaste || normalized.qrCode) {
       return NextResponse.json({
-        success: false,
-        message: "Transação criada, mas a IronPay não retornou os dados do PIX.",
-        debugHint: "Verifique o log IRONPAY_RAW_RESPONSE no backend."
-      }, { status: 502 });
+        success: true,
+        mode: "pix",
+        transaction: {
+          hash: normalized.hash,
+          status: normalized.status,
+          amount: normalized.amount || amountInCents
+        },
+        pix: {
+          copyPaste: normalized.pixCopyPaste,
+          qrCode: normalized.qrCode
+        }
+      });
+    }
+
+    if (normalized.paymentUrl) {
+      return NextResponse.json({
+        success: true,
+        mode: "payment_url",
+        transaction: {
+          hash: normalized.hash,
+          status: normalized.status,
+          amount: amountInCents
+        },
+        paymentUrl: normalized.paymentUrl
+      });
     }
 
     return NextResponse.json({
-      success: true,
-      transaction: normalized.transaction,
-      pix: normalized.pix,
-      rawProvider: "ironpay"
-    });
+      success: false,
+      message: "A transação foi criada na IronPay, mas a API não retornou QR Code, código PIX copia e cola ou URL de pagamento.",
+      action: "Verifique o log IRONPAY_RAW_RESPONSE e confirme com o suporte da IronPay."
+    }, { status: 502 });
 
   } catch (error: any) {
     console.error('Internal Error:', error);
