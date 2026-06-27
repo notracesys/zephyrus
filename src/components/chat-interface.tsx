@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -167,13 +166,14 @@ ${t.chat_label_description}:
   }, [searchParams, t, isReady, config.siteName]);
 
   const handlePurchaseInitiation = () => {
+    if (isGeneratingPix) return;
     setIsDataModalOpen(true);
   };
 
   const handleCustomerSubmit = async (data: any) => {
+    if (isGeneratingPix) return;
     setIsGeneratingPix(true);
     
-    // Captura UTMs para o tracking
     const tracking = {
       utm_source: searchParams.get('utm_source') || '',
       utm_medium: searchParams.get('utm_medium') || '',
@@ -198,24 +198,24 @@ ${t.chat_label_description}:
 
       const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro ao gerar Pix');
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || result.error || 'Erro ao gerar Pix');
       }
 
       setPixData(result);
       setIsDataModalOpen(false);
       setIsPixModalOpen(true);
 
-      // Salva a intenção de compra no Firestore
       if (firestore) {
-        const purchaseRef = doc(firestore, 'purchases', result.hash);
+        const hash = result.transaction.hash;
+        const purchaseRef = doc(firestore, 'purchases', String(hash));
         await setDoc(purchaseRef, {
-          id: result.hash,
+          id: hash,
           email: data.email,
           name: data.name,
           phone: data.phone,
           cpf: data.document,
-          amount: result.amount,
+          amount: result.transaction.amount,
           status: 'pending',
           timestamp: serverTimestamp(),
           siteId: sessionStorage.getItem('active_site_id') || 'global',
@@ -226,7 +226,7 @@ ${t.chat_label_description}:
           timestamp: serverTimestamp(),
           source: 'chat-pix-generation',
           siteId: sessionStorage.getItem('active_site_id') || 'global',
-          transactionHash: result.hash
+          transactionHash: hash
         });
       }
     } catch (error: any) {
@@ -399,7 +399,7 @@ ${t.chat_label_description}:
                     className="w-full sm:w-auto font-bold relative overflow-hidden bg-primary text-primary-foreground h-14 px-8"
                   >
                     {isGeneratingPix ? (
-                      <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> GERANDO PIX...</>
+                      <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Gerando Pix...</>
                     ) : (
                       <>{t.chat_purchase_btn} <ArrowRight className="ml-2 h-5 w-5" /></>
                     )}
