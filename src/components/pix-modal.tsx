@@ -7,9 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, Check, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Loader2, Copy, Check, ShieldCheck, AlertCircle, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -94,8 +95,12 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
   const hasPixCode = !!pixData.pix?.copyPaste;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md bg-card border-primary/20">
+    <Dialog open={isOpen} onOpenChange={() => {}}>
+      <DialogContent 
+        className="sm:max-w-md bg-card border-primary/20"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-black italic uppercase tracking-tighter">
             {status === 'paid' ? 'PAGAMENTO APROVADO!' : 'PAGAMENTO VIA PIX'}
@@ -166,7 +171,17 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
           )}
         </div>
 
-        <div className="text-[10px] text-center text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2">
+        <DialogFooter className="sm:justify-center border-t pt-4">
+          <Button 
+            variant="ghost" 
+            onClick={onClose} 
+            className="text-muted-foreground text-xs uppercase font-bold tracking-widest flex items-center gap-2 hover:bg-transparent hover:text-foreground"
+          >
+            <X className="h-3 w-3" /> Fechar Janela
+          </Button>
+        </DialogFooter>
+
+        <div className="text-[10px] text-center text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2 pb-2">
           <ShieldCheck className="h-3 w-3" /> Transação Segura via IronPay
         </div>
       </DialogContent>
