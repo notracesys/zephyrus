@@ -10,12 +10,13 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, Check, ShieldCheck, AlertCircle, X } from 'lucide-react';
+import { Loader2, Copy, Check, ShieldCheck, AlertCircle, X, Download } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { useLanguage } from '@/lib/i18n';
 
 interface PixModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ interface PixModalProps {
 }
 
 export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
+  const { t } = useLanguage();
   const [isCopied, setIsCopied] = useState(false);
   const [status, setStatus] = useState<'pending' | 'paid' | 'failed'>('pending');
   const router = useRouter();
@@ -62,11 +64,8 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
 
             toast({
               title: "Pagamento Confirmado!",
-              description: "Redirecionando para sua entrega...",
+              description: "Seu acesso foi liberado.",
             });
-            setTimeout(() => {
-              router.push(`/entrega?id=${pixData.transaction.hash}`);
-            }, 2000);
           }
         } catch (e) {
           console.error("Erro ao checar status do Pix:", e);
@@ -90,6 +89,10 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+  const handleDownload = () => {
+    window.open('https://drive.google.com/file/d/1WqGgkgiu-YiMhAGfTkNRJ5B-HJg9ykxQ/view?usp=sharing', '_blank');
+  };
+
   if (!pixData) return null;
 
   const hasPixCode = !!pixData.pix?.copyPaste;
@@ -108,11 +111,11 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
 
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-black italic uppercase tracking-tighter">
-            {status === 'paid' ? 'PAGAMENTO APROVADO!' : 'PAGAMENTO VIA PIX'}
+            {status === 'paid' ? 'ACESSO LIBERADO!' : 'PAGAMENTO VIA PIX'}
           </DialogTitle>
           <DialogDescription className="text-center font-medium">
             {status === 'paid' 
-              ? 'Sua conta está sendo processada para recuperação.' 
+              ? 'Clique no botão abaixo para baixar o seu método.' 
               : hasPixCode
                 ? 'Escaneie o QR Code abaixo ou copie o código Pix.'
                 : 'Aguardando dados de pagamento...'}
@@ -121,11 +124,21 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
 
         <div className="flex flex-col items-center justify-center space-y-6 py-4">
           {status === 'paid' ? (
-            <div className="flex flex-col items-center animate-in zoom-in duration-500">
-              <div className="bg-green-500/10 p-6 rounded-full border-2 border-green-500/30 mb-4">
+            <div className="flex flex-col items-center animate-in zoom-in duration-500 space-y-6 w-full">
+              <div className="bg-green-500/10 p-6 rounded-full border-2 border-green-500/30">
                 <ShieldCheck className="h-20 w-20 text-green-500" />
               </div>
-              <p className="font-bold text-green-500 uppercase tracking-tighter italic">Sistema Liberado</p>
+              <div className="text-center">
+                <p className="font-bold text-green-500 uppercase tracking-tighter italic text-xl">Pagamento Confirmado</p>
+                <p className="text-sm text-muted-foreground mt-1">Seu download está pronto.</p>
+              </div>
+              <Button 
+                onClick={handleDownload} 
+                size="lg" 
+                className="w-full h-16 text-lg font-black uppercase tracking-widest shadow-xl shadow-primary/20 bg-primary text-primary-foreground hover:scale-[1.02] transition-transform"
+              >
+                <Download className="mr-2 h-6 w-6" /> {t.delivery_download_btn}
+              </Button>
             </div>
           ) : !hasPixCode ? (
             <div className="flex flex-col items-center text-center p-8 space-y-4">

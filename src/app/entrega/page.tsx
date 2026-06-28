@@ -79,7 +79,7 @@ function EntregaContent() {
   };
 
   const handleDownload = () => {
-    window.open('https://drive.google.com/file/d/14GPvzQOzMsub7hMpUdD-9blZ3WUVavJH/view?usp=sharing', '_blank');
+    window.open('https://drive.google.com/file/d/1WqGgkgiu-YiMhAGfTkNRJ5B-HJg9ykxQ/view?usp=sharing', '_blank');
   };
 
   if (status === 'loading') {
