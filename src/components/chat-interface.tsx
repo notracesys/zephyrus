@@ -81,7 +81,7 @@ export default function ChatInterface() {
     const parts = formatted.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, i) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={i} className="font-black text-primary">{part.slice(2, -2)}</strong>;
+        return <strong key={i} className="font-black text-foreground">{part.slice(2, -2)}</strong>;
       }
       return part;
     });

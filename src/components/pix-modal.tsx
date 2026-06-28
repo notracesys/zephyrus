@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Loader2, Copy, Check, ShieldCheck, AlertCircle, X } from 'lucide-react';
@@ -95,12 +95,17 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
   const hasPixCode = !!pixData.pix?.copyPaste;
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent 
         className="sm:max-w-md bg-card border-primary/20"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Fechar</span>
+        </DialogClose>
+
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-black italic uppercase tracking-tighter">
             {status === 'paid' ? 'PAGAMENTO APROVADO!' : 'PAGAMENTO VIA PIX'}
@@ -136,7 +141,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
               <div className="w-full space-y-4">
                 <div className="flex justify-between items-center bg-muted/30 p-3 rounded-lg border border-border/50">
                   <span className="text-xs font-bold uppercase text-muted-foreground">Valor a pagar:</span>
-                  <span className="text-lg font-black italic text-primary">R$ {((pixData.transaction?.amount || 1990) / 100).toFixed(2).replace('.', ',')}</span>
+                  <span className="text-lg font-black italic text-foreground">R$ {((pixData.transaction?.amount || 1990) / 100).toFixed(2).replace('.', ',')}</span>
                 </div>
 
                 <div className="relative">
@@ -171,17 +176,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
           )}
         </div>
 
-        <DialogFooter className="sm:justify-center border-t pt-4">
-          <Button 
-            variant="ghost" 
-            onClick={onClose} 
-            className="text-muted-foreground text-xs uppercase font-bold tracking-widest flex items-center gap-2 hover:bg-transparent hover:text-foreground"
-          >
-            <X className="h-3 w-3" /> Fechar Janela
-          </Button>
-        </DialogFooter>
-
-        <div className="text-[10px] text-center text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2 pb-2">
+        <div className="text-[10px] text-center text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2 pb-2 pt-4 border-t">
           <ShieldCheck className="h-3 w-3" /> Transação Segura via IronPay
         </div>
       </DialogContent>
