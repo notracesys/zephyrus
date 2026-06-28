@@ -22,12 +22,12 @@ export async function POST(request: Request) {
     const productHash = (process.env.IRONPAY_PRODUCT_HASH || "").trim();
     const productTitle = process.env.PRODUCT_TITLE || "Estratégia Unban FF";
     
-    // Limpeza da URL do App para evitar erros de validação da IronPay
+    // Limpeza da URL do App
     let appUrl = (process.env.NEXT_PUBLIC_APP_URL || '').trim();
     if (appUrl && !appUrl.startsWith('http')) {
       appUrl = `https://${appUrl}`;
     }
-    appUrl = appUrl.replace(/\/$/, ''); // Remove barra no final se existir
+    appUrl = appUrl.replace(/\/$/, ''); // Remove barra no final
 
     const payload: any = {
       amount: amountInCents,
@@ -37,13 +37,7 @@ export async function POST(request: Request) {
         name: "Jogador Anonimo",
         email: "cliente@suporte-recuperacao.com",
         phone_number: "11999999999",
-        document: "09115751031",
-        street_name: "Rua do Suporte",
-        number: "100",
-        neighborhood: "Centro",
-        city: "Sao Paulo",
-        state: "SP",
-        zip_code: "01001000"
+        document: "09115751031"
       },
       cart: [
         {
@@ -60,12 +54,18 @@ export async function POST(request: Request) {
       tracking: tracking || {}
     };
 
-    // Só adiciona postback_url se a URL for válida
-    if (appUrl && appUrl.includes('.')) {
+    // Só adiciona postback_url se a URL parecer minimamente válida
+    // A IronPay exige uma URL válida se o campo for enviado
+    if (appUrl && appUrl.includes('.') && appUrl.startsWith('http')) {
       payload.postback_url = `${appUrl}/api/pix/webhook`;
+      console.log(`[PIX_CREATE] Postback URL definida: ${payload.postback_url}`);
+    } else {
+      console.warn(`[PIX_CREATE] NEXT_PUBLIC_APP_URL não configurada ou inválida: "${appUrl}". O postback pode falhar.`);
     }
 
-    const response = await fetch(`${IRONPAY_URL}?api_token=${IRONPAY_TOKEN}`, {
+    const apiUrl = `${IRONPAY_URL}?api_token=${IRONPAY_TOKEN}`;
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -85,14 +85,16 @@ export async function POST(request: Request) {
       }, { status: response.status });
     }
 
+    // Normalização baseada na documentação fornecida: data.pix.pix_qr_code
     const pixData = data.pix || {};
     const pixCode = pixData.pix_qr_code || ""; 
     const hash = data.hash || data.id;
 
     if (!pixCode) {
+      console.error("[PIX_ERROR] Resposta da IronPay não contém pix_qr_code:", JSON.stringify(data, null, 2));
       return NextResponse.json({
         success: false,
-        message: "O PIX foi criado, mas o código de pagamento não foi retornado.",
+        message: "O PIX foi criado, mas o código de pagamento (pix_qr_code) não foi retornado.",
         raw: data
       }, { status: 502 });
     }
