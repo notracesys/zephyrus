@@ -27,7 +27,7 @@ interface PixModalProps {
     };
     pix: {
       copyPaste: string;
-      qrCode?: string;
+      qrCode?: string | null;
       expiresAt?: string;
     };
   } | null;
@@ -92,7 +92,6 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
   if (!pixData) return null;
 
   const hasPixCode = !!pixData.pix?.copyPaste;
-  const hasQrImage = !!pixData.pix?.qrCode;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -104,7 +103,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
           <DialogDescription className="text-center font-medium">
             {status === 'paid' 
               ? 'Sua conta está sendo processada para recuperação.' 
-              : (hasPixCode || hasQrImage)
+              : hasPixCode
                 ? 'Escaneie o QR Code abaixo ou copie o código Pix.'
                 : 'Aguardando dados de pagamento...'}
           </DialogDescription>
@@ -118,23 +117,15 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
               </div>
               <p className="font-bold text-green-500 uppercase tracking-tighter italic">Sistema Liberado</p>
             </div>
-          ) : (!hasPixCode && !hasQrImage) ? (
+          ) : !hasPixCode ? (
             <div className="flex flex-col items-center text-center p-8 space-y-4">
               <AlertCircle className="h-12 w-12 text-destructive" />
-              <p className="text-sm font-bold">Transação criada, mas não foi possível exibir o PIX. Verifique o retorno da API no servidor.</p>
+              <p className="text-sm font-bold">Não foi possível exibir o PIX. Tente novamente.</p>
             </div>
           ) : (
             <>
               <div className="bg-white p-4 rounded-xl border shadow-xl flex items-center justify-center">
-                {hasQrImage ? (
-                  <img 
-                    src={pixData.pix.qrCode!.startsWith('data:') ? pixData.pix.qrCode : (pixData.pix.qrCode!.startsWith('http') ? pixData.pix.qrCode : `data:image/png;base64,${pixData.pix.qrCode}`)} 
-                    alt="QR Code Pix" 
-                    className="w-48 h-48 object-contain" 
-                  />
-                ) : hasPixCode ? (
-                  <QRCodeSVG value={pixData.pix.copyPaste} size={200} />
-                ) : null}
+                 <QRCodeSVG value={pixData.pix.copyPaste} size={200} />
               </div>
 
               <div className="w-full space-y-4">
@@ -143,23 +134,21 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
                   <span className="text-lg font-black italic text-primary">R$ {((pixData.transaction?.amount || 1990) / 100).toFixed(2).replace('.', ',')}</span>
                 </div>
 
-                {hasPixCode && (
-                  <div className="relative">
-                    <div className="bg-muted/50 p-4 rounded-lg border border-primary/20 break-all text-[10px] font-mono leading-relaxed h-24 overflow-y-auto pr-10">
-                      {pixData.pix.copyPaste}
-                    </div>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="absolute top-2 right-2 h-8 w-8"
-                      onClick={copyPixCode}
-                    >
-                      {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                    </Button>
+                <div className="relative">
+                  <div className="bg-muted/50 p-4 rounded-lg border border-primary/20 break-all text-[10px] font-mono leading-relaxed h-24 overflow-y-auto pr-10">
+                    {pixData.pix.copyPaste}
                   </div>
-                )}
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="absolute top-2 right-2 h-8 w-8"
+                    onClick={copyPixCode}
+                  >
+                    {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
 
-                <Button onClick={copyPixCode} className="w-full h-14 font-black uppercase italic tracking-tighter text-lg shadow-xl shadow-primary/20" disabled={!hasPixCode}>
+                <Button onClick={copyPixCode} className="w-full h-14 font-black uppercase italic tracking-tighter text-lg shadow-xl shadow-primary/20">
                   {isCopied ? <><Check className="mr-2 h-5 w-5" /> Copiado!</> : <><Copy className="mr-2 h-5 w-5" /> Copiar Código Pix</>}
                 </Button>
               </div>

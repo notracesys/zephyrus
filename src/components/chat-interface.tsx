@@ -20,7 +20,6 @@ import { collection, addDoc, serverTimestamp, doc, setDoc } from 'firebase/fires
 import { useLanguage } from '@/lib/i18n';
 import { useAppConfig } from '@/components/config-provider';
 import { toast } from '@/hooks/use-toast';
-import CustomerDataModal from '@/components/customer-data-modal';
 import PixModal from '@/components/pix-modal';
 
 type FeedbackData = {
@@ -67,7 +66,6 @@ export default function ChatInterface() {
   const [showOptions, setShowOptions] = useState(false);
   const [showImportantNotice, setShowImportantNotice] = useState(false);
   const [showPurchaseButton, setShowPurchaseButton] = useState(false);
-  const [isDataModalOpen, setIsDataModalOpen] = useState(false);
   const [isPixModalOpen, setIsPixModalOpen] = useState(false);
   const [isGeneratingPix, setIsGeneratingPix] = useState(false);
   const [pixData, setPixData] = useState<any>(null);
@@ -165,12 +163,7 @@ ${t.chat_label_description}:
     return () => timeouts.forEach(t => clearTimeout(t));
   }, [searchParams, t, isReady, config.siteName]);
 
-  const handlePurchaseInitiation = () => {
-    if (isGeneratingPix) return;
-    setIsDataModalOpen(true);
-  };
-
-  const handleCustomerSubmit = async (data: any) => {
+  const handlePurchaseInitiation = async () => {
     if (isGeneratingPix) return;
     setIsGeneratingPix(true);
     
@@ -187,13 +180,7 @@ ${t.chat_label_description}:
       const response = await fetch('/api/pix/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerName: data.name,
-          customerEmail: data.email,
-          customerPhone: data.phone,
-          customerCpf: data.document,
-          tracking,
-        }),
+        body: JSON.stringify({ tracking }),
       });
 
       const result = await response.json();
@@ -202,13 +189,7 @@ ${t.chat_label_description}:
         throw new Error(result.message || result.error || 'Erro ao gerar Pix');
       }
 
-      if (result.mode === 'payment_url') {
-        window.location.href = result.paymentUrl;
-        return;
-      }
-
       setPixData(result);
-      setIsDataModalOpen(false);
       setIsPixModalOpen(true);
 
       if (firestore) {
@@ -216,11 +197,6 @@ ${t.chat_label_description}:
         const purchaseRef = doc(firestore, 'purchases', String(hash));
         await setDoc(purchaseRef, {
           id: hash,
-          email: data.email,
-          name: data.name,
-          phone: data.phone,
-          cpf: data.document,
-          amount: result.transaction.amount,
           status: 'pending',
           timestamp: serverTimestamp(),
           siteId: sessionStorage.getItem('active_site_id') || 'global',
@@ -229,7 +205,7 @@ ${t.chat_label_description}:
         
         await addDoc(collection(firestore, 'checkoutClicks'), {
           timestamp: serverTimestamp(),
-          source: 'chat-pix-generation',
+          source: 'chat-direct-pix',
           siteId: sessionStorage.getItem('active_site_id') || 'global',
           transactionHash: hash
         });
@@ -328,13 +304,6 @@ ${t.chat_label_description}:
 
   return (
     <>
-      <CustomerDataModal
-        isOpen={isDataModalOpen}
-        onClose={() => setIsDataModalOpen(false)}
-        onSubmit={handleCustomerSubmit}
-        isLoading={isGeneratingPix}
-      />
-      
       <PixModal
         isOpen={isPixModalOpen}
         onClose={() => setIsPixModalOpen(false)}
