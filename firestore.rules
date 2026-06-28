@@ -20,10 +20,11 @@ service cloud.firestore {
     match /purchases/{purchaseId} {
       allow create: if true;
       allow get: if true; 
-      allow list, update, delete: if isSignedIn(); 
+      // Permitimos update para que o webhook da IronPay e o modal de confirmação possam atualizar o status para 'paid'
+      allow update: if true;
+      allow list, delete: if isSignedIn(); 
     }
 
-    // Corrigido para /configs/ e permitindo leitura para todos (visitantes)
     match /configs/{configId} {
       allow read: if true;
       allow write: if isSignedIn();
