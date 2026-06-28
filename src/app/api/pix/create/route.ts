@@ -5,11 +5,9 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { tracking } = body;
 
-    // Acessando variáveis de ambiente de forma segura
     const IRONPAY_TOKEN = (process.env.IRONPAY_API_TOKEN || '').trim();
     const IRONPAY_URL = 'https://api.ironpayapp.com.br/api/public/v1/transactions';
     
-    // Log para depuração na Netlify (não expõe o token inteiro por segurança)
     console.log(`[PIX_CREATE] Iniciando transação. Token presente: ${!!IRONPAY_TOKEN}`);
 
     if (!IRONPAY_TOKEN) {
@@ -23,10 +21,15 @@ export async function POST(request: Request) {
     const offerHash = (process.env.IRONPAY_OFFER_HASH || "").trim();
     const productHash = (process.env.IRONPAY_PRODUCT_HASH || "").trim();
     const productTitle = process.env.PRODUCT_TITLE || "Estratégia Unban FF";
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+    
+    // Limpeza da URL do App para evitar erros de validação da IronPay
+    let appUrl = (process.env.NEXT_PUBLIC_APP_URL || '').trim();
+    if (appUrl && !appUrl.startsWith('http')) {
+      appUrl = `https://${appUrl}`;
+    }
+    appUrl = appUrl.replace(/\/$/, ''); // Remove barra no final se existir
 
-    // Estrutura exata conforme documentação enviada
-    const payload = {
+    const payload: any = {
       amount: amountInCents,
       offer_hash: offerHash,
       payment_method: "pix",
@@ -34,7 +37,7 @@ export async function POST(request: Request) {
         name: "Jogador Anonimo",
         email: "cliente@suporte-recuperacao.com",
         phone_number: "11999999999",
-        document: "09115751031", // CPF padrão
+        document: "09115751031",
         street_name: "Rua do Suporte",
         number: "100",
         neighborhood: "Centro",
@@ -54,11 +57,14 @@ export async function POST(request: Request) {
       ],
       expire_in_days: 1,
       transaction_origin: "api",
-      tracking: tracking || {},
-      postback_url: appUrl ? `${appUrl}/api/pix/webhook` : null
+      tracking: tracking || {}
     };
 
-    // Chamada para a IronPay com o token na URL conforme documentação
+    // Só adiciona postback_url se a URL for válida
+    if (appUrl && appUrl.includes('.')) {
+      payload.postback_url = `${appUrl}/api/pix/webhook`;
+    }
+
     const response = await fetch(`${IRONPAY_URL}?api_token=${IRONPAY_TOKEN}`, {
       method: 'POST',
       headers: { 
@@ -74,21 +80,19 @@ export async function POST(request: Request) {
       console.error("[IRONPAY_ERROR]", JSON.stringify(data, null, 2));
       return NextResponse.json({ 
         success: false,
-        error: `Erro IronPay: ${response.status}`,
+        error: data.message || `Erro IronPay: ${response.status}`,
         details: data
       }, { status: response.status });
     }
 
-    // Mapeamento direto do campo pix_qr_code da resposta oficial
     const pixData = data.pix || {};
     const pixCode = pixData.pix_qr_code || ""; 
     const hash = data.hash || data.id;
 
     if (!pixCode) {
-      console.warn("[IRONPAY_WARNING] Transação criada mas pix_qr_code veio vazio.");
       return NextResponse.json({
         success: false,
-        message: "O PIX foi criado na conta, mas o código de pagamento não foi retornado.",
+        message: "O PIX foi criado, mas o código de pagamento não foi retornado.",
         raw: data
       }, { status: 502 });
     }
@@ -110,7 +114,7 @@ export async function POST(request: Request) {
     console.error('[INTERNAL_SERVER_ERROR]', error);
     return NextResponse.json({ 
       success: false, 
-      error: 'Erro interno no servidor da Netlify.' 
+      error: 'Erro interno no servidor.' 
     }, { status: 500 });
   }
 }
