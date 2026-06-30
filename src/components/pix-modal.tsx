@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -41,11 +40,11 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
   const { t } = useLanguage();
   const [isCopied, setIsCopied] = useState(false);
   const [status, setStatus] = useState<'pending' | 'paid' | 'failed'>('pending');
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutos
+  const [timeLeft, setTimeLeft] = useState(600); // 10 minutos para criar urgência
   const router = useRouter();
   const firestore = useFirestore();
 
-  // Timer de Urgência
+  // Timer de Urgência Real
   useEffect(() => {
     if (!isOpen || status === 'paid') return;
     
@@ -62,6 +61,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Pooling para verificar pagamento
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
@@ -240,7 +240,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
             Ambiente Criptografado de Nível Bancário por IronPay
           </span>
         </div>
-      </div>
+      </DialogContent>
     </Dialog>
   );
 }
