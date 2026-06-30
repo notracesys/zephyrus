@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,13 +11,14 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, Check, ShieldCheck, AlertCircle, X, Download } from 'lucide-react';
+import { Loader2, Copy, Check, ShieldCheck, AlertCircle, X, Download, Lock, Timer, CheckCircle2, ArrowRight, ShieldAlert } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 
 interface PixModalProps {
   isOpen: boolean;
@@ -39,8 +41,26 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
   const { t } = useLanguage();
   const [isCopied, setIsCopied] = useState(false);
   const [status, setStatus] = useState<'pending' | 'paid' | 'failed'>('pending');
+  const [timeLeft, setTimeLeft] = useState(600); // 10 minutos
   const router = useRouter();
   const firestore = useFirestore();
+
+  // Timer de Urgência
+  useEffect(() => {
+    if (!isOpen || status === 'paid') return;
+    
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isOpen, status]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -64,7 +84,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
 
             toast({
               title: "Pagamento Confirmado!",
-              description: "Seu acesso foi liberado.",
+              description: "Seu acesso foi liberado com sucesso.",
             });
           }
         } catch (e) {
@@ -84,7 +104,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
     setIsCopied(true);
     toast({
       title: "Código Copiado!",
-      description: "Cole no seu aplicativo do banco para pagar.",
+      description: "Cole no seu aplicativo do banco para finalizar.",
     });
     setTimeout(() => setIsCopied(false), 2000);
   };
@@ -98,101 +118,129 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
   const hasPixCode = !!pixData.pix?.copyPaste;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && status !== 'paid' && onClose()}>
       <DialogContent 
-        className="sm:max-w-md bg-card border-primary/20"
+        className="sm:max-w-md bg-card border-primary/30 shadow-[0_0_50px_-12px_rgba(255,204,0,0.2)] p-0 overflow-hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+        <DialogClose className="absolute right-4 top-4 rounded-full bg-background/50 p-1 opacity-70 transition-all hover:opacity-100 focus:outline-none z-50">
           <X className="h-4 w-4" />
           <span className="sr-only">Fechar</span>
         </DialogClose>
 
-        <DialogHeader>
-          <DialogTitle className="text-center text-2xl font-black italic uppercase tracking-tighter">
-            {status === 'paid' ? 'ACESSO LIBERADO!' : 'PAGAMENTO VIA PIX'}
-          </DialogTitle>
-          <DialogDescription className="text-center font-medium">
-            {status === 'paid' 
-              ? 'Clique no botão abaixo para baixar o seu método.' 
-              : hasPixCode
-                ? 'Escaneie o QR Code abaixo ou copie o código Pix.'
-                : 'Aguardando dados de pagamento...'}
-          </DialogDescription>
-        </DialogHeader>
+        {status !== 'paid' && (
+          <div className="bg-primary text-primary-foreground py-2 px-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest animate-pulse">
+            <Timer className="h-3 w-3" />
+            Sua vaga de revisão expira em: {formatTime(timeLeft)}
+          </div>
+        )}
 
-        <div className="flex flex-col items-center justify-center space-y-6 py-4">
-          {status === 'paid' ? (
-            <div className="flex flex-col items-center animate-in zoom-in duration-500 space-y-6 w-full">
-              <div className="bg-green-500/10 p-6 rounded-full border-2 border-green-500/30">
-                <ShieldCheck className="h-20 w-20 text-green-500" />
-              </div>
-              <div className="text-center">
-                <p className="font-bold text-green-500 uppercase tracking-tighter italic text-xl">Pagamento Confirmado</p>
-                <p className="text-sm text-muted-foreground mt-1">Seu download está pronto.</p>
-              </div>
-              <Button 
-                onClick={handleDownload} 
-                size="lg" 
-                className="w-full h-16 text-lg font-black uppercase tracking-widest shadow-xl shadow-primary/20 bg-primary text-primary-foreground hover:scale-[1.02] transition-transform"
-              >
-                <Download className="mr-2 h-6 w-6" /> {t.delivery_download_btn}
-              </Button>
-            </div>
-          ) : !hasPixCode ? (
-            <div className="flex flex-col items-center text-center p-8 space-y-4">
-              <AlertCircle className="h-12 w-12 text-destructive" />
-              <p className="text-sm font-bold">Não foi possível exibir o PIX. Tente novamente.</p>
-            </div>
-          ) : (
-            <>
-              <div className="bg-white p-4 rounded-xl border shadow-xl flex items-center justify-center">
-                 <QRCodeSVG value={pixData.pix.copyPaste} size={200} />
-              </div>
+        <div className="p-6">
+          <DialogHeader className="mb-6">
+            <DialogTitle className="text-center text-2xl font-black italic uppercase tracking-tighter flex items-center justify-center gap-2">
+              {status === 'paid' ? (
+                <span className="text-green-500 flex items-center gap-2 animate-bounce">
+                  <CheckCircle2 className="h-6 w-6" /> ACESSO LIBERADO
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Lock className="h-5 w-5 text-primary" /> PAGAMENTO SEGURO
+                </span>
+              )}
+            </DialogTitle>
+            <DialogDescription className="text-center font-medium text-foreground/80 mt-2">
+              {status === 'paid' 
+                ? 'Sua conta está salva! Clique abaixo para baixar o método.' 
+                : 'Finalize o Pix para que um humano revise sua conta agora.'}
+            </DialogDescription>
+          </DialogHeader>
 
-              <div className="w-full space-y-4">
-                <div className="flex justify-between items-center bg-muted/30 p-3 rounded-lg border border-border/50">
-                  <span className="text-xs font-bold uppercase text-muted-foreground">Valor a pagar:</span>
-                  <span className="text-lg font-black italic text-foreground">R$ {((pixData.transaction?.amount || 1990) / 100).toFixed(2).replace('.', ',')}</span>
+          <div className="flex flex-col items-center justify-center space-y-6">
+            {status === 'paid' ? (
+              <div className="flex flex-col items-center animate-in zoom-in duration-500 space-y-6 w-full py-4">
+                <div className="bg-green-500/10 p-8 rounded-full border-4 border-green-500/20 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
+                  <ShieldCheck className="h-20 w-20 text-green-500" />
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="font-black text-green-500 uppercase tracking-tighter italic text-2xl">SUCESSO!</p>
+                  <p className="text-sm text-muted-foreground">O sistema de revisão foi ativado.</p>
+                </div>
+                <Button 
+                  onClick={handleDownload} 
+                  size="lg" 
+                  className="w-full h-16 text-lg font-black uppercase tracking-widest shadow-2xl shadow-primary/30 bg-primary text-primary-foreground hover:scale-[1.02] transition-all"
+                >
+                  <Download className="mr-2 h-6 w-6" /> BAIXAR MÉTODO AGORA
+                </Button>
+              </div>
+            ) : !hasPixCode ? (
+              <div className="flex flex-col items-center text-center p-8 space-y-4">
+                <ShieldAlert className="h-12 w-12 text-destructive" />
+                <p className="text-sm font-bold">Erro de conexão segura. Tente gerar novamente.</p>
+              </div>
+            ) : (
+              <>
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-primary/20 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                  <div className="relative bg-white p-4 rounded-xl border shadow-2xl flex items-center justify-center">
+                    <QRCodeSVG value={pixData.pix.copyPaste} size={180} />
+                  </div>
                 </div>
 
-                <div className="relative">
-                  <div className="bg-muted/50 p-4 rounded-lg border border-primary/20 break-all text-[10px] font-mono leading-relaxed h-24 overflow-y-auto pr-10">
-                    {pixData.pix.copyPaste}
+                <div className="w-full space-y-4">
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border/50 transition-all hover:bg-muted/80">
+                      <div className="bg-primary/20 text-primary h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0">1</div>
+                      <p className="text-xs font-bold leading-tight">Abra o app do seu banco e escolha <span className="text-primary">Pix</span>.</p>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border/50 transition-all hover:bg-muted/80">
+                      <div className="bg-primary/20 text-primary h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0">2</div>
+                      <p className="text-xs font-bold leading-tight">Escolha <span className="text-primary">"Pix Copia e Cola"</span> ou escaneie o código.</p>
+                    </div>
                   </div>
+
+                  <div className="bg-muted/30 p-4 rounded-xl border border-border/50 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Valor Garantido</p>
+                      <p className="text-2xl font-black italic text-foreground tracking-tighter">R$ {((pixData.transaction?.amount || 1990) / 100).toFixed(2).replace('.', ',')}</p>
+                    </div>
+                    <div className="text-right">
+                       <ShieldCheck className="h-8 w-8 text-primary ml-auto opacity-50" />
+                    </div>
+                  </div>
+
                   <Button 
-                    size="icon" 
-                    variant="ghost" 
-                    className="absolute top-2 right-2 h-8 w-8"
-                    onClick={copyPixCode}
+                    onClick={copyPixCode} 
+                    className="w-full h-14 font-black uppercase italic tracking-tighter text-lg shadow-2xl shadow-primary/30 group relative overflow-hidden"
                   >
-                    {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                    <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
+                    {isCopied ? <><Check className="mr-2 h-5 w-5" /> CÓDIGO COPIADO!</> : <><Copy className="mr-2 h-5 w-5" /> COPIAR CÓDIGO PIX</>}
                   </Button>
                 </div>
 
-                <Button onClick={copyPixCode} className="w-full h-14 font-black uppercase italic tracking-tighter text-lg shadow-xl shadow-primary/20">
-                  {isCopied ? <><Check className="mr-2 h-5 w-5" /> Copiado!</> : <><Copy className="mr-2 h-5 w-5" /> Copiar Código Pix</>}
-                </Button>
-              </div>
-
-              <div className="flex flex-col items-center gap-2">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground animate-pulse">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  <span>Aguardando pagamento...</span>
+                <div className="flex flex-col items-center gap-3 w-full border-t border-border/50 pt-4">
+                  <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] animate-pulse">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>Aguardando Confirmação Bancária</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-4 grayscale opacity-50">
+                     <img src="https://logodownload.org/wp-content/uploads/2020/11/pix-bc-logo.png" alt="Pix" className="h-4" />
+                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/1200px-PayPal.svg.png" alt="Seguro" className="h-3" />
+                  </div>
                 </div>
-                <p className="text-[10px] text-center text-muted-foreground max-w-[250px]">
-                  Após o pagamento, sua compra será confirmada automaticamente.
-                </p>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
 
-        <div className="text-[10px] text-center text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2 pb-2 pt-4 border-t">
-          <ShieldCheck className="h-3 w-3" /> Transação Segura via IronPay
+        <div className="bg-muted/50 py-3 px-6 flex items-center justify-center gap-2 border-t">
+          <Lock className="h-3 w-3 text-green-500" />
+          <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">
+            Ambiente Criptografado de Nível Bancário por IronPay
+          </span>
         </div>
-      </DialogContent>
+      </div>
     </Dialog>
   );
 }
