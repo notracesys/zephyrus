@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -72,7 +73,14 @@ export default function ChatInterface() {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const formatText = (text: string) => {
-    return text.replace(/\{siteName\}/g, config.siteName);
+    let result = text.replace(/\{siteName\}/g, config.siteName);
+    
+    // Pega o motivo do banimento da URL e deixa em minúsculo para fluir melhor no texto
+    const rawReason = searchParams.get('banReason') || 'motivo não identificado';
+    const cleanReason = rawReason.toLowerCase();
+    
+    result = result.replace(/\{banReason\}/g, cleanReason);
+    return result;
   };
 
   const renderContent = (text: string) => {
@@ -120,7 +128,7 @@ ${t.chat_label_description}:
         const t2 = setTimeout(() => {
             const teamResponse: Message = {
                 id: 'team-1', sender: 'team',
-                content: formatText(t.chat_initial_response),
+                content: t.chat_initial_response, // Será formatado no renderContent
                 type: 'text',
             };
             setMessages((prev) => [...prev, teamResponse]);
@@ -131,7 +139,7 @@ ${t.chat_label_description}:
               const t4 = setTimeout(() => {
                 const teamResponse2: Message = {
                   id: 'team-2', sender: 'team',
-                  content: formatText(t.chat_msg_2),
+                  content: t.chat_msg_2,
                   type: 'text',
                 };
                 setMessages((prev) => [...prev, teamResponse2]);
@@ -141,7 +149,7 @@ ${t.chat_label_description}:
                     const t6 = setTimeout(() => {
                         const teamResponse3: Message = {
                             id: 'team-3', sender: 'team',
-                            content: formatText(t.chat_msg_3),
+                            content: t.chat_msg_3,
                             type: 'text',
                         };
                         setMessages((prev) => [...prev, teamResponse3]);
@@ -239,19 +247,19 @@ ${t.chat_label_description}:
             await delay(1500);
             setIsTyping(true);
             await delay(3000);
-            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_great_choice), type: 'text' }]);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_great_choice, type: 'text' }]);
             setIsTyping(false);
 
             await delay(4000);
             setIsTyping(true);
             await delay(5000);
-            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_unban_story), type: 'text' }]);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_unban_story, type: 'text' }]);
             setIsTyping(false);
 
             await delay(6000);
             setIsTyping(true);
             await delay(4000);
-            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg), type: 'text' }]);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg, type: 'text' }]);
             setIsTyping(false);
 
             await delay(3000);
@@ -260,13 +268,13 @@ ${t.chat_label_description}:
             await delay(6000);
             setIsTyping(true);
             await delay(5000);
-            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_2), type: 'text' }]);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_2, type: 'text' }]);
             setIsTyping(false);
 
             await delay(6000);
             setIsTyping(true);
             await delay(4000);
-            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_feedback_intro), type: 'text' }]);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_feedback_intro, type: 'text' }]);
             setIsTyping(false);
 
             await delay(2000);
@@ -281,19 +289,19 @@ ${t.chat_label_description}:
             await delay(9000); 
             setIsTyping(true);
             await delay(8000); 
-            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_unban_strategy_intro), type: 'text' }]);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_unban_strategy_intro, type: 'text' }]);
             setIsTyping(false);
 
             await delay(3000);
             setIsTyping(true);
             await delay(4000);
-            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_3), type: 'text' }]);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_3, type: 'text' }]);
             setIsTyping(false);
 
             await delay(6000);
             setIsTyping(true);
             await delay(3000);
-            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: formatText(t.chat_final_msg_4), type: 'text' }]);
+            setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_4, type: 'text' }]);
             setIsTyping(false);
             setShowPurchaseButton(true);
         };
