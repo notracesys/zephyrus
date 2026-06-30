@@ -10,7 +10,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, Check, ShieldCheck, AlertCircle, X, Download, Lock, Timer, CheckCircle2, ArrowRight, ShieldAlert } from 'lucide-react';
+import { Loader2, Copy, Check, ShieldCheck, AlertCircle, X, Download, Lock, Timer, CheckCircle2, ArrowRight, ShieldAlert, ShieldCheck as ShieldIcon } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -40,11 +40,9 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
   const { t } = useLanguage();
   const [isCopied, setIsCopied] = useState(false);
   const [status, setStatus] = useState<'pending' | 'paid' | 'failed'>('pending');
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutos para criar urgência
-  const router = useRouter();
+  const [timeLeft, setTimeLeft] = useState(600);
   const firestore = useFirestore();
 
-  // Timer de Urgência Real
   useEffect(() => {
     if (!isOpen || status === 'paid') return;
     
@@ -61,7 +59,6 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Pooling para verificar pagamento
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
@@ -96,7 +93,7 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isOpen, pixData, status, router, firestore]);
+  }, [isOpen, pixData, status, firestore]);
 
   const copyPixCode = () => {
     if (!pixData?.pix?.copyPaste) return;
@@ -120,23 +117,23 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && status !== 'paid' && onClose()}>
       <DialogContent 
-        className="sm:max-w-md bg-card border-primary/30 shadow-[0_0_50px_-12px_rgba(255,204,0,0.2)] p-0 overflow-hidden"
+        className="sm:max-w-md bg-card border-primary/30 shadow-[0_0_50px_-12px_rgba(255,204,0,0.2)] p-0 overflow-hidden flex flex-col"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogClose className="absolute right-4 top-4 rounded-full bg-background/50 p-1 opacity-70 transition-all hover:opacity-100 focus:outline-none z-50">
-          <X className="h-4 w-4" />
+        <DialogClose className="absolute right-4 top-4 rounded-full bg-background/80 p-2 opacity-100 transition-all hover:bg-background shadow-lg z-50">
+          <X className="h-5 w-5" />
           <span className="sr-only">Fechar</span>
         </DialogClose>
 
         {status !== 'paid' && (
-          <div className="bg-primary text-primary-foreground py-2 px-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest animate-pulse">
+          <div className="bg-primary text-primary-foreground py-2 px-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest animate-pulse shrink-0">
             <Timer className="h-3 w-3" />
-            Sua vaga de revisão expira em: {formatTime(timeLeft)}
+            VAGA DE REVISÃO EXPIRA EM: {formatTime(timeLeft)}
           </div>
         )}
 
-        <div className="p-6">
+        <div className="overflow-y-auto max-h-[80vh] custom-scrollbar p-6">
           <DialogHeader className="mb-6">
             <DialogTitle className="text-center text-2xl font-black italic uppercase tracking-tighter flex items-center justify-center gap-2">
               {status === 'paid' ? (
@@ -151,8 +148,8 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
             </DialogTitle>
             <DialogDescription className="text-center font-medium text-foreground/80 mt-2">
               {status === 'paid' 
-                ? 'Sua conta está salva! Clique abaixo para baixar o método.' 
-                : 'Finalize o Pix para que um humano revise sua conta agora.'}
+                ? 'Sucesso! Clique abaixo para baixar seu método agora.' 
+                : 'Pague o Pix para garantir sua vaga na revisão manual agora.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -163,8 +160,8 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
                   <ShieldCheck className="h-20 w-20 text-green-500" />
                 </div>
                 <div className="text-center space-y-1">
-                  <p className="font-black text-green-500 uppercase tracking-tighter italic text-2xl">SUCESSO!</p>
-                  <p className="text-sm text-muted-foreground">O sistema de revisão foi ativado.</p>
+                  <p className="font-black text-green-500 uppercase tracking-tighter italic text-2xl">PAGAMENTO APROVADO!</p>
+                  <p className="text-sm text-muted-foreground">O sistema de revisão humana foi ativado.</p>
                 </div>
                 <Button 
                   onClick={handleDownload} 
@@ -192,21 +189,21 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
                   <div className="grid grid-cols-1 gap-3">
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border/50 transition-all hover:bg-muted/80">
                       <div className="bg-primary/20 text-primary h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0">1</div>
-                      <p className="text-xs font-bold leading-tight">Abra o app do seu banco e escolha <span className="text-primary">Pix</span>.</p>
+                      <p className="text-xs font-bold leading-tight">Copie o código ou escaneie o QR Code.</p>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border/50 transition-all hover:bg-muted/80">
                       <div className="bg-primary/20 text-primary h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0">2</div>
-                      <p className="text-xs font-bold leading-tight">Escolha <span className="text-primary">"Pix Copia e Cola"</span> ou escaneie o código.</p>
+                      <p className="text-xs font-bold leading-tight">Abra o app do seu banco e pague via <span className="text-primary">Pix</span>.</p>
                     </div>
                   </div>
 
                   <div className="bg-muted/30 p-4 rounded-xl border border-border/50 flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Valor Garantido</p>
+                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Valor do Método</p>
                       <p className="text-2xl font-black italic text-foreground tracking-tighter">R$ {((pixData.transaction?.amount || 1990) / 100).toFixed(2).replace('.', ',')}</p>
                     </div>
                     <div className="text-right">
-                       <ShieldCheck className="h-8 w-8 text-primary ml-auto opacity-50" />
+                       <ShieldIcon className="h-8 w-8 text-primary ml-auto opacity-50" />
                     </div>
                   </div>
 
@@ -219,14 +216,10 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
                   </Button>
                 </div>
 
-                <div className="flex flex-col items-center gap-3 w-full border-t border-border/50 pt-4">
+                <div className="flex flex-col items-center gap-3 w-full pt-4">
                   <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] animate-pulse">
                     <Loader2 className="h-3 w-3 animate-spin" />
-                    <span>Aguardando Confirmação Bancária</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-4 grayscale opacity-50">
-                     <img src="https://logodownload.org/wp-content/uploads/2020/11/pix-bc-logo.png" alt="Pix" className="h-4" />
-                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/1200px-PayPal.svg.png" alt="Seguro" className="h-3" />
+                    <span>Aguardando Confirmação do Banco</span>
                   </div>
                 </div>
               </>
@@ -234,11 +227,27 @@ export default function PixModal({ isOpen, onClose, pixData }: PixModalProps) {
           </div>
         </div>
 
-        <div className="bg-muted/50 py-3 px-6 flex items-center justify-center gap-2 border-t">
-          <Lock className="h-3 w-3 text-green-500" />
-          <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">
-            Ambiente Criptografado de Nível Bancário por IronPay
-          </span>
+        <div className="bg-muted/50 py-4 px-6 border-t mt-auto shrink-0 space-y-3">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+            <div className="flex items-center gap-1 text-[9px] font-black uppercase text-muted-foreground tracking-widest">
+              <ShieldCheck className="h-3 w-3 text-green-500" /> Compra Segura
+            </div>
+            <div className="flex items-center gap-1 text-[9px] font-black uppercase text-muted-foreground tracking-widest">
+              <Lock className="h-3 w-3 text-green-500" /> SSL Certificado
+            </div>
+            <div className="flex items-center gap-1 text-[9px] font-black uppercase text-muted-foreground tracking-widest">
+              <CheckCircle2 className="h-3 w-3 text-green-500" /> Acesso Imediato
+            </div>
+          </div>
+          <div className="flex items-center justify-center gap-6 grayscale opacity-40 hover:opacity-100 transition-opacity duration-300">
+             <img src="https://logodownload.org/wp-content/uploads/2020/11/pix-bc-logo.png" alt="Pix" className="h-4" />
+             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Norton_LifeLock_logo.svg/1200px-Norton_LifeLock_logo.svg.png" alt="Norton" className="h-3" />
+             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/McAfee_logo.svg/1200px-McAfee_logo.svg.png" alt="McAfee" className="h-3" />
+          </div>
+          <p className="text-[8px] text-center text-muted-foreground uppercase tracking-[0.1em] font-medium leading-tight">
+            Ambiente 100% Criptografado. Suas informações estão seguras conosco.<br/>
+            Processado com tecnologia IronPay®.
+          </p>
         </div>
       </DialogContent>
     </Dialog>
