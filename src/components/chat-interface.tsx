@@ -17,11 +17,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
 import { useAppConfig } from '@/components/config-provider';
 import { toast } from '@/hooks/use-toast';
-import PixModal from '@/components/pix-modal';
 
 type FeedbackData = {
   imageUrl: string;
@@ -67,15 +66,12 @@ export default function ChatInterface() {
   const [showOptions, setShowOptions] = useState(false);
   const [showImportantNotice, setShowImportantNotice] = useState(false);
   const [showPurchaseButton, setShowPurchaseButton] = useState(false);
-  const [isPixModalOpen, setIsPixModalOpen] = useState(false);
-  const [isGeneratingPix, setIsGeneratingPix] = useState(false);
-  const [pixData, setPixData] = useState<any>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const formatText = (text: string) => {
     let result = text.replace(/\{siteName\}/g, config.siteName);
     
-    // Pega o motivo do banimento da URL e deixa em minúsculo para fluir melhor no texto
     const rawReason = searchParams.get('banReason') || 'motivo não identificado';
     const cleanReason = rawReason.toLowerCase();
     
@@ -128,7 +124,7 @@ ${t.chat_label_description}:
         const t2 = setTimeout(() => {
             const teamResponse: Message = {
                 id: 'team-1', sender: 'team',
-                content: t.chat_initial_response, // Será formatado no renderContent
+                content: t.chat_initial_response,
                 type: 'text',
             };
             setMessages((prev) => [...prev, teamResponse]);
@@ -172,8 +168,8 @@ ${t.chat_label_description}:
   }, [searchParams, t, isReady, config.siteName]);
 
   const handlePurchaseInitiation = async () => {
-    if (isGeneratingPix) return;
-    setIsGeneratingPix(true);
+    if (isRedirecting) return;
+    setIsRedirecting(true);
     
     const tracking = {
       utm_source: searchParams.get('utm_source') || '',
@@ -184,49 +180,25 @@ ${t.chat_label_description}:
       src: searchParams.get('src') || '',
     };
 
+    const checkoutUrl = new URL('https://checkout.perfectpay.com.br/pay/PPU38CQDOLU?');
+    Object.entries(tracking).forEach(([key, value]) => {
+      if (value) checkoutUrl.searchParams.append(key, value);
+    });
+
     try {
-      const response = await fetch('/api/pix/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tracking }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || result.error || 'Erro ao gerar Pix');
-      }
-
-      setPixData(result);
-      setIsPixModalOpen(true);
-
       if (firestore) {
-        const hash = result.transaction.hash;
-        const purchaseRef = doc(firestore, 'purchases', String(hash));
-        await setDoc(purchaseRef, {
-          id: hash,
-          status: 'pending',
-          timestamp: serverTimestamp(),
-          siteId: sessionStorage.getItem('active_site_id') || 'global',
-          tracking,
-        }, { merge: true });
-        
         await addDoc(collection(firestore, 'checkoutClicks'), {
           timestamp: serverTimestamp(),
-          source: 'chat-direct-pix',
+          source: 'chat-direct-redirect',
           siteId: sessionStorage.getItem('active_site_id') || 'global',
-          transactionHash: hash
+          url: checkoutUrl.toString()
         });
       }
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Erro no Pagamento',
-        description: error.message || 'Não foi possível gerar o PIX. Tente novamente.',
-      });
-    } finally {
-      setIsGeneratingPix(false);
+    } catch (e) {
+      console.error("Tracking error:", e);
     }
+
+    window.location.href = checkoutUrl.toString();
   };
 
   const handleOptionClick = (option: 'sim' | 'nao') => {
@@ -312,12 +284,6 @@ ${t.chat_label_description}:
 
   return (
     <>
-      <PixModal
-        isOpen={isPixModalOpen}
-        onClose={() => setIsPixModalOpen(false)}
-        pixData={pixData}
-      />
-
       <AlertDialog open={showImportantNotice} onOpenChange={setShowImportantNotice}>
         <AlertDialogContent className="w-[90%] rounded-2xl">
           <AlertDialogHeader>
@@ -376,12 +342,12 @@ ${t.chat_label_description}:
               {showPurchaseButton && (
                 <div className="flex justify-center max-w-4xl mx-auto animate-in fade-in-50 duration-500">
                   <Button 
-                    disabled={isGeneratingPix}
+                    disabled={isRedirecting}
                     onClick={handlePurchaseInitiation} 
                     className="w-full sm:w-auto font-bold relative overflow-hidden bg-primary text-primary-foreground h-14 px-8"
                   >
-                    {isGeneratingPix ? (
-                      <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Gerando Pix...</>
+                    {isRedirecting ? (
+                      <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Redirecionando...</>
                     ) : (
                       <>{t.chat_purchase_btn} <ArrowRight className="ml-2 h-5 w-5" /></>
                     )}
