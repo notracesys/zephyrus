@@ -78,7 +78,7 @@ export default function OfertaRecusadaPage() {
             
             <div className="bg-destructive/10 border border-destructive/50 rounded-2xl p-4 flex items-center justify-center gap-3 animate-pulse">
                 <Timer className="text-destructive h-5 w-5" />
-                <span className="text-destructive font-black uppercase text-xs tracking-widest">
+                <span className="text-destructive font-black uppercase text-[10px] md:text-xs tracking-widest">
                     A JANELA DE RECUPERAÇÃO FECHA EM: {formatTime(seconds)}
                 </span>
             </div>
@@ -118,19 +118,22 @@ export default function OfertaRecusadaPage() {
                         <Button 
                             disabled={isRedirecting}
                             onClick={handlePurchase} 
-                            className="w-full font-black h-auto py-6 text-lg sm:text-xl uppercase italic tracking-tighter bg-primary text-primary-foreground hover:scale-[1.03] transition-all shadow-[0_10px_40px_-10px_rgba(255,204,0,0.5)] leading-tight"
+                            className="w-full font-black h-auto py-5 md:py-6 text-base md:text-xl uppercase italic tracking-tighter bg-primary text-primary-foreground hover:scale-[1.03] transition-all shadow-[0_10px_40px_-10px_rgba(255,204,0,0.5)] leading-tight whitespace-normal"
                         >
                             {isRedirecting ? (
-                              <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> REDIRECIONANDO...</>
+                              <div className="flex items-center justify-center">
+                                <Loader2 className="mr-3 h-6 w-6 animate-spin" /> 
+                                <span>REDIRECIONANDO...</span>
+                              </div>
                             ) : (
-                              <div className="flex items-center justify-center text-center px-4">
-                                QUERO MINHA CONTA DE VOLTA AGORA
-                                <ArrowRight className="ml-2 h-6 w-6 shrink-0" />
+                              <div className="flex items-center justify-center text-center px-2 md:px-4 gap-2">
+                                <span>QUERO MINHA CONTA DE VOLTA AGORA</span>
+                                <ArrowRight className="h-6 w-6 shrink-0" />
                               </div>
                             )}
                         </Button>
                         
-                        <Button asChild variant="ghost" className="text-zinc-500 hover:text-destructive hover:bg-transparent font-bold text-xs uppercase tracking-widest">
+                        <Button asChild variant="ghost" className="text-zinc-500 hover:text-destructive hover:bg-transparent font-bold text-[10px] md:text-xs uppercase tracking-widest">
                             <Link href="/">
                                 <Home className="mr-2 h-3 w-3" />
                                 Sim, eu aceito perder minha conta para sempre
