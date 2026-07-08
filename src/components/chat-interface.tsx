@@ -180,12 +180,15 @@ ${t.chat_label_description}:
       src: searchParams.get('src') || '',
     };
 
-    const checkoutUrl = new URL('https://checkout.perfectpay.com.br/pay/PPU38CQDOLU?');
-    Object.entries(tracking).forEach(([key, value]) => {
-      if (value) checkoutUrl.searchParams.append(key, value);
-    });
-
+    // Pega o link configurado no Portal do Chefe com base no idioma
+    const baseCheckoutUrl = lang === 'pt' ? config.checkoutUrlPt : config.checkoutUrlEnEs;
+    
     try {
+      const checkoutUrl = new URL(baseCheckoutUrl);
+      Object.entries(tracking).forEach(([key, value]) => {
+        if (value) checkoutUrl.searchParams.append(key, value);
+      });
+
       if (firestore) {
         await addDoc(collection(firestore, 'checkoutClicks'), {
           timestamp: serverTimestamp(),
@@ -194,11 +197,13 @@ ${t.chat_label_description}:
           url: checkoutUrl.toString()
         });
       }
-    } catch (e) {
-      console.error("Tracking error:", e);
-    }
 
-    window.location.href = checkoutUrl.toString();
+      window.location.href = checkoutUrl.toString();
+    } catch (e) {
+      console.error("Redirect/Tracking error:", e);
+      // Fallback em caso de URL mal formatada no portal
+      window.location.href = baseCheckoutUrl;
+    }
   };
 
   const handleOptionClick = (option: 'sim' | 'nao') => {
