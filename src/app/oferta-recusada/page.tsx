@@ -10,32 +10,52 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
 import { useState } from 'react';
 import { useAppConfig } from '@/components/config-provider';
-import { toast } from '@/hooks/use-toast';
+import { useSearchParams } from 'next/navigation';
 
 export default function OfertaRecusadaPage() {
   const { t, lang } = useLanguage();
   const config = useAppConfig();
   const firestore = useFirestore();
+  const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handlePurchase = async () => {
+    if (isRedirecting) return;
     setIsRedirecting(true);
-    const checkoutUrl = lang === 'pt' ? config.checkoutUrlPt : config.checkoutUrlEnEs;
+
+    const tracking = {
+      utm_source: searchParams.get('utm_source') || '',
+      utm_medium: searchParams.get('utm_medium') || '',
+      utm_campaign: searchParams.get('utm_campaign') || '',
+      utm_term: searchParams.get('utm_term') || '',
+      utm_content: searchParams.get('utm_content') || '',
+      src: searchParams.get('src') || '',
+    };
+
+    // Pega o link configurado no Portal do Chefe com base no idioma
+    const baseCheckoutUrl = lang === 'pt' ? config.checkoutUrlPt : config.checkoutUrlEnEs;
 
     try {
+      const checkoutUrl = new URL(baseCheckoutUrl);
+      Object.entries(tracking).forEach(([key, value]) => {
+        if (value) checkoutUrl.searchParams.append(key, value);
+      });
+
       if (firestore) {
         await addDoc(collection(firestore, 'checkoutClicks'), {
           timestamp: serverTimestamp(),
           source: 'oferta-recusada-btn',
-          url: checkoutUrl,
+          url: checkoutUrl.toString(),
           siteId: sessionStorage.getItem('active_site_id') || 'global'
         });
       }
-    } catch (e) {
-      console.error("Tracking error:", e);
-    }
 
-    window.location.href = checkoutUrl;
+      window.location.href = checkoutUrl.toString();
+    } catch (e) {
+      console.error("Redirect error:", e);
+      // Fallback em caso de erro na URL
+      window.location.href = baseCheckoutUrl;
+    }
   };
 
   return (
