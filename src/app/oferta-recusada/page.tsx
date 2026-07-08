@@ -118,15 +118,15 @@ export default function OfertaRecusadaPage() {
                         <Button 
                             disabled={isRedirecting}
                             onClick={handlePurchase} 
-                            className="w-full font-black h-20 text-xl uppercase italic tracking-tighter bg-primary text-primary-foreground hover:scale-[1.03] transition-all shadow-[0_10px_40px_-10px_rgba(255,204,0,0.5)]"
+                            className="w-full font-black h-auto py-6 text-lg sm:text-xl uppercase italic tracking-tighter bg-primary text-primary-foreground hover:scale-[1.03] transition-all shadow-[0_10px_40px_-10px_rgba(255,204,0,0.5)] leading-tight"
                         >
                             {isRedirecting ? (
                               <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> REDIRECIONANDO...</>
                             ) : (
-                              <>
-                                NÃO! QUERO MINHA CONTA DE VOLTA AGORA
-                                <ArrowRight className="ml-3 h-7 w-7" />
-                              </>
+                              <div className="flex items-center justify-center text-center px-4">
+                                QUERO MINHA CONTA DE VOLTA AGORA
+                                <ArrowRight className="ml-2 h-6 w-6 shrink-0" />
+                              </div>
                             )}
                         </Button>
                         
@@ -150,4 +150,3 @@ export default function OfertaRecusadaPage() {
     </div>
   );
 }
-
