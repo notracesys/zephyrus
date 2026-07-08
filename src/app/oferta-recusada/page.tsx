@@ -32,7 +32,8 @@ export default function OfertaRecusadaPage() {
       src: searchParams.get('src') || '',
     };
 
-    // Pega o link configurado no Portal do Chefe com base no idioma
+    // Pega o link configurado no Portal do Chefe com base no idioma do usuário
+    // Se o idioma for 'pt', usa o link de checkout BR
     const baseCheckoutUrl = lang === 'pt' ? config.checkoutUrlPt : config.checkoutUrlEnEs;
 
     try {
@@ -53,7 +54,6 @@ export default function OfertaRecusadaPage() {
       window.location.href = checkoutUrl.toString();
     } catch (e) {
       console.error("Redirect error:", e);
-      // Fallback em caso de erro na URL
       window.location.href = baseCheckoutUrl;
     }
   };

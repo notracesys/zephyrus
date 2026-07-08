@@ -200,7 +200,6 @@ ${t.chat_label_description}:
       window.location.href = checkoutUrl.toString();
     } catch (e) {
       console.error("Redirect/Tracking error:", e);
-      // Fallback em caso de URL mal formatada no portal
       window.location.href = baseCheckoutUrl;
     }
   };
