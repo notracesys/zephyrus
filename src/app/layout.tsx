@@ -29,6 +29,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap"
           rel="stylesheet"
         />
+        {/* TikTok Pixel Original */}
         <Script id="tiktok-pixel" strategy="afterInteractive">
           {`
             !function (w, d, t) {
@@ -41,6 +42,27 @@ export default function RootLayout({
             }(window, document, 'ttq');
           `}
         </Script>
+
+        {/* Utmify TikTok Pixel */}
+        <Script id="utmify-tiktok-pixel" strategy="afterInteractive">
+          {`
+            window.tikTokPixelId = "6a53123b3b5ca099083015c0";
+            var a = document.createElement("script");
+            a.setAttribute("async", "");
+            a.setAttribute("defer", "");
+            a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel-tiktok.js");
+            document.head.appendChild(a);
+          `}
+        </Script>
+
+        {/* Utmify UTM Tracking */}
+        <Script
+          id="utmify-tracking"
+          src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+          data-utmify-prevent-xcod-sck=""
+          data-utmify-prevent-subids=""
+          strategy="afterInteractive"
+        />
       </head>
       <body className="font-body antialiased">
           <FirebaseClientProvider>
