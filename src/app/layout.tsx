@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -46,7 +45,7 @@ export default function RootLayout({
         {/* Utmify TikTok Pixel */}
         <Script id="utmify-tiktok-pixel" strategy="afterInteractive">
           {`
-            window.tikTokPixelId = "6a53123b3b5ca099083015c0";
+            window.tikTokPixelId = "6a55b876fca93a2f03072d37";
             var a = document.createElement("script");
             a.setAttribute("async", "");
             a.setAttribute("defer", "");
