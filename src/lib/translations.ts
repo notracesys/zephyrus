@@ -110,7 +110,13 @@ export const translations = {
     lang_en: "English",
     lang_es: "Spanish",
     lang_pt: "Portuguese",
-    loading: "Loading..."
+    loading: "Loading...",
+    alerta_urgente_title: "CRITICAL ALERT!",
+    alerta_urgente_subtitle: "THE RECOVERY HOLE IS CLOSING",
+    alerta_urgente_main_text: "Our experts have just detected that Garena is rolling out the **'Anti-Unban 3.0'** technology in the next update.",
+    alerta_urgente_warning: "Once the servers update, it will be physically IMPOSSIBLE to recover any banned account. The system will permanently delete the metadata of suspended players.",
+    alerta_urgente_cta: "RECOVER BEFORE IT'S TOO LATE",
+    alerta_urgente_footer: "This page will be deactivated as soon as the update starts."
   },
   es: {
     title: "ESTRATEGIA RECOVERY",
@@ -189,7 +195,7 @@ export const translations = {
     chat_label_warnings: "Advertencias previas",
     chat_label_description: "Descripción",
     chat_initial_response: "👋 ¡Hola! Analicé tu ID y vi que el sistema marcó tu cuenta por **{banReason}**. Pero ¡espera, esto se puede arreglar! Hay una posibilidad enorme de que esto haya sido un error de un robot (IA) y no de una persona real. ¡Los robots no piensan, solo banean a todos! 📄",
-    chat_msg_2: "🤔 Verás, Garena usa robots tontos para banear. Si mandas un mensaje normal, otro robot te dirá que 'No' y perderás todo para siempre. Tus skins, tus pases... todo a la basura. 💡\n\nPero nosotros encontramos un secreto para saltar los robots y hablar con una persona real. 💪",
+    chat_msg_2: "🤔 Verás, Garena usa robots tontos para banear. Si mandas un mensaje normal, otro robot te dirá que 'No' y perderás todo para siempre. Tus skins, tus pases... todo a la basura. 💡\n\nPero nosotros encontramos un secreto para saltar los robots e hablar con una persona real. 💪",
     chat_msg_3: "¿Quieres que usemos nuestro secreto para intentar salvar tu cuenta? 🤔",
     chat_option_yes: "¡Sí! ¡Por favor salva mi cuenta! 👍",
     chat_option_no: "No, no me importa perderlo todo",
@@ -220,7 +226,13 @@ export const translations = {
     lang_en: "Inglés",
     lang_es: "Español",
     lang_pt: "Português",
-    loading: "Cargando..."
+    loading: "Cargando...",
+    alerta_urgente_title: "¡ALERTA CRÍTICA!",
+    alerta_urgente_subtitle: "EL AGUJERO DE RECUPERACIÓN SE CIERRA",
+    alerta_urgente_main_text: "Nuestros expertos acaban de detectar que Garena lanzará la tecnología **'Anti-Unban 3.0'** en la próxima actualización.",
+    alerta_urgente_warning: "Una vez que los servidores se actualicen, será físicamente IMPOSIBLE recuperar cualquier cuenta baneada. El sistema eliminará permanentemente los metadatos.",
+    alerta_urgente_cta: "RECUPERAR ANTES DE QUE SEA TARDE",
+    alerta_urgente_footer: "Esta página se desactivará en cuanto comience la actualización."
   },
   pt: {
     title: "ESTRATÉGIA RECOVERY",
@@ -330,6 +342,12 @@ export const translations = {
     lang_en: "Inglés",
     lang_es: "Espanhol",
     lang_pt: "Português",
-    loading: "Carregando..."
+    loading: "Carregando...",
+    alerta_urgente_title: "ALERTA CRÍTICO!",
+    alerta_urgente_subtitle: "A BRECHA DE RECUPERAÇÃO ESTÁ FECHANDO",
+    alerta_urgente_main_text: "Nossos especialistas acabam de detectar que a Garena vai lançar a tecnologia **'Anti-Unban 3.0'** na próxima atualização.",
+    alerta_urgente_warning: "Assim que os servidores atualizarem, será fisicamente IMPOSSÍVEL recuperar qualquer conta banida. O sistema deletará permanentemente os metadados dos jogadores suspensos.",
+    alerta_urgente_cta: "RECUPERAR ANTES QUE SEJA TARDE",
+    alerta_urgente_footer: "Esta página será desativada assim que a atualização começar."
   }
 };
