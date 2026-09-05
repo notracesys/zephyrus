@@ -3,7 +3,7 @@
 import Header from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ShieldAlert, Zap, Timer, ArrowRight, Loader2, AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Timer, ArrowRight, Loader2, ShieldAlert } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
@@ -17,7 +17,7 @@ export default function AlertaUrgentePage() {
   const firestore = useFirestore();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [seconds, setSeconds] = useState(120); // 2 minutos - máxima urgência
+  const [seconds, setSeconds] = useState(120);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -69,49 +69,51 @@ export default function AlertaUrgentePage() {
   };
 
   return (
-    <div className="flex min-h-full flex-col bg-black selection:bg-primary selection:text-primary-foreground">
+    <div className="flex min-h-full flex-col bg-black text-white">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8 md:py-20 flex flex-col items-center justify-start md:justify-center">
-        <div className="w-full max-w-xl space-y-6">
+      <main className="flex-grow container mx-auto px-4 py-6 md:py-12 flex flex-col items-center justify-center">
+        <div className="w-full max-w-lg space-y-4">
             
-            {/* Barra de Status Minimalista */}
-            <div className="bg-destructive text-white py-3 px-6 rounded-t-xl flex items-center justify-between shadow-lg">
+            {/* Aviso de Emergência Minimalista */}
+            <div className="bg-white text-black py-2 px-6 flex items-center justify-between font-black uppercase text-[10px] tracking-[0.3em]">
                 <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 animate-pulse" />
-                    <span className="font-black uppercase text-[10px] tracking-widest">Acesso em Risco</span>
+                    <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
+                    Protocolo de Crise
                 </div>
-                <div className="flex items-center gap-2 font-mono font-bold text-sm">
+                <div className="flex items-center gap-2 font-mono">
                     <Timer className="h-4 w-4" />
                     {formatTime(seconds)}
                 </div>
             </div>
 
-            <Card className="border-none bg-zinc-900 shadow-2xl overflow-hidden rounded-b-xl rounded-t-none">
-                <CardContent className="p-8 md:p-12 space-y-8">
-                    <div className="space-y-4 text-center">
-                        <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white leading-[0.9]">
+            <Card className="border-none bg-zinc-950 shadow-none rounded-none">
+                <CardContent className="p-0 space-y-8">
+                    <div className="space-y-6">
+                        <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter leading-[0.85] text-white">
                             {t.alerta_urgente_title}
                         </h2>
-                        <div className="h-1 w-20 bg-primary mx-auto" />
-                    </div>
-                    
-                    <div className="space-y-6 text-center">
-                        <p className="text-lg md:text-xl text-zinc-300 font-medium leading-tight">
-                            {t.alerta_urgente_main_text.replace('**', '').replace('**', '')}
-                        </p>
                         
-                        <div className="border-l-4 border-primary bg-white/5 p-6 text-left">
-                            <p className="text-white text-sm md:text-base font-bold leading-relaxed italic opacity-90">
+                        <div className="space-y-4">
+                            <p className="text-lg md:text-xl text-zinc-400 font-bold uppercase tracking-tight leading-none">
+                                {t.alerta_urgente_subtitle || "O TEMPO ACABOU"}
+                            </p>
+                            <p className="text-zinc-500 text-sm md:text-base leading-tight">
+                                {t.alerta_urgente_main_text.replace(/\*\*/g, '')}
+                            </p>
+                        </div>
+
+                        <div className="border-l-2 border-white p-4 bg-zinc-900/50">
+                            <p className="text-white text-sm md:text-base font-bold italic opacity-90 leading-tight">
                                 "{t.alerta_urgente_warning}"
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-4">
                         <Button 
                             disabled={isRedirecting}
                             onClick={handlePurchase} 
-                            className="w-full font-black h-auto py-6 md:py-8 text-xl md:text-2xl uppercase italic tracking-tighter bg-primary text-primary-foreground hover:scale-[1.02] transition-transform shadow-[0_20px_40px_-10px_rgba(255,204,0,0.3)] border-b-4 border-black/20"
+                            className="w-full font-black h-auto py-6 md:py-8 text-xl md:text-2xl uppercase italic tracking-tighter bg-primary text-primary-foreground hover:scale-[1.02] transition-transform rounded-none"
                         >
                             {isRedirecting ? (
                               <div className="flex items-center gap-3">
@@ -126,20 +128,20 @@ export default function AlertaUrgentePage() {
                             )}
                         </Button>
                         
-                        <div className="flex justify-center items-center gap-6 opacity-40">
-                             <div className="flex items-center gap-2 text-[9px] font-bold text-white uppercase tracking-widest">
-                                <ShieldAlert className="h-3 w-3" /> 100% Protegido
+                        <div className="flex justify-center items-center gap-6 opacity-30">
+                             <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest">
+                                <ShieldAlert className="h-3 w-3" /> Acesso Seguro
                             </div>
-                            <div className="flex items-center gap-2 text-[9px] font-bold text-white uppercase tracking-widest">
-                                <Zap className="h-3 w-3" /> Resposta Imediata
+                            <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest">
+                                Resposta Imediata
                             </div>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            <p className="text-zinc-600 text-[10px] text-center font-bold uppercase tracking-[0.2em]">
-                {t.alerta_urgente_footer}
+            <p className="text-zinc-800 text-[10px] text-center font-black uppercase tracking-[0.4em] pt-4">
+                Expiração em tempo real. Ação irreversível.
             </p>
         </div>
       </main>
