@@ -115,7 +115,7 @@ function AlertaUrgenteContent() {
                         <Button 
                             disabled={isRedirecting}
                             onClick={handlePurchase} 
-                            className="w-full font-black h-auto py-6 md:py-7 text-lg md:text-xl uppercase italic tracking-tighter bg-green-600 text-white hover:bg-green-700 hover:scale-[1.02] transition-transform rounded-none shadow-[0_10px_30px_-10px_rgba(22,163,74,0.4)] border-none"
+                            className="w-full font-black h-auto py-6 md:py-7 text-lg md:text-xl uppercase italic tracking-tighter bg-green-600 text-white hover:bg-green-700 hover:scale-[1.02] transition-transform rounded-full shadow-[0_10px_30px_-10px_rgba(22,163,74,0.4)] border-none"
                         >
                             {isRedirecting ? (
                               <div className="flex items-center gap-3">
