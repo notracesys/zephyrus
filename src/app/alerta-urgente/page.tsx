@@ -42,7 +42,7 @@ export default function AlertaUrgentePage() {
       utm_campaign: searchParams.get('utm_campaign') || '',
       utm_term: searchParams.get('utm_term') || '',
       utm_content: searchParams.get('utm_content') || '',
-      src: searchParams.get('src') || 'backredirect-urgente',
+      src: searchParams.get('src') || 'back-redirect-urgente',
     };
 
     const baseCheckoutUrl = lang === 'pt' ? config.checkoutUrlPt : config.checkoutUrlEnEs;
@@ -69,42 +69,46 @@ export default function AlertaUrgentePage() {
   };
 
   return (
-    <div className="flex min-h-full flex-col bg-black text-white">
+    <div className="flex min-h-full flex-col bg-black text-white selection:bg-red-600">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-6 md:py-12 flex flex-col items-center justify-center">
-        <div className="w-full max-w-lg space-y-4">
+      <main className="flex-grow container mx-auto px-4 py-8 md:py-16 flex flex-col items-center justify-center relative overflow-hidden">
+        
+        {/* Efeito de brilho vermelho de fundo */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="w-full max-w-lg space-y-6 relative z-10">
             
-            {/* Aviso de Emergência Minimalista */}
-            <div className="bg-white text-black py-2 px-6 flex items-center justify-between font-black uppercase text-[10px] tracking-[0.3em]">
+            {/* Barra de Status de Emergência */}
+            <div className="bg-red-600 text-white py-3 px-6 flex items-center justify-between font-black uppercase text-[10px] md:text-xs tracking-[0.2em] animate-pulse">
                 <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
-                    Protocolo de Crise
+                    <AlertTriangle className="h-4 w-4" />
+                    CONEXÃO EM RISCO
                 </div>
-                <div className="flex items-center gap-2 font-mono">
+                <div className="flex items-center gap-2 font-mono tabular-nums">
                     <Timer className="h-4 w-4" />
                     {formatTime(seconds)}
                 </div>
             </div>
 
-            <Card className="border-none bg-zinc-950 shadow-none rounded-none">
-                <CardContent className="p-0 space-y-8">
-                    <div className="space-y-6">
-                        <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter leading-[0.85] text-white">
-                            {t.alerta_urgente_title}
+            <Card className="border-2 border-red-600/30 bg-zinc-950/80 backdrop-blur-md shadow-[0_0_50px_-12px_rgba(220,38,38,0.3)] rounded-none">
+                <CardContent className="p-8 space-y-8">
+                    <div className="space-y-6 text-center">
+                        <h2 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-[0.85] text-white">
+                            SISTEMA <br /> <span className="text-red-600">BLOQUEADO!</span>
                         </h2>
                         
                         <div className="space-y-4">
-                            <p className="text-lg md:text-xl text-zinc-400 font-bold uppercase tracking-tight leading-none">
-                                {t.alerta_urgente_subtitle || "O TEMPO ACABOU"}
+                            <p className="text-lg md:text-xl text-red-500 font-bold uppercase tracking-tight leading-none">
+                                {t.alerta_urgente_subtitle}
                             </p>
-                            <p className="text-zinc-500 text-sm md:text-base leading-tight">
-                                {t.alerta_urgente_main_text.replace(/\*\*/g, '')}
+                            <p className="text-zinc-400 text-sm md:text-base leading-tight">
+                                Detectamos que a Garena iniciará a atualização <b>'Anti-Unban 3.0'</b>. Após isso, os dados banidos serão deletados permanentemente.
                             </p>
                         </div>
 
-                        <div className="border-l-2 border-white p-4 bg-zinc-900/50">
-                            <p className="text-white text-sm md:text-base font-bold italic opacity-90 leading-tight">
-                                "{t.alerta_urgente_warning}"
+                        <div className="border-l-4 border-red-600 p-4 bg-red-950/20 text-left">
+                            <p className="text-white text-xs md:text-sm font-bold italic opacity-90 leading-tight">
+                                "O tempo para injetar o código de recuperação está acabando. Esta é a sua última janela de acesso."
                             </p>
                         </div>
                     </div>
@@ -113,35 +117,36 @@ export default function AlertaUrgentePage() {
                         <Button 
                             disabled={isRedirecting}
                             onClick={handlePurchase} 
-                            className="w-full font-black h-auto py-6 md:py-8 text-xl md:text-2xl uppercase italic tracking-tighter bg-primary text-primary-foreground hover:scale-[1.02] transition-transform rounded-none"
+                            className="w-full font-black h-auto py-6 md:py-7 text-lg md:text-xl uppercase italic tracking-tighter bg-primary text-primary-foreground hover:scale-[1.02] transition-transform rounded-none shadow-[0_10px_30px_-10px_rgba(255,204,0,0.4)]"
                         >
                             {isRedirecting ? (
                               <div className="flex items-center gap-3">
-                                <Loader2 className="h-7 w-7 animate-spin" /> 
+                                <Loader2 className="h-6 w-6 animate-spin" /> 
                                 <span>SINCRONIZANDO...</span>
                               </div>
                             ) : (
                               <div className="flex items-center justify-center gap-3">
-                                <span>{t.alerta_urgente_cta}</span>
-                                <ArrowRight className="h-8 w-8" />
+                                <span>RECUPERAR AGORA</span>
+                                <ArrowRight className="h-7 w-7" />
                               </div>
                             )}
                         </Button>
                         
-                        <div className="flex justify-center items-center gap-6 opacity-30">
-                             <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest">
-                                <ShieldAlert className="h-3 w-3" /> Acesso Seguro
+                        <div className="flex justify-center items-center gap-4 opacity-50">
+                             <div className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest text-zinc-500">
+                                <ShieldAlert className="h-3 w-3" /> Criptografia Ativa
                             </div>
-                            <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest">
-                                Resposta Imediata
+                            <div className="w-1 h-1 bg-zinc-700 rounded-full" />
+                            <div className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest text-zinc-500">
+                                Prioridade Máxima
                             </div>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            <p className="text-zinc-800 text-[10px] text-center font-black uppercase tracking-[0.4em] pt-4">
-                Expiração em tempo real. Ação irreversível.
+            <p className="text-red-900 text-[9px] text-center font-black uppercase tracking-[0.4em] pt-2 animate-pulse">
+                STATUS: SERVIDORES EM ATUALIZAÇÃO...
             </p>
         </div>
       </main>
