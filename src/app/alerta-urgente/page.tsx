@@ -111,19 +111,22 @@ function AlertaUrgenteContent() {
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-6 pt-2">
                         <Button 
                             disabled={isRedirecting}
                             onClick={handlePurchase} 
-                            className="w-full font-black h-auto py-6 md:py-7 text-lg md:text-xl uppercase italic tracking-tighter bg-green-600 text-white hover:bg-green-700 hover:scale-[1.02] transition-transform rounded-full shadow-[0_10px_30px_-10px_rgba(22,163,74,0.4)] border-none"
+                            className="group w-full font-black h-auto py-6 md:py-7 text-lg md:text-xl uppercase italic tracking-tighter bg-gradient-to-b from-green-500 to-green-600 text-white transition-all duration-200 rounded-full border-none shadow-[0_8px_0_rgb(21,128,61),0_15px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_6px_0_rgb(21,128,61),0_10px_15px_rgba(0,0,0,0.3)] hover:translate-y-[2px] active:shadow-none active:translate-y-[8px] relative overflow-hidden"
                         >
+                            {/* Reflexo de brilho passando */}
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shine_1.5s_ease-in-out_infinite]" />
+                            
                             {isRedirecting ? (
                               <div className="flex items-center gap-3">
                                 <Loader2 className="h-6 w-6 animate-spin" /> 
                                 <span>SINCRONIZANDO...</span>
                               </div>
                             ) : (
-                              <div className="flex items-center justify-center gap-3">
+                              <div className="flex items-center justify-center gap-3 relative z-10">
                                 <span>RECUPERAR AGORA</span>
                                 <ArrowRight className="h-7 w-7" />
                               </div>
