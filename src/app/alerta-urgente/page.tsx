@@ -17,7 +17,7 @@ function AlertaUrgenteContent() {
   const firestore = useFirestore();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [seconds, setSeconds] = useState(180); // 3 minutos de urgência
+  const [seconds, setSeconds] = useState(600); // 10 minutos de urgência
 
   useEffect(() => {
     const timer = setInterval(() => {
