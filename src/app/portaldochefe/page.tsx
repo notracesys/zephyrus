@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -625,6 +624,7 @@ export default function PortalDoChefe() {
                     </CardContent>
                   </Card>
 
+                  {/* Novos campos para o Upsell Bypass */}
                   <Card className="bg-card/40 md:col-span-2">
                     <CardHeader className="border-b border-border/30">
                       <CardTitle className="text-lg flex items-center gap-2"><ShieldAlert className="w-5 h-5" /> Links de Checkout (Upsell Bypass)</CardTitle>
@@ -632,11 +632,11 @@ export default function PortalDoChefe() {
                     <CardContent className="p-6 grid md:grid-cols-2 gap-4">
                        <div className="space-y-2">
                         <Label>Link Bypass Brasil</Label>
-                        <Input value={configForm.bypassUrlPt} onChange={(e) => setConfigForm({...configForm, bypassUrlPt: e.target.value})} className="bg-muted/30" />
+                        <Input value={configForm.bypassUrlPt} onChange={(e) => setConfigForm({...configForm, bypassUrlPt: e.target.value})} className="bg-muted/30" placeholder="Link para o checkout do Bypass (BR)" />
                       </div>
                       <div className="space-y-2">
                         <Label>Link Bypass Internacional</Label>
-                        <Input value={configForm.bypassUrlEnEs} onChange={(e) => setConfigForm({...configForm, bypassUrlEnEs: e.target.value})} className="bg-muted/30" />
+                        <Input value={configForm.bypassUrlEnEs} onChange={(e) => setConfigForm({...configForm, bypassUrlEnEs: e.target.value})} className="bg-muted/30" placeholder="Link para o checkout do Bypass (Global)" />
                       </div>
                     </CardContent>
                   </Card>

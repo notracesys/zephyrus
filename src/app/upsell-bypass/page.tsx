@@ -1,4 +1,3 @@
-
 'use client';
 
 import Header from '@/components/header';
@@ -32,9 +31,10 @@ function UpsellBypassContent() {
       utm_campaign: searchParams.get('utm_campaign') || '',
       utm_term: searchParams.get('utm_term') || '',
       utm_content: searchParams.get('utm_content') || '',
-      src: searchParams.get('src') || 'upsell-bypass',
+      src: searchParams.get('src') || 'upsell-bypass-brabo',
     };
 
+    // Pega o link específico de Bypass configurado no Portal do Chefe
     const baseCheckoutUrl = lang === 'pt' ? config.bypassUrlPt : config.bypassUrlEnEs;
 
     try {
@@ -46,7 +46,7 @@ function UpsellBypassContent() {
       if (firestore) {
         const clickData = {
           timestamp: serverTimestamp(),
-          source: 'upsell-bypass',
+          source: 'upsell-bypass-brabo',
           url: checkoutUrl.toString(),
           siteId: sessionStorage.getItem('active_site_id') || 'global'
         };
@@ -80,10 +80,10 @@ function UpsellBypassContent() {
 
         <div className="w-full max-w-2xl space-y-6 relative z-10">
             
-            {/* Tag de Segurança */}
-            <div className="bg-amber-500 text-black py-2 px-6 flex items-center justify-center gap-2 font-black uppercase text-[10px] md:text-xs tracking-[0.3em] rounded-full w-fit mx-auto mb-4 animate-pulse">
+            {/* Tag de Segurança Crítica */}
+            <div className="bg-red-600 text-white py-2 px-6 flex items-center justify-center gap-2 font-black uppercase text-[10px] md:text-xs tracking-[0.3em] rounded-full w-fit mx-auto mb-4 animate-pulse">
                 <ShieldAlert className="h-4 w-4" />
-                RISCO DE DETECÇÃO CRÍTICO
+                RISCO DE BLOQUEIO IRREVERSÍVEL
             </div>
 
             <Card className="border-amber-500/30 bg-zinc-950/90 backdrop-blur-2xl shadow-[0_0_80px_-20px_rgba(245,158,11,0.4)] rounded-[2.5rem] overflow-hidden">
@@ -99,14 +99,14 @@ function UpsellBypassContent() {
                         
                         <div className="space-y-4 pt-2">
                             <p className="text-amber-500 text-sm md:text-lg font-black uppercase tracking-widest leading-none">
-                                {t.upsell_subtitle}
+                                ATENÇÃO: SISTEMA DE SEGURANÇA DETECTADO
                             </p>
                             <p className="text-zinc-300 text-base md:text-lg leading-relaxed font-medium italic">
                                 {t.upsell_desc}
                             </p>
                         </div>
 
-                        <div className="p-6 bg-red-600/10 rounded-3xl border border-red-600/20 text-center">
+                        <div className="p-6 bg-red-600/20 rounded-3xl border border-red-600/30 text-center">
                             <p className="text-white text-sm md:text-base font-bold italic leading-tight">
                                 "{t.upsell_warning}"
                             </p>
@@ -117,7 +117,7 @@ function UpsellBypassContent() {
                         <Button 
                             disabled={isRedirecting}
                             onClick={handleBypassPurchase} 
-                            className="group w-full font-black h-auto py-6 md:py-8 text-xl md:text-2xl uppercase italic tracking-tighter bg-gradient-to-b from-amber-400 to-amber-600 text-black transition-all duration-200 rounded-3xl border-none shadow-[0_8px_0_rgb(180,83,9),0_15px_25px_rgba(0,0,0,0.4)] hover:shadow-[0_6px_0_rgb(180,83,9),0_10px_20px_rgba(0,0,0,0.4)] hover:translate-y-[2px] active:shadow-none active:translate-y-[8px] relative overflow-hidden"
+                            className="group w-full font-black h-auto py-6 md:py-8 text-xl md:text-2xl uppercase italic tracking-tighter bg-gradient-to-b from-green-500 to-green-700 text-white transition-all duration-200 rounded-full border-none shadow-[0_8px_0_rgb(21,128,61),0_15px_25px_rgba(0,0,0,0.4)] hover:shadow-[0_6px_0_rgb(21,128,61),0_10px_20px_rgba(0,0,0,0.4)] hover:translate-y-[2px] active:shadow-none active:translate-y-[8px] relative overflow-hidden"
                         >
                             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shine_1.5s_ease-in-out_infinite]" />
                             
@@ -144,10 +144,10 @@ function UpsellBypassContent() {
 
                     <div className="flex justify-center items-center gap-6 opacity-40 pt-4 border-t border-zinc-900">
                         <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-zinc-500">
-                            <ShieldCheck className="h-3 w-3" /> Bypass v4.0
+                            <ShieldCheck className="h-3 w-3" /> Bypass v4.0 Ativo
                         </div>
                         <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-zinc-500">
-                            <Zap className="h-3 w-3" /> Anti-Detection
+                            <Zap className="h-3 w-3" /> Anti-Detection 2024
                         </div>
                     </div>
                 </CardContent>

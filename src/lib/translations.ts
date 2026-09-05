@@ -119,7 +119,7 @@ export const translations = {
     alerta_urgente_footer: "Take advantage while there is time. This window is closing.",
     upsell_title: "YOU WILL BE BANNED AGAIN!",
     upsell_subtitle: "DANGER: HIGH DETECTION RISK",
-    upsell_desc: "We identified that your recovery process leaves fatal digital traces. Garena will know you are using prohibited methods and your request will be REJECTED instantly.",
+    upsell_desc: "We identified that your recovery process leaves fatal digital traces. Garena will know you are using prohibited methods and your request will be REJECTED instantly, and you may even fail to recover at all.",
     upsell_warning: "To increase your chances of success and avoid being BANNED AGAIN in minutes, you MUST activate the ENCRYPTED BYPASS protocol now.",
     upsell_cta: "ACTIVATE ANTI-BAN BYPASS",
     upsell_skip: "No, I want to risk failing and being banned again"
@@ -236,12 +236,12 @@ export const translations = {
     alerta_urgente_title: "¡ALERTA CRÍTICA!",
     alerta_urgente_subtitle: "GARENA ACTUALIZARÁ EL JUEGO",
     alerta_urgente_main_text: "Nuestros expertos han detectado que Garena está a punto de lanzar una actualización.",
-    alerta_urgente_warning: "Una vez que los servidores se actualicen, será físicamente IMPOSIBLE recuperar cualquier cuenta baneada. El sistema eliminará los metadatos. APROVECHE MIENTRAS HAYA TIEMPO.",
+    alerta_urgente_warning: "Una vez que los servidores se actualicen, será físicamente IMPOSSIBLE recuperar cualquier cuenta baneada. El sistema eliminará los metadatos. APROVECHE MIENTRAS HAYA TIEMPO.",
     alerta_urgente_cta: "RECUPERAR ANTES DE LA ACTUALIZACIÓN",
     alerta_urgente_footer: "Esta ventana se está cerrando. No pierda tiempo.",
     upsell_title: "¡SERÁS BANEADO OTRA VEZ!",
     upsell_subtitle: "PELIGRO: RIESGO DE DETECCIÓN ALTO",
-    upsell_desc: "Identificamos que su proceso de recuperación deja rastros digitales fatales. Garena sabrá que está usando métodos prohibidos y su solicitud será RECHAZADA al instante.",
+    upsell_desc: "Identificamos que su proceso de recuperación deja rastros digitales fatales. Garena sabrá que está usando métodos prohibidos y su solicitud será RECHAZADA al instante, e incluso puede que no logre recuperarla en absoluto.",
     upsell_warning: "Para aumentar sus posibilidades de éxito y evitar ser BANEADO OTRA VEZ en minutos, DEBE instalar el protocolo BYPASS ENCRIPTADO ahora mismo.",
     upsell_cta: "ACTIVAR BYPASS ANTI-BAN",
     upsell_skip: "No, quiero arriesgarme a fallar y ser baneado de nuevo"
@@ -363,7 +363,7 @@ export const translations = {
     alerta_urgente_footer: "Não perca tempo. Essa janela está se fechando.",
     upsell_title: "VOCÊ VAI SER BANIDO DE NOVO!",
     upsell_subtitle: "PERIGO: RISCO DE DETECÇÃO ALTÍSSIMO",
-    upsell_desc: "Identificamos que seu processo de recuperação deixa rastros digitais fatais. A Garena saberá que você está tentando usar métodos proibidos e seu pedido de recuperação será NEGADO na hora.",
+    upsell_desc: "Identificamos que seu processo de recuperação deixa rastros digitais fatais. A Garena saberá que você está tentando usar métodos proibidos e seu pedido de recuperação será NEGADO na hora, e pode ser que nem dê certo para recuperar.",
     upsell_warning: "Para aumentar suas chances de sucesso e evitar ser BANIDO DE NOVO em minutos, você PRECISA ativar o protocolo BYPASS CRIPTOGRAFADO agora mesmo.",
     upsell_cta: "ATIVAR BYPASS ANTI-BAN",
     upsell_skip: "Não, eu quero arriscar falhar e ser banido de novo"
