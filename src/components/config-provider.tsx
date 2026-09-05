@@ -13,6 +13,8 @@ interface AppConfig {
   ctaTextColor: 'black' | 'white';
   checkoutUrlPt: string;
   checkoutUrlEnEs: string;
+  bypassUrlPt: string;
+  bypassUrlEnEs: string;
   headerAvatar: string;
   teamAvatar: string;
   ctaText: string;
@@ -26,6 +28,8 @@ const DEFAULT_CONFIG: AppConfig = {
   ctaTextColor: 'black',
   checkoutUrlPt: 'https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6',
   checkoutUrlEnEs: 'https://chk.eduzz.com/aziwk6nz?currency=USD',
+  bypassUrlPt: 'https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6', // Fallback se não configurado
+  bypassUrlEnEs: 'https://chk.eduzz.com/aziwk6nz?currency=USD',
   headerAvatar: '',
   teamAvatar: '',
   ctaText: '',
@@ -81,6 +85,8 @@ function ConfigLoader({ children }: { children: ReactNode }) {
     ctaTextColor: configData?.ctaTextColor || DEFAULT_CONFIG.ctaTextColor,
     checkoutUrlPt: configData?.checkoutUrlPt || DEFAULT_CONFIG.checkoutUrlPt,
     checkoutUrlEnEs: configData?.checkoutUrlEnEs || DEFAULT_CONFIG.checkoutUrlEnEs,
+    bypassUrlPt: configData?.bypassUrlPt || DEFAULT_CONFIG.bypassUrlPt,
+    bypassUrlEnEs: configData?.bypassUrlEnEs || DEFAULT_CONFIG.bypassUrlEnEs,
     headerAvatar: configData?.headerAvatar || DEFAULT_CONFIG.headerAvatar,
     teamAvatar: configData?.teamAvatar || DEFAULT_CONFIG.teamAvatar,
     ctaText: configData?.ctaText !== undefined ? configData.ctaText : DEFAULT_CONFIG.ctaText,

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -23,7 +24,8 @@ const EXCLUDED_PATHS = [
   '/creator-studio-xyz',
   '/portaldochefe',
   '/alerta-urgente',
-  '/oferta-recusada'
+  '/oferta-recusada',
+  '/upsell-bypass'
 ];
 
 export default function SalesNotification() {
@@ -56,12 +58,11 @@ export default function SalesNotification() {
       }, 5000); // Show for 5 seconds
     };
 
-    // Show the first notification after a delay
     const initialTimeout = setTimeout(showRandomNotification, 8000);
 
     const interval = setInterval(() => {
       showRandomNotification();
-    }, Math.random() * (10000 - 5000) + 5000); // Then every 5-10 seconds
+    }, Math.random() * (10000 - 5000) + 5000);
 
     return () => {
       clearTimeout(timer);

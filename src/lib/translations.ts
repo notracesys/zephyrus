@@ -1,4 +1,5 @@
 
+
 export type Language = 'en' | 'es' | 'pt';
 
 export const translations = {
@@ -116,12 +117,18 @@ export const translations = {
     alerta_urgente_main_text: "Our experts have just detected that Garena is rolling out a new update.",
     alerta_urgente_warning: "Once the servers update, it will be physically IMPOSSIBLE to recover any banned account. The system will permanently delete the metadata of suspended players. TAKE ACTION NOW.",
     alerta_urgente_cta: "RECOVER BEFORE THE UPDATE",
-    alerta_urgente_footer: "Take advantage while there is time. This window is closing."
+    alerta_urgente_footer: "Take advantage while there is time. This window is closing.",
+    upsell_title: "ANTI-BAN PROTECTION",
+    upsell_subtitle: "DANGER: DETECTION RISK DETECTED",
+    upsell_desc: "We identified that the unban process uses protocols that may be detected by Garena within 24 hours.",
+    upsell_warning: "To avoid a new permanent ban for 'Use of Prohibited Tools', you need the ENCRYPTED BYPASS protocol.",
+    upsell_cta: "ADD BYPASS PROTECTION",
+    upsell_skip: "No, I want to risk losing my account again"
   },
   es: {
     title: "ESTRATEGIA RECOVERY",
     subtitle: "¿Tu cuenta fue baneada? No todo está perdido.",
-    description: "Recuperar tu cuenta no es cuestión de suerte. Se trata de saber qué decir. La mayoría fracasa porque dice cualquier cosa, de cualquier manera. Descubrimos lo que funciona.",
+    description: "Recuperar tu cuenta no é questão de sorte. Se trata de saber qué decir. La mayoría fracasa porque dice cualquier cosa, de cualquier manera. Descubrimos lo que funciona.",
     cta: "Recuperar Cuenta Baneada",
     checkout_url: "https://chk.eduzz.com/aziwk6nz?currency=USD",
     terms_title: "Términos y Condiciones de Responsabilidade",
@@ -232,7 +239,13 @@ export const translations = {
     alerta_urgente_main_text: "Nuestros expertos han detectado que Garena está a punto de lanzar una actualización.",
     alerta_urgente_warning: "Una vez que los servidores se actualicen, será físicamente IMPOSIBLE recuperar cualquier cuenta baneada. El sistema eliminará los metadatos. APROVECHE MIENTRAS HAYA TIEMPO.",
     alerta_urgente_cta: "RECUPERAR ANTES DE LA ACTUALIZACIÓN",
-    alerta_urgente_footer: "Esta ventana se está cerrando. No pierda tiempo."
+    alerta_urgente_footer: "Esta ventana se está cerrando. No pierda tiempo.",
+    upsell_title: "PROTECCIÓN ANTI-BAN",
+    upsell_subtitle: "PELIGRO: RIESGO DE DETECCIÓN",
+    upsell_desc: "Identificamos que su proceso de desbaneo utiliza protocolos que pueden ser detectados por Garena en 24h.",
+    upsell_warning: "Para evitar un nuevo baneo permanente por 'Uso de Herramientas Prohibidas', necesita el protocolo BYPASS ENCRIPTADO.",
+    upsell_cta: "AÑADIR PROTECCIÓN BYPASS",
+    upsell_skip: "No, quiero arriesgarme a perder mi cuenta de nuevo"
   },
   pt: {
     title: "ESTRATÉGIA RECOVERY",
@@ -348,6 +361,12 @@ export const translations = {
     alerta_urgente_main_text: "Nossos especialistas acabam de detectar que a Garena vai lançar uma nova atualização.",
     alerta_urgente_warning: "Assim que os servidores atualizarem, será fisicamente IMPOSSÍVEL recuperar qualquer conta banida. O sistema deletará permanentemente os metadados. APROVEITE ENQUANTO HÁ TEMPO.",
     alerta_urgente_cta: "RECUPERAR ANTES DA ATUALIZAÇÃO",
-    alerta_urgente_footer: "Não perca tempo. Essa janela está se fechando."
+    alerta_urgente_footer: "Não perca tempo. Essa janela está se fechando.",
+    upsell_title: "PROTEÇÃO ANTI-BAN ATIVA?",
+    upsell_subtitle: "PERIGO: RISCO DE DETECÇÃO DETECTADO",
+    upsell_desc: "Identificamos que seu processo de desbanimento utiliza protocolos que podem ser detectados pela Garena em 24h.",
+    upsell_warning: "Para evitar um novo banimento permanente por 'Uso de Ferramentas Proibidas', você precisa do protocolo BYPASS CRIPTOGRAFADO.",
+    upsell_cta: "ADICIONAR PROTEÇÃO BYPASS",
+    upsell_skip: "Não, eu quero arriscar perder minha conta de novo"
   }
 };

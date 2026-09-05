@@ -27,7 +27,7 @@ import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { 
   Eye, Activity, ShoppingCart, Lock, Loader2, LogOut, Package, 
   BarChart3, Settings, Save,
-  Palette, Link2, UserCircle, Type, Upload, Image as ImageIcon, Sparkles, Trash2, TrendingUp, Plus, Layout, Copy, Check, Globe
+  Palette, Link2, UserCircle, Type, Upload, Image as ImageIcon, Sparkles, Trash2, TrendingUp, Plus, Layout, Copy, Check, Globe, ShieldAlert
 } from 'lucide-react';
 import { format, isSameDay, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -55,7 +55,6 @@ const chartConfig = {
   }
 };
 
-// Funções de utilidade para conversão de cores
 function hexToHsl(hex: string): string {
   hex = hex.replace(/^#/, '');
   const r = parseInt(hex.substring(0, 2), 16) / 255;
@@ -130,6 +129,8 @@ const DEFAULT_FORM_STATE = {
   ctaTextColor: 'black' as 'black' | 'white',
   checkoutUrlPt: '',
   checkoutUrlEnEs: '',
+  bypassUrlPt: '',
+  bypassUrlEnEs: '',
   headerAvatar: '',
   teamAvatar: '',
   ctaText: ''
@@ -195,6 +196,8 @@ export default function PortalDoChefe() {
         ctaTextColor: configData.ctaTextColor || DEFAULT_FORM_STATE.ctaTextColor,
         checkoutUrlPt: configData.checkoutUrlPt || '',
         checkoutUrlEnEs: configData.checkoutUrlEnEs || '',
+        bypassUrlPt: configData.bypassUrlPt || '',
+        bypassUrlEnEs: configData.bypassUrlEnEs || '',
         headerAvatar: configData.headerAvatar || '',
         teamAvatar: configData.teamAvatar || '',
         ctaText: configData.ctaText || ''
@@ -430,11 +433,11 @@ export default function PortalDoChefe() {
 
         <Tabs defaultValue="dashboard" className="space-y-6">
           <TabsList className="bg-card/50 border border-border/50 p-1 rounded-2xl h-16 w-full sm:w-auto">
-            <TabsTrigger value="dashboard" className="h-full px-10 text-sm font-bold gap-2 rounded-xl data-[state=active]:shadow-lg">
-              <BarChart3 className="h-4 w-4" /> Dashboard
+            <TabsTrigger value="dashboard" className="h-full px-10 text-sm font-bold data-[state=active]:shadow-lg">
+              <BarChart3 className="h-4 w-4 mr-2" /> Dashboard
             </TabsTrigger>
-            <TabsTrigger value="config" className="h-full px-10 text-sm font-bold gap-2 rounded-xl data-[state=active]:shadow-lg">
-              <Settings className="h-4 w-4" /> Configurar Sites
+            <TabsTrigger value="config" className="h-full px-10 text-sm font-bold data-[state=active]:shadow-lg">
+              <Settings className="h-4 w-4 mr-2" /> Configurar Sites
             </TabsTrigger>
           </TabsList>
 
@@ -577,7 +580,6 @@ export default function PortalDoChefe() {
                       <div className="space-y-2">
                         <Label>Cor Primária</Label>
                         <div className="flex gap-4 items-center">
-                          {/* Quadradinho clicável que abre o seletor visual */}
                           <div 
                             className="h-10 w-10 rounded-lg border-2 border-white/20 shadow-lg cursor-pointer transition-transform hover:scale-110 active:scale-95" 
                             style={{ backgroundColor: `hsl(${configForm.primaryColor})` }}
@@ -588,7 +590,6 @@ export default function PortalDoChefe() {
                             onChange={(e) => setConfigForm({...configForm, primaryColor: e.target.value})} 
                             className="bg-muted/30 font-mono text-xs" 
                           />
-                          {/* Input de cor escondido */}
                           <input 
                             type="color" 
                             ref={colorPickerRef}
@@ -597,7 +598,6 @@ export default function PortalDoChefe() {
                             onChange={handleColorChange}
                           />
                         </div>
-                        <p className="text-[10px] text-muted-foreground">Clique no quadrado para escolher a cor ou digite o HSL manual.</p>
                       </div>
                       <div className="space-y-2">
                         <Label>Cor do Texto nos Botões</Label>
@@ -611,7 +611,7 @@ export default function PortalDoChefe() {
 
                   <Card className="bg-card/40 md:col-span-2">
                     <CardHeader className="border-b border-border/30">
-                      <CardTitle className="text-lg">Links de Checkout</CardTitle>
+                      <CardTitle className="text-lg flex items-center gap-2"><ShoppingCart className="w-5 h-5" /> Links de Checkout (Principal)</CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 grid md:grid-cols-2 gap-4">
                        <div className="space-y-2">
@@ -621,6 +621,22 @@ export default function PortalDoChefe() {
                       <div className="space-y-2">
                         <Label>Link Internacional (Inglês/Espanhol)</Label>
                         <Input value={configForm.checkoutUrlEnEs} onChange={(e) => setConfigForm({...configForm, checkoutUrlEnEs: e.target.value})} className="bg-muted/30" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-card/40 md:col-span-2">
+                    <CardHeader className="border-b border-border/30">
+                      <CardTitle className="text-lg flex items-center gap-2"><ShieldAlert className="w-5 h-5" /> Links de Checkout (Upsell Bypass)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 grid md:grid-cols-2 gap-4">
+                       <div className="space-y-2">
+                        <Label>Link Bypass Brasil</Label>
+                        <Input value={configForm.bypassUrlPt} onChange={(e) => setConfigForm({...configForm, bypassUrlPt: e.target.value})} className="bg-muted/30" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Link Bypass Internacional</Label>
+                        <Input value={configForm.bypassUrlEnEs} onChange={(e) => setConfigForm({...configForm, bypassUrlEnEs: e.target.value})} className="bg-muted/30" />
                       </div>
                     </CardContent>
                   </Card>
