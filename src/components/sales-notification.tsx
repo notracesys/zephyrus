@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,6 +18,14 @@ const timeDescriptions = [
   'adquiriu há 1 hora.',
 ];
 
+const EXCLUDED_PATHS = [
+  '/chat',
+  '/creator-studio-xyz',
+  '/portaldochefe',
+  '/alerta-urgente',
+  '/oferta-recusada'
+];
+
 export default function SalesNotification() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentName, setCurrentName] = useState('');
@@ -31,7 +38,7 @@ export default function SalesNotification() {
   }, []);
 
   useEffect(() => {
-    if (!isMounted || pathname === '/chat' || pathname === '/creator-studio-xyz' || pathname === '/portaldochefe') {
+    if (!isMounted || EXCLUDED_PATHS.includes(pathname)) {
       return;
     }
 
@@ -67,7 +74,7 @@ export default function SalesNotification() {
     return null;
   }
   
-  if (pathname === '/chat' || pathname === '/creator-studio-xyz' || pathname === '/portaldochefe') {
+  if (EXCLUDED_PATHS.includes(pathname)) {
       return null;
   }
 
