@@ -7,11 +7,11 @@ import { AlertTriangle, Timer, ArrowRight, Loader2, ShieldAlert } from 'lucide-r
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAppConfig } from '@/components/config-provider';
 import { useSearchParams } from 'next/navigation';
 
-export default function AlertaUrgentePage() {
+function AlertaUrgenteContent() {
   const { t, lang } = useLanguage();
   const config = useAppConfig();
   const firestore = useFirestore();
@@ -69,9 +69,7 @@ export default function AlertaUrgentePage() {
   };
 
   return (
-    <div className="flex min-h-full flex-col bg-black text-white selection:bg-red-600">
-      <Header />
-      <main className="flex-grow container mx-auto px-4 py-8 md:py-16 flex flex-col items-center justify-center relative overflow-hidden">
+    <main className="flex-grow container mx-auto px-4 py-8 md:py-16 flex flex-col items-center justify-center relative overflow-hidden">
         
         {/* Efeito de brilho vermelho de fundo */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[120px] pointer-events-none" />
@@ -117,7 +115,7 @@ export default function AlertaUrgentePage() {
                         <Button 
                             disabled={isRedirecting}
                             onClick={handlePurchase} 
-                            className="w-full font-black h-auto py-6 md:py-7 text-lg md:text-xl uppercase italic tracking-tighter bg-primary text-primary-foreground hover:scale-[1.02] transition-transform rounded-none shadow-[0_10px_30px_-10px_rgba(255,204,0,0.4)]"
+                            className="w-full font-black h-auto py-6 md:py-7 text-lg md:text-xl uppercase italic tracking-tighter bg-green-600 text-white hover:bg-green-700 hover:scale-[1.02] transition-transform rounded-none shadow-[0_10px_30px_-10px_rgba(22,163,74,0.4)] border-none"
                         >
                             {isRedirecting ? (
                               <div className="flex items-center gap-3">
@@ -150,6 +148,16 @@ export default function AlertaUrgentePage() {
             </p>
         </div>
       </main>
+  );
+}
+
+export default function AlertaUrgentePage() {
+  return (
+    <div className="flex min-h-full flex-col bg-black text-white selection:bg-red-600">
+      <Header />
+      <Suspense fallback={<div className="flex-grow flex items-center justify-center"><Loader2 className="animate-spin" /></div>}>
+        <AlertaUrgenteContent />
+      </Suspense>
     </div>
   );
 }
