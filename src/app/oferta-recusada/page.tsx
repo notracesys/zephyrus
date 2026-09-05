@@ -11,6 +11,8 @@ import { useLanguage } from '@/lib/i18n';
 import { useState, useEffect } from 'react';
 import { useAppConfig } from '@/components/config-provider';
 import { useSearchParams } from 'next/navigation';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function OfertaRecusadaPage() {
   const { t, lang } = useLanguage();
@@ -33,7 +35,7 @@ export default function OfertaRecusadaPage() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handlePurchase = async () => {
+  const handlePurchase = () => {
     if (isRedirecting) return;
     setIsRedirecting(true);
 
@@ -55,17 +57,26 @@ export default function OfertaRecusadaPage() {
       });
 
       if (firestore) {
-        await addDoc(collection(firestore, 'checkoutClicks'), {
+        const clickData = {
           timestamp: serverTimestamp(),
           source: 'oferta-recusada-agressiva',
           url: checkoutUrl.toString(),
           siteId: sessionStorage.getItem('active_site_id') || 'global'
-        });
+        };
+
+        addDoc(collection(firestore, 'checkoutClicks'), clickData)
+          .catch(async () => {
+            const permissionError = new FirestorePermissionError({
+              path: 'checkoutClicks',
+              operation: 'create',
+              requestResourceData: clickData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+          });
       }
 
       window.location.href = checkoutUrl.toString();
     } catch (e) {
-      console.error("Redirect error:", e);
       window.location.href = baseCheckoutUrl;
     }
   };
