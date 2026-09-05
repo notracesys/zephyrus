@@ -112,11 +112,11 @@ export const translations = {
     lang_pt: "Portuguese",
     loading: "Loading...",
     alerta_urgente_title: "CRITICAL ALERT!",
-    alerta_urgente_subtitle: "THE RECOVERY HOLE IS CLOSING",
-    alerta_urgente_main_text: "Our experts have just detected that Garena is rolling out the **'Anti-Unban 3.0'** technology in the next update.",
-    alerta_urgente_warning: "Once the servers update, it will be physically IMPOSSIBLE to recover any banned account. The system will permanently delete the metadata of suspended players.",
-    alerta_urgente_cta: "RECOVER BEFORE IT'S TOO LATE",
-    alerta_urgente_footer: "This page will be deactivated as soon as the update starts."
+    alerta_urgente_subtitle: "GARENA IS UPDATING THE GAME",
+    alerta_urgente_main_text: "Our experts have just detected that Garena is rolling out a new update.",
+    alerta_urgente_warning: "Once the servers update, it will be physically IMPOSSIBLE to recover any banned account. The system will permanently delete the metadata of suspended players. TAKE ACTION NOW.",
+    alerta_urgente_cta: "RECOVER BEFORE THE UPDATE",
+    alerta_urgente_footer: "Take advantage while there is time. This window is closing."
   },
   es: {
     title: "ESTRATEGIA RECOVERY",
@@ -228,11 +228,11 @@ export const translations = {
     lang_pt: "Português",
     loading: "Cargando...",
     alerta_urgente_title: "¡ALERTA CRÍTICA!",
-    alerta_urgente_subtitle: "EL AGUJERO DE RECUPERACIÓN SE CIERRA",
-    alerta_urgente_main_text: "Nuestros expertos acaban de detectar que Garena lanzará la tecnología **'Anti-Unban 3.0'** en la próxima actualización.",
-    alerta_urgente_warning: "Una vez que los servidores se actualicen, será físicamente IMPOSIBLE recuperar cualquier cuenta baneada. El sistema eliminará permanentemente los metadatos.",
-    alerta_urgente_cta: "RECUPERAR ANTES DE QUE SEA TARDE",
-    alerta_urgente_footer: "Esta página se desactivará en cuanto comience la actualización."
+    alerta_urgente_subtitle: "GARENA ACTUALIZARÁ EL JUEGO",
+    alerta_urgente_main_text: "Nuestros expertos han detectado que Garena está a punto de lanzar una actualización.",
+    alerta_urgente_warning: "Una vez que los servidores se actualicen, será físicamente IMPOSIBLE recuperar cualquier cuenta baneada. El sistema eliminará los metadatos. APROVECHE MIENTRAS HAYA TIEMPO.",
+    alerta_urgente_cta: "RECUPERAR ANTES DE LA ACTUALIZACIÓN",
+    alerta_urgente_footer: "Esta ventana se está cerrando. No pierda tiempo."
   },
   pt: {
     title: "ESTRATÉGIA RECOVERY",
@@ -344,10 +344,10 @@ export const translations = {
     lang_pt: "Português",
     loading: "Carregando...",
     alerta_urgente_title: "ALERTA CRÍTICO!",
-    alerta_urgente_subtitle: "A BRECHA DE RECUPERAÇÃO ESTÁ FECHANDO",
-    alerta_urgente_main_text: "Nossos especialistas acabam de detectar que a Garena vai lançar a tecnologia **'Anti-Unban 3.0'** na próxima atualização.",
-    alerta_urgente_warning: "Assim que os servidores atualizarem, será fisicamente IMPOSSÍVEL recuperar qualquer conta banida. O sistema deletará permanentemente os metadados dos jogadores suspensos.",
-    alerta_urgente_cta: "RECUPERAR ANTES QUE SEJA TARDE",
-    alerta_urgente_footer: "Esta página será desativada assim que a atualização começar."
+    alerta_urgente_subtitle: "A GARENA VAI ATUALIZAR O JOGO",
+    alerta_urgente_main_text: "Nossos especialistas acabam de detectar que a Garena vai lançar uma nova atualização.",
+    alerta_urgente_warning: "Assim que os servidores atualizarem, será fisicamente IMPOSSÍVEL recuperar qualquer conta banida. O sistema deletará permanentemente os metadados. APROVEITE ENQUANTO HÁ TEMPO.",
+    alerta_urgente_cta: "RECUPERAR ANTES DA ATUALIZAÇÃO",
+    alerta_urgente_footer: "Não perca tempo. Essa janela está se fechando."
   }
 };
