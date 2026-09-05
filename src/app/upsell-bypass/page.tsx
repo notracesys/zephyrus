@@ -117,9 +117,9 @@ function UpsellBypassContent() {
                         <Button 
                             disabled={isRedirecting}
                             onClick={handleBypassPurchase} 
-                            className="group w-full font-black h-auto py-6 md:py-8 text-xl md:text-2xl uppercase italic tracking-tighter bg-gradient-to-b from-green-500 to-green-700 text-white transition-all duration-200 rounded-full border-none shadow-[0_8px_0_rgb(21,128,61),0_15px_25px_rgba(0,0,0,0.4)] hover:shadow-[0_6px_0_rgb(21,128,61),0_10px_20px_rgba(0,0,0,0.4)] hover:translate-y-[2px] active:shadow-none active:translate-y-[8px] relative overflow-hidden"
+                            className="group w-full font-black h-auto py-6 md:py-8 text-xl md:text-2xl uppercase italic tracking-tighter bg-gradient-to-b from-amber-400 to-amber-600 text-black transition-all duration-200 rounded-full border-none shadow-[0_8px_0_rgb(180,83,9),0_15px_25px_rgba(0,0,0,0.4)] hover:shadow-[0_6px_0_rgb(180,83,9),0_10px_20px_rgba(0,0,0,0.4)] hover:translate-y-[2px] active:shadow-none active:translate-y-[8px] relative overflow-hidden"
                         >
-                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shine_1.5s_ease-in-out_infinite]" />
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover:animate-[shine_1.5s_ease-in-out_infinite]" />
                             
                             {isRedirecting ? (
                               <div className="flex items-center gap-3 justify-center">
