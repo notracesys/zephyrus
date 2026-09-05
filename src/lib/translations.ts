@@ -119,10 +119,10 @@ export const translations = {
     alerta_urgente_footer: "Take advantage while there is time. This window is closing.",
     upsell_title: "YOU WILL BE BANNED AGAIN!",
     upsell_subtitle: "DANGER: HIGH DETECTION RISK",
-    upsell_desc: "We identified that your recovery process leaves digital traces. Without the Bypass, Garena will detect the tool and BAN YOUR ACCOUNT AGAIN within hours.",
-    upsell_warning: "To prevent a permanent re-ban for 'Use of Prohibited Tools', you MUST install the ENCRYPTED BYPASS protocol immediately.",
+    upsell_desc: "We identified that your recovery process leaves fatal digital traces. Garena will know you are using prohibited methods and your request will be REJECTED instantly.",
+    upsell_warning: "To increase your chances of success and avoid being BANNED AGAIN in minutes, you MUST activate the ENCRYPTED BYPASS protocol now.",
     upsell_cta: "ACTIVATE ANTI-BAN BYPASS",
-    upsell_skip: "No, I want to risk being banned again in 24h"
+    upsell_skip: "No, I want to risk failing and being banned again"
   },
   es: {
     title: "ESTRATEGIA RECOVERY",
@@ -241,10 +241,10 @@ export const translations = {
     alerta_urgente_footer: "Esta ventana se está cerrando. No pierda tiempo.",
     upsell_title: "¡SERÁS BANEADO OTRA VEZ!",
     upsell_subtitle: "PELIGRO: RIESGO DE DETECCIÓN ALTO",
-    upsell_desc: "Identificamos que su proceso de recuperación deja rastros digitales. Sin el Bypass, Garena detectará la herramienta y BANEARÁ SU CUENTA OTRA VEZ en pocas horas.",
-    upsell_warning: "Para evitar un nuevo baneo permanente por 'Uso de Herramientas Prohibidas', DEBE instalar el protocolo BYPASS ENCRIPTADO ahora mismo.",
+    upsell_desc: "Identificamos que su proceso de recuperación deja rastros digitales fatales. Garena sabrá que está usando métodos prohibidos y su solicitud será RECHAZADA al instante.",
+    upsell_warning: "Para aumentar sus posibilidades de éxito y evitar ser BANEADO OTRA VEZ en minutos, DEBE instalar el protocolo BYPASS ENCRIPTADO ahora mismo.",
     upsell_cta: "ACTIVAR BYPASS ANTI-BAN",
-    upsell_skip: "No, quiero arriesgarme a ser baneado de nuevo en 24h"
+    upsell_skip: "No, quiero arriesgarme a fallar y ser baneado de nuevo"
   },
   pt: {
     title: "ESTRATÉGIA RECOVERY",
@@ -363,9 +363,9 @@ export const translations = {
     alerta_urgente_footer: "Não perca tempo. Essa janela está se fechando.",
     upsell_title: "VOCÊ VAI SER BANIDO DE NOVO!",
     upsell_subtitle: "PERIGO: RISCO DE DETECÇÃO ALTÍSSIMO",
-    upsell_desc: "Identificamos que seu processo de desbanimento deixa rastros digitais. Sem o Bypass, a Garena vai detectar a ferramenta e BANIR SUA CONTA DE NOVO em poucas horas.",
-    upsell_warning: "Para evitar um novo banimento permanente por 'Uso de Ferramentas Proibidas', você PRECISA instalar o protocolo BYPASS CRIPTOGRAFADO agora mesmo.",
+    upsell_desc: "Identificamos que seu processo de recuperação deixa rastros digitais fatais. A Garena saberá que você está tentando usar métodos proibidos e seu pedido de recuperação será NEGADO na hora.",
+    upsell_warning: "Para aumentar suas chances de sucesso e evitar ser BANIDO DE NOVO em minutos, você PRECISA ativar o protocolo BYPASS CRIPTOGRAFADO agora mesmo.",
     upsell_cta: "ATIVAR BYPASS ANTI-BAN",
-    upsell_skip: "Não, eu quero arriscar ser banido de novo em 24h"
+    upsell_skip: "Não, eu quero arriscar falhar e ser banido de novo"
   }
 };

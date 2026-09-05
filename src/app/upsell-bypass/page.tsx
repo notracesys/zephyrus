@@ -75,7 +75,7 @@ function UpsellBypassContent() {
   return (
     <main className="flex-grow container mx-auto px-4 py-8 md:py-16 flex flex-col items-center justify-center relative overflow-hidden">
         
-        {/* Efeito de brilho de fundo (Laranja/Amarelo para Alerta de Segurança) */}
+        {/* Efeito de brilho de fundo (Âmbar para Risco de Segurança) */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-600/10 rounded-full blur-[130px] pointer-events-none" />
 
         <div className="w-full max-w-2xl space-y-6 relative z-10">
@@ -101,12 +101,12 @@ function UpsellBypassContent() {
                             <p className="text-amber-500 text-sm md:text-lg font-black uppercase tracking-widest leading-none">
                                 {t.upsell_subtitle}
                             </p>
-                            <p className="text-zinc-300 text-base md:text-lg leading-relaxed font-medium">
+                            <p className="text-zinc-300 text-base md:text-lg leading-relaxed font-medium italic">
                                 {t.upsell_desc}
                             </p>
                         </div>
 
-                        <div className="p-6 bg-amber-500/5 rounded-3xl border border-amber-500/20 text-center">
+                        <div className="p-6 bg-red-600/10 rounded-3xl border border-red-600/20 text-center">
                             <p className="text-white text-sm md:text-base font-bold italic leading-tight">
                                 "{t.upsell_warning}"
                             </p>
