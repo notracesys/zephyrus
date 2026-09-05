@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -23,9 +22,9 @@ const EXCLUDED_PATHS = [
   '/chat',
   '/creator-studio-xyz',
   '/portaldochefe',
-  '/alerta-urgente',
+  '/downsell',
   '/oferta-recusada',
-  '/upsell-bypass'
+  '/upsell'
 ];
 
 export default function SalesNotification() {
