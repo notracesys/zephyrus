@@ -20,6 +20,8 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
 import { useAppConfig } from '@/components/config-provider';
 import { toast } from '@/hooks/use-toast';
+import CustomerDataModal from './customer-data-modal';
+import PixModal from './pix-modal';
 
 type FeedbackData = {
   imageUrl: string;
@@ -66,14 +68,19 @@ export default function ChatInterface() {
   const [showImportantNotice, setShowImportantNotice] = useState(false);
   const [showPurchaseButton, setShowPurchaseButton] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  
+  // Modais de Pagamento (Apenas BR)
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [isPixModalOpen, setIsPixModalOpen] = useState(false);
+  const [isGeneratingPayment, setIsGeneratingPayment] = useState(false);
+  const [pixData, setPixData] = useState<any>(null);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const formatText = (text: string) => {
     let result = text.replace(/\{siteName\}/g, config.siteName);
-    
     const rawReason = searchParams.get('banReason') || 'motivo não identificado';
     const cleanReason = rawReason.toLowerCase();
-    
     result = result.replace(/\{banReason\}/g, cleanReason);
     return result;
   };
@@ -117,37 +124,20 @@ ${t.chat_label_description}:
     });
 
     const timeouts: NodeJS.Timeout[] = [];
-
     const t1 = setTimeout(() => {
         setIsTyping(true);
         const t2 = setTimeout(() => {
-            const teamResponse: Message = {
-                id: 'team-1', sender: 'team',
-                content: t.chat_initial_response,
-                type: 'text',
-            };
-            setMessages((prev) => [...prev, teamResponse]);
+            setMessages((prev) => [...prev, { id: 'team-1', sender: 'team', content: t.chat_initial_response, type: 'text' }]);
             setIsTyping(false);
-            
             const t3 = setTimeout(() => {
               setIsTyping(true);
               const t4 = setTimeout(() => {
-                const teamResponse2: Message = {
-                  id: 'team-2', sender: 'team',
-                  content: t.chat_msg_2,
-                  type: 'text',
-                };
-                setMessages((prev) => [...prev, teamResponse2]);
+                setMessages((prev) => [...prev, { id: 'team-2', sender: 'team', content: t.chat_msg_2, type: 'text' }]);
                 setIsTyping(false);
                  const t5 = setTimeout(() => {
                     setIsTyping(true);
                     const t6 = setTimeout(() => {
-                        const teamResponse3: Message = {
-                            id: 'team-3', sender: 'team',
-                            content: t.chat_msg_3,
-                            type: 'text',
-                        };
-                        setMessages((prev) => [...prev, teamResponse3]);
+                        setMessages((prev) => [...prev, { id: 'team-3', sender: 'team', content: t.chat_msg_3, type: 'text' }]);
                         setIsTyping(false);
                         setShowOptions(true);
                     }, 3000); 
@@ -158,7 +148,6 @@ ${t.chat_label_description}:
               timeouts.push(t4);
             }, 6000);
             timeouts.push(t3);
-            
         }, 3000); 
         timeouts.push(t2);
     }, 4000); 
@@ -167,6 +156,11 @@ ${t.chat_label_description}:
   }, [searchParams, t, isReady, config.siteName]);
 
   const handlePurchaseInitiation = async () => {
+    if (lang === 'pt') {
+      setIsCustomerModalOpen(true);
+      return;
+    }
+
     if (isRedirecting) return;
     setIsRedirecting(true);
     
@@ -179,7 +173,7 @@ ${t.chat_label_description}:
       src: searchParams.get('src') || '',
     };
 
-    const baseCheckoutUrl = lang === 'pt' ? config.checkoutUrlPt : config.checkoutUrlEnEs;
+    const baseCheckoutUrl = config.checkoutUrlEnEs; // Para EN/ES sempre usa o internacional
     
     try {
       const checkoutUrl = new URL(baseCheckoutUrl);
@@ -188,9 +182,9 @@ ${t.chat_label_description}:
       });
 
       if (firestore) {
-        await addDoc(collection(firestore, 'checkoutClicks'), {
+        addDoc(collection(firestore, 'checkoutClicks'), {
           timestamp: serverTimestamp(),
-          source: 'chat-direct-redirect',
+          source: 'chat-direct-redirect-global',
           siteId: sessionStorage.getItem('active_site_id') || 'global',
           url: checkoutUrl.toString()
         });
@@ -198,80 +192,112 @@ ${t.chat_label_description}:
 
       window.location.href = checkoutUrl.toString();
     } catch (e) {
-      console.error("Redirect/Tracking error:", e);
       window.location.href = baseCheckoutUrl;
     }
   };
 
-  const handleOptionClick = (option: 'sim' | 'nao') => {
-    const userMessage: Message = {
-        id: generateId(),
-        sender: 'user',
-        content: option === 'sim' ? t.chat_option_yes : t.chat_option_no,
-        status: 'read',
-        type: 'text',
+  const handleCustomerSubmit = async (customerData: any) => {
+    setIsGeneratingPayment(true);
+    
+    const tracking = {
+      utm_source: searchParams.get('utm_source') || '',
+      utm_medium: searchParams.get('utm_medium') || '',
+      utm_campaign: searchParams.get('utm_campaign') || '',
+      utm_term: searchParams.get('utm_term') || '',
+      utm_content: searchParams.get('utm_content') || '',
+      src: searchParams.get('src') || '',
     };
-    setMessages(prev => [...prev, userMessage]);
+
+    try {
+      const res = await fetch('/api/pix/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customer: customerData, tracking })
+      });
+
+      const data = await res.json();
+      
+      if (data.success) {
+        setPixData(data);
+        setIsCustomerModalOpen(false);
+        setIsPixModalOpen(true);
+        
+        if (firestore) {
+          addDoc(collection(firestore, 'checkoutClicks'), {
+            timestamp: serverTimestamp(),
+            source: 'chat-pix-api-br',
+            siteId: sessionStorage.getItem('active_site_id') || 'global',
+            customerEmail: customerData.email
+          });
+        }
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Erro ao gerar PIX',
+          description: data.error || 'Tente novamente em instantes.'
+        });
+      }
+    } catch (e) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro de conexão',
+        description: 'Não foi possível gerar o código de pagamento.'
+      });
+    } finally {
+      setIsGeneratingPayment(false);
+    }
+  };
+
+  const handleOptionClick = (option: 'sim' | 'nao') => {
+    setMessages(prev => [...prev, { id: generateId(), sender: 'user', content: option === 'sim' ? t.chat_option_yes : t.chat_option_no, status: 'read', type: 'text' }]);
     setShowOptions(false);
 
     if (option === 'sim') {
         const flow = async () => {
             const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
             await delay(1500);
             setIsTyping(true);
             await delay(3000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_great_choice, type: 'text' }]);
             setIsTyping(false);
-
             await delay(4000);
             setIsTyping(true);
             await delay(5000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_unban_story, type: 'text' }]);
             setIsTyping(false);
-
             await delay(6000);
             setIsTyping(true);
             await delay(4000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg, type: 'text' }]);
             setIsTyping(false);
-
             await delay(3000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/email.jpg' } }]);
-
             await delay(6000);
             setIsTyping(true);
             await delay(5000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_2, type: 'text' }]);
             setIsTyping(false);
-
             await delay(6000);
             setIsTyping(true);
             await delay(4000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_feedback_intro, type: 'text' }]);
             setIsTyping(false);
-
             await delay(2000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/feedback1.jpg' } }]);
-
             await delay(3000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', type: 'feedback', feedbackData: { imageUrl: '/feedback2.jpg' } }]);
-
             await delay(2000);
             setShowImportantNotice(true);
-
             await delay(9000); 
             setIsTyping(true);
             await delay(8000); 
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_unban_strategy_intro, type: 'text' }]);
             setIsTyping(false);
-
             await delay(3000);
             setIsTyping(true);
             await delay(4000);
             setMessages(prev => [...prev, { id: generateId(), sender: 'team', content: t.chat_final_msg_3, type: 'text' }]);
             setIsTyping(false);
-
             await delay(6000);
             setIsTyping(true);
             await delay(3000);
@@ -279,13 +305,25 @@ ${t.chat_label_description}:
             setIsTyping(false);
             setShowPurchaseButton(true);
         };
-
         flow();
     }
   }
 
   return (
     <>
+      <CustomerDataModal 
+        isOpen={isCustomerModalOpen} 
+        onClose={() => setIsCustomerModalOpen(false)} 
+        onSubmit={handleCustomerSubmit} 
+        isLoading={isGeneratingPayment} 
+      />
+      
+      <PixModal 
+        isOpen={isPixModalOpen} 
+        onClose={() => setIsPixModalOpen(false)} 
+        pixData={pixData} 
+      />
+
       <AlertDialog open={showImportantNotice} onOpenChange={setShowImportantNotice}>
         <AlertDialogContent className="w-[90%] rounded-2xl">
           <AlertDialogHeader>
@@ -316,7 +354,6 @@ ${t.chat_label_description}:
                   {messages.map((msg, index) => {
                       const isUser = msg.sender === 'user';
                       const isTeam = msg.sender === 'team';
-                      const prevMessage = messages[index - 1];
                       const nextMessage = messages[index + 1];
 
                       return (
@@ -326,7 +363,7 @@ ${t.chat_label_description}:
                           {msg.type === 'feedback' && msg.feedbackData ? (
                             <FeedbackCard data={msg.feedbackData} />
                           ) : (
-                            <div className={cn('relative p-3 max-w-[85%] md:max-w-lg shadow-md', isUser ? 'bg-primary text-primary-foreground rounded-t-xl rounded-bl-xl' : 'bg-secondary text-secondary-foreground rounded-t-xl rounded-br-xl', (isUser && prevMessage?.sender === 'user') && 'rounded-tr-none', (isUser && nextMessage?.sender === 'user') && 'rounded-bl-none', (isTeam && prevMessage?.sender === 'team') && 'rounded-tl-none', (isTeam && nextMessage?.sender === 'team') && 'rounded-br-none')}>
+                            <div className={cn('relative p-3 max-w-[85%] md:max-w-lg shadow-md', isUser ? 'bg-primary text-primary-foreground rounded-t-xl rounded-bl-xl' : 'bg-secondary text-secondary-foreground rounded-t-xl rounded-br-xl')}>
                                 <div className="text-sm whitespace-pre-wrap break-words">
                                     {renderContent(msg.content || '')}
                                 </div>
