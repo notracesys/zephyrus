@@ -19,9 +19,6 @@ import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/lib/i18n';
 import { useAppConfig } from '@/components/config-provider';
-import { toast } from '@/hooks/use-toast';
-import CustomerDataModal from './customer-data-modal';
-import PixModal from './pix-modal';
 
 type FeedbackData = {
   imageUrl: string;
@@ -69,12 +66,6 @@ export default function ChatInterface() {
   const [showPurchaseButton, setShowPurchaseButton] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   
-  // Modais de Pagamento (Apenas BR)
-  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
-  const [isPixModalOpen, setIsPixModalOpen] = useState(false);
-  const [isGeneratingPayment, setIsGeneratingPayment] = useState(false);
-  const [pixData, setPixData] = useState<any>(null);
-
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const formatText = (text: string) => {
@@ -156,11 +147,6 @@ ${t.chat_label_description}:
   }, [searchParams, t, isReady, config.siteName]);
 
   const handlePurchaseInitiation = async () => {
-    if (lang === 'pt') {
-      setIsCustomerModalOpen(true);
-      return;
-    }
-
     if (isRedirecting) return;
     setIsRedirecting(true);
     
@@ -173,7 +159,7 @@ ${t.chat_label_description}:
       src: searchParams.get('src') || '',
     };
 
-    const baseCheckoutUrl = config.checkoutUrlEnEs; // Para EN/ES sempre usa o internacional
+    const baseCheckoutUrl = lang === 'pt' ? config.checkoutUrlPt : config.checkoutUrlEnEs;
     
     try {
       const checkoutUrl = new URL(baseCheckoutUrl);
@@ -184,7 +170,7 @@ ${t.chat_label_description}:
       if (firestore) {
         addDoc(collection(firestore, 'checkoutClicks'), {
           timestamp: serverTimestamp(),
-          source: 'chat-direct-redirect-global',
+          source: 'chat-direct-redirect',
           siteId: sessionStorage.getItem('active_site_id') || 'global',
           url: checkoutUrl.toString()
         });
@@ -193,58 +179,6 @@ ${t.chat_label_description}:
       window.location.href = checkoutUrl.toString();
     } catch (e) {
       window.location.href = baseCheckoutUrl;
-    }
-  };
-
-  const handleCustomerSubmit = async (customerData: any) => {
-    setIsGeneratingPayment(true);
-    
-    const tracking = {
-      utm_source: searchParams.get('utm_source') || '',
-      utm_medium: searchParams.get('utm_medium') || '',
-      utm_campaign: searchParams.get('utm_campaign') || '',
-      utm_term: searchParams.get('utm_term') || '',
-      utm_content: searchParams.get('utm_content') || '',
-      src: searchParams.get('src') || '',
-    };
-
-    try {
-      const res = await fetch('/api/pix/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer: customerData, tracking })
-      });
-
-      const data = await res.json();
-      
-      if (data.success) {
-        setPixData(data);
-        setIsCustomerModalOpen(false);
-        setIsPixModalOpen(true);
-        
-        if (firestore) {
-          addDoc(collection(firestore, 'checkoutClicks'), {
-            timestamp: serverTimestamp(),
-            source: 'chat-pix-api-br',
-            siteId: sessionStorage.getItem('active_site_id') || 'global',
-            customerEmail: customerData.email
-          });
-        }
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Erro ao gerar PIX',
-          description: data.error || 'Tente novamente em instantes.'
-        });
-      }
-    } catch (e) {
-      toast({
-        variant: 'destructive',
-        title: 'Erro de conexão',
-        description: 'Não foi possível gerar o código de pagamento.'
-      });
-    } finally {
-      setIsGeneratingPayment(false);
     }
   };
 
@@ -311,19 +245,6 @@ ${t.chat_label_description}:
 
   return (
     <>
-      <CustomerDataModal 
-        isOpen={isCustomerModalOpen} 
-        onClose={() => setIsCustomerModalOpen(false)} 
-        onSubmit={handleCustomerSubmit} 
-        isLoading={isGeneratingPayment} 
-      />
-      
-      <PixModal 
-        isOpen={isPixModalOpen} 
-        onClose={() => setIsPixModalOpen(false)} 
-        pixData={pixData} 
-      />
-
       <AlertDialog open={showImportantNotice} onOpenChange={setShowImportantNotice}>
         <AlertDialogContent className="w-[90%] rounded-2xl">
           <AlertDialogHeader>
