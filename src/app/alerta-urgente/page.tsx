@@ -80,7 +80,7 @@ function AlertaUrgenteContent() {
             <div className="bg-red-600 text-white py-3 px-6 flex items-center justify-between font-black uppercase text-[10px] md:text-xs tracking-[0.2em] animate-pulse rounded-t-lg">
                 <div className="flex items-center gap-2">
                     <Zap className="h-4 w-4 fill-white" />
-                    ÚLTIMA CHAMADA
+                    APROVEITE ENQUANTO HÁ TEMPO
                 </div>
                 <div className="flex items-center gap-2 font-mono tabular-nums">
                     <Timer className="h-4 w-4" />
