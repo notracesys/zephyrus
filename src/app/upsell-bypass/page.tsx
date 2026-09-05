@@ -83,7 +83,7 @@ function UpsellBypassContent() {
             {/* Tag de Segurança */}
             <div className="bg-amber-500 text-black py-2 px-6 flex items-center justify-center gap-2 font-black uppercase text-[10px] md:text-xs tracking-[0.3em] rounded-full w-fit mx-auto mb-4 animate-pulse">
                 <ShieldAlert className="h-4 w-4" />
-                RISCO DE DETECÇÃO EM 24H
+                RISCO DE DETECÇÃO CRÍTICO
             </div>
 
             <Card className="border-amber-500/30 bg-zinc-950/90 backdrop-blur-2xl shadow-[0_0_80px_-20px_rgba(245,158,11,0.4)] rounded-[2.5rem] overflow-hidden">
