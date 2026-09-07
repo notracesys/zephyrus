@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ShieldCheck, Lock, Star, Terminal, Zap, CreditCard, ChevronRight } from 'lucide-react';
+import { ShieldCheck, Star, Zap, ChevronRight, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 
@@ -76,19 +76,57 @@ export default function CheckoutPage() {
         <img 
           src="https://picsum.photos/seed/banner-ff/1200/360" 
           alt="Banner Principal" 
-          className="w-full h-auto rounded-xl object-cover shadow-sm"
+          className="w-full h-auto rounded-xl object-cover shadow-sm border border-zinc-200"
           data-ai-hint="gaming banner"
         />
       </div>
 
-      <div className="mt-6 flex w-full max-w-[70rem] flex-col-reverse lg:flex-row gap-6 px-4">
+      <div className="mt-6 flex w-full max-w-[70rem] flex-col lg:flex-row gap-6 px-4">
         
-        {/* Coluna Esquerda: Formulários */}
+        {/* Coluna Esquerda: Conteúdo Principal */}
         <div className="lg:w-7/12 flex flex-col gap-6">
+          
+          {/* 1. Resumo (Subiu para o topo do fluxo principal) */}
+          <div className="rounded-xl bg-white p-6 shadow-sm border border-zinc-100">
+            <h2 className="mb-4 text-lg font-bold text-zinc-900 flex items-center gap-2">
+               Resumo do Pedido
+            </h2>
+            <div className="flex gap-4">
+              <div className="h-20 w-20 shrink-0 rounded-lg bg-zinc-100 overflow-hidden border border-zinc-200">
+                 <img src="https://picsum.photos/seed/product/200/200" alt="Produto" className="h-full w-full object-cover" />
+              </div>
+              <div className="flex flex-col justify-center gap-1">
+                <span className="text-base font-bold text-zinc-900 leading-tight">Unban Strategy v4.0</span>
+                <p className="text-xs text-zinc-500 leading-relaxed max-w-xs">
+                  Método avançado de estruturação de pedidos de revisão para recuperação de contas suspensas.
+                </p>
+              </div>
+            </div>
+
+            <Separator className="my-5 bg-zinc-100" />
+
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-zinc-500">
+                <span>Subtotal</span>
+                <span>R$ {mainPrice.toFixed(2).replace('.', ',')}</span>
+              </div>
+              {isOfferAdded && (
+                <div className="flex justify-between text-sm text-zinc-500">
+                  <span className="flex items-center gap-1">Suporte VIP <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded font-bold">OFERTA</span></span>
+                  <span>R$ {offerPrice.toFixed(2).replace('.', ',')}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-base font-bold text-zinc-900">Total</span>
+                <span className="text-2xl font-black text-zinc-900 tracking-tighter">R$ {totalPrice.toFixed(2).replace('.', ',')}</span>
+              </div>
+            </div>
+          </div>
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               
-              {/* Identificação */}
+              {/* 2. Identificação (Logo abaixo do resumo) */}
               <div className="rounded-xl bg-white p-6 shadow-sm border border-zinc-100">
                 <h2 className="mb-4 text-lg font-bold text-zinc-900">Identificação</h2>
                 <div className="space-y-4">
@@ -97,9 +135,9 @@ export default function CheckoutPage() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium">Nome completo</FormLabel>
+                        <FormLabel className="text-sm font-medium text-zinc-700">Nome completo</FormLabel>
                         <FormControl>
-                          <Input placeholder="Digite seu nome completo" {...field} className="h-12 rounded-lg bg-white border-zinc-200 focus:border-orange-400 focus:ring-0" />
+                          <Input placeholder="Digite seu nome completo" {...field} className="h-12 rounded-lg bg-white border-zinc-200 focus:border-zinc-400 focus:ring-0" />
                         </FormControl>
                       </FormItem>
                     )}
@@ -109,9 +147,9 @@ export default function CheckoutPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium">E-mail</FormLabel>
+                        <FormLabel className="text-sm font-medium text-zinc-700">E-mail</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="Digite seu melhor e-mail" {...field} className="h-12 rounded-lg bg-white border-zinc-200 focus:border-orange-400 focus:ring-0" />
+                          <Input type="email" placeholder="Digite seu melhor e-mail" {...field} className="h-12 rounded-lg bg-white border-zinc-200 focus:border-zinc-400 focus:ring-0" />
                         </FormControl>
                       </FormItem>
                     )}
@@ -119,37 +157,37 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Pagamento */}
+              {/* 3. Pagamento */}
               <div className="rounded-xl bg-white p-6 shadow-sm border border-zinc-100">
                 <h2 className="mb-4 text-lg font-bold text-zinc-900">Pagamento</h2>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-12 w-24 flex-col items-center justify-center rounded-md border-2 border-orange-400 bg-orange-50 text-orange-600 p-2">
-                    <Zap className="h-5 w-5 fill-current" />
-                    <span className="text-[10px] font-bold uppercase mt-1">PIX</span>
+                  <div className="flex h-14 w-28 flex-col items-center justify-center rounded-lg border-2 border-orange-400 bg-orange-50 text-orange-600 p-2 shadow-sm">
+                    <Zap className="h-6 w-6 fill-current" />
+                    <span className="text-[10px] font-black uppercase mt-1 tracking-wider">PIX</span>
                   </div>
                 </div>
-                <div className="rounded-md border border-zinc-100 bg-zinc-50 p-4">
-                  <p className="text-sm text-zinc-500">Pague via PIX — confirmação automática e liberação na hora.</p>
+                <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                  <p className="text-sm text-zinc-500 font-medium">Pague via PIX — confirmação automática e liberação imediata.</p>
                 </div>
               </div>
 
-              {/* Order Bump */}
-              <div className="relative rounded-xl border-2 border-dashed border-orange-400 bg-orange-50/30 overflow-hidden transition-all hover:shadow-md">
+              {/* 4. Order Bump */}
+              <div className="relative rounded-xl border-2 border-dashed border-orange-400 bg-orange-50/20 overflow-hidden transition-all hover:bg-orange-50/40">
                 <div className="bg-orange-400 p-2.5">
-                  <p className="text-center text-xs font-bold text-white uppercase tracking-wider">
-                    Adquira 100% da minha ajuda no processo!
+                  <p className="text-center text-[10px] font-black text-white uppercase tracking-[0.1em]">
+                    ADICIONAR AJUDA ESPECIALIZADA
                   </p>
                 </div>
-                <div className="p-4 flex gap-4 items-start">
-                  <div className="h-20 w-20 shrink-0 rounded-lg bg-zinc-200 overflow-hidden">
+                <div className="p-5 flex gap-4 items-start">
+                  <div className="h-20 w-20 shrink-0 rounded-lg bg-zinc-200 overflow-hidden border border-orange-100">
                     <img src="https://picsum.photos/seed/support/200/200" alt="Suporte" className="h-full w-full object-cover" />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 pr-24">
                     <h3 className="text-sm font-bold text-zinc-900">Suporte 100% VIP</h3>
-                    <p className="text-xs text-zinc-500 mt-1">
+                    <p className="text-[11px] text-zinc-500 mt-1 leading-snug">
                       90% das pessoas que tiveram o suporte VIP conseguiram suas contas de volta mais rápido.
                     </p>
-                    <p className="mt-2 text-sm font-semibold">
+                    <p className="mt-2 text-sm font-bold">
                       Por apenas <span className="text-orange-600">R$ 10,00</span>
                     </p>
                   </div>
@@ -160,7 +198,7 @@ export default function CheckoutPage() {
                   render={({ field }) => (
                     <div 
                       onClick={() => field.onChange(!field.value)}
-                      className="absolute bottom-4 right-4 flex cursor-pointer select-none items-center gap-2 rounded-md bg-orange-400 px-4 py-2 text-xs font-bold uppercase text-white hover:bg-orange-500 transition-colors"
+                      className="absolute bottom-4 right-4 flex cursor-pointer select-none items-center gap-2 rounded-lg bg-orange-400 px-4 py-2.5 text-xs font-bold uppercase text-white hover:bg-orange-500 transition-colors shadow-md"
                     >
                       <Checkbox 
                         id="bump" 
@@ -174,74 +212,36 @@ export default function CheckoutPage() {
                 />
               </div>
 
-              {/* Botão Finalizar */}
+              {/* 5. Botão Finalizar */}
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full h-16 text-lg font-bold uppercase tracking-widest bg-[#FF0080] hover:bg-[#E60073] text-white rounded-xl shadow-lg shadow-pink-200 transition-all active:scale-95"
+                className="w-full h-16 text-lg font-black uppercase tracking-widest bg-[#FF0080] hover:bg-[#E60073] text-white rounded-xl shadow-[0_8px_30px_rgb(255,0,128,0.3)] transition-all active:scale-[0.98] mb-8"
               >
-                {isLoading ? 'Processando...' : 'Finalizar Pagamento'}
+                {isLoading ? 'Sincronizando...' : 'Finalizar Pagamento'}
               </Button>
             </form>
           </Form>
 
-          {/* Banner Inferior (Mobile Only ou extra) */}
-          <div className="lg:hidden mt-4">
-             <img src="https://picsum.photos/seed/safe/800/200" alt="Seguro" className="w-full rounded-xl" />
-          </div>
         </div>
 
-        {/* Coluna Direita: Resumo e Depoimentos */}
+        {/* Coluna Direita: Prova Social e Segurança */}
         <div className="lg:w-4/12 flex flex-col gap-6">
           <div className="sticky top-6 flex flex-col gap-6">
             
-            {/* Resumo */}
-            <div className="rounded-2xl bg-white p-5 shadow-sm border border-zinc-100">
-              <h2 className="font-bold text-zinc-900 mb-4">Resumo</h2>
-              <div className="flex gap-3">
-                <div className="h-16 w-16 shrink-0 rounded-lg bg-zinc-100 overflow-hidden">
-                   <img src="https://picsum.photos/seed/product/200/200" alt="Produto" className="h-full w-full object-cover" />
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-bold text-zinc-900">Unban Strategy v4.0</span>
-                  <p className="text-[11px] text-zinc-500 leading-tight line-clamp-2">
-                    O Método de Desbanimento ensina como estruturar corretamente um pedido de revisão dentro do suporte.
-                  </p>
-                </div>
-              </div>
-
-              <Separator className="my-4 bg-zinc-100" />
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm text-zinc-500">
-                  <span>Subtotal</span>
-                  <span>R$ {mainPrice.toFixed(2).replace('.', ',')}</span>
-                </div>
-                {isOfferAdded && (
-                  <div className="flex justify-between text-sm text-zinc-500">
-                    <span>Suporte VIP</span>
-                    <span>R$ {offerPrice.toFixed(2).replace('.', ',')}</span>
-                  </div>
-                )}
-                <Separator className="my-2 bg-zinc-100" />
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-zinc-900">Total</span>
-                  <span className="text-xl font-black text-zinc-900">R$ {totalPrice.toFixed(2).replace('.', ',')}</span>
-                </div>
-              </div>
-
-              <div className="mt-6 flex justify-center">
-                <div className="flex items-center gap-2 rounded-full border border-zinc-100 bg-zinc-50 px-4 py-1.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                  <ShieldCheck className="h-4 w-4 text-green-500" />
-                  Ambiente Seguro
-                </div>
+            {/* Ambiente Seguro (Desktop) */}
+            <div className="hidden lg:flex justify-center">
+              <div className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-5 py-2 text-[10px] font-bold text-zinc-500 uppercase tracking-widest shadow-sm">
+                <ShieldCheck className="h-4 w-4 text-green-500" />
+                Ambiente Seguro
               </div>
             </div>
 
             {/* Depoimentos */}
             <div className="flex flex-col gap-4">
+              <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest ml-1">Feedback de Membros</h3>
               {testimonials.map((t, i) => (
-                <div key={i} className="rounded-xl bg-white p-4 shadow-sm border border-zinc-100 flex flex-col gap-2 animate-in fade-in duration-500" style={{ animationDelay: `${i * 150}ms` }}>
+                <div key={i} className="rounded-xl bg-white p-4 shadow-sm border border-zinc-100 flex flex-col gap-2 transition-transform hover:scale-[1.01]">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded-full overflow-hidden border border-zinc-100">
@@ -255,14 +255,14 @@ export default function CheckoutPage() {
                       ))}
                     </div>
                   </div>
-                  <p className="text-xs text-zinc-600 italic">"{t.text}"</p>
+                  <p className="text-xs text-zinc-600 italic leading-relaxed">"{t.text}"</p>
                 </div>
               ))}
             </div>
 
-            {/* Banner Final */}
-            <div className="mt-2">
-               <img src="https://picsum.photos/seed/footer-safe/600/200" alt="Compra Garantida" className="w-full rounded-xl opacity-80" />
+            {/* Banner Final Segurança */}
+            <div className="mt-2 rounded-xl overflow-hidden border border-zinc-200 shadow-sm opacity-90">
+               <img src="https://picsum.photos/seed/footer-safe/600/200" alt="Compra Garantida" className="w-full h-auto" />
             </div>
 
           </div>
