@@ -122,7 +122,19 @@ export const translations = {
     upsell_desc: "We identified that your recovery process leaves fatal digital traces. Garena will know you are using prohibited methods and your request will be REJECTED instantly, and you may even fail to recover at all.",
     upsell_warning: "To increase your chances of success and avoid being BANNED AGAIN in minutes, you MUST activate the ENCRYPTED BYPASS protocol now.",
     upsell_cta: "ACTIVATE ANTI-BAN BYPASS",
-    upsell_skip: "No, I want to risk failing and being banned again"
+    upsell_skip: "No, I want to risk failing and being banned again",
+    checkout_title: "Secure Checkout",
+    checkout_subtitle: "Complete your details to release the Unban Strategy.",
+    checkout_name: "Full Name",
+    checkout_email: "E-mail (To receive access)",
+    checkout_doc: "Document (CPF/ID)",
+    checkout_phone: "Phone / WhatsApp",
+    checkout_btn: "Pay and Recover Now",
+    checkout_secure: "Secure Environment",
+    checkout_summary: "Order Summary",
+    checkout_product: "Unban Strategy v4.0",
+    checkout_total: "Total",
+    checkout_timer_text: "Reservation expires in:"
   },
   es: {
     title: "ESTRATEGIA RECOVERY",
@@ -244,7 +256,19 @@ export const translations = {
     upsell_desc: "Identificamos que su proceso de recuperación deja rastros digitales fatales. Garena sabrá que está usando métodos prohibidos y su solicitud será RECHAZADA al instante, e incluso puede que no logre recuperarla en absoluto.",
     upsell_warning: "Para aumentar sus posibilidades de éxito y evitar ser BANEADO OTRA VEZ en minutos, DEBE instalar el protocolo BYPASS ENCRIPTADO ahora mismo.",
     upsell_cta: "ACTIVAR BYPASS ANTI-BAN",
-    upsell_skip: "No, quiero arriesgarme a fallar y ser baneado de nuevo"
+    upsell_skip: "No, quiero arriesgarme a fallar y ser baneado de nuevo",
+    checkout_title: "Checkout Seguro",
+    checkout_subtitle: "Complete sus datos para liberar la Estrategia Unban.",
+    checkout_name: "Nombre Completo",
+    checkout_email: "E-mail (Para recibir acceso)",
+    checkout_doc: "Documento (CPF/ID)",
+    checkout_phone: "Teléfono / WhatsApp",
+    checkout_btn: "Pagar y Recuperar Ahora",
+    checkout_secure: "Ambiente Seguro",
+    checkout_summary: "Resumen del Pedido",
+    checkout_product: "Estrategia Unban v4.0",
+    checkout_total: "Total",
+    checkout_timer_text: "La reserva expira en:"
   },
   pt: {
     title: "ESTRATÉGIA RECOVERY",
@@ -366,6 +390,18 @@ export const translations = {
     upsell_desc: "Identificamos que seu processo de recuperação deixa rastros digitais fatais. A Garena saberá que você está tentando usar métodos proibidos e seu pedido de recuperação será NEGADO na hora, e pode ser que nem dê certo para recuperar.",
     upsell_warning: "Para aumentar suas chances de sucesso e evitar ser BANIDO DE NOVO em minutos, você PRECISA ativar o protocolo BYPASS CRIPTOGRAFADO agora mesmo.",
     upsell_cta: "ATIVAR BYPASS ANTI-BAN",
-    upsell_skip: "Não, eu quero arriscar falhar e ser banido de novo"
+    upsell_skip: "Não, eu quero arriscar falhar e ser banido de novo",
+    checkout_title: "Checkout Seguro",
+    checkout_subtitle: "Complete seus dados para liberar a Estratégia Unban.",
+    checkout_name: "Nome Completo",
+    checkout_email: "E-mail (Para receber o acesso)",
+    checkout_doc: "CPF",
+    checkout_phone: "WhatsApp / Celular",
+    checkout_btn: "Pagar e Recuperar Agora",
+    checkout_secure: "Ambiente Seguro",
+    checkout_summary: "Resumo do Pedido",
+    checkout_product: "Estratégia Unban v4.0",
+    checkout_total: "Total",
+    checkout_timer_text: "Sua reserva expira em:"
   }
 };
