@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ShieldCheck, Star, ChevronRight, Lock } from 'lucide-react';
+import { ShieldCheck, Star, ArrowRight, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 
@@ -43,14 +43,12 @@ const testimonials = [
 
 const PixIcon = ({ className }: { className?: string }) => (
   <svg 
-    stroke="currentColor" 
+    viewBox="0 0 24 24" 
     fill="currentColor" 
-    strokeWidth="0" 
-    viewBox="0 0 512 512" 
     className={className}
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path d="M242.4 292.5C247.8 287.1 257.1 287.1 262.5 292.5L339.5 369.5C353.7 383.7 372.6 391.5 392.6 391.5H407.7L310.6 488.6C280.3 518.1 231.1 518.1 200.8 488.6L103.3 391.2H112.6C132.6 391.2 151.5 383.4 165.7 369.2L242.4 292.5zM262.5 218.9C256.1 224.4 247.9 224.5 242.4 218.9L165.7 142.2C151.5 127.1 132.6 120.2H112.6L200.7 22.76C231.1-7.586 280.3-7.586 310.6 22.76L407.8 119.9H392.6C372.6 119.9 353.7 127.7 339.5 141.9L262.5 218.9zM112.6 142.7C126.4 142.7 139.1 148.3 149.7 158.1L226.4 234.8C233.6 241.1 243 245.6 252.5 245.6C261.9 245.6 271.3 241.1 278.5 234.8L355.5 157.8C365.3 148.1 378.8 142.5 392.6 142.5H430.3L488.6 200.8C518.9 231.1 518.9 280.3 488.6 310.6L430.3 368.9H392.6C378.8 368.9 365.3 363.3 355.5 353.5L278.5 276.5C264.6 262.6 240.3 262.6 226.4 276.6L149.7 353.2C139.1 363 126.4 368.6 112.6 368.6H80.78L22.76 310.6C-7.586 280.3-7.586 231.1 22.76 200.8L80.78 142.7H112.6z"></path>
+    <path d="M12.012 2.502c-.255 0-.495.105-.67.28l-8.56 8.56c-.37.37-.37.97 0 1.34l8.56 8.56c.175.175.415.28.67.28s.495-.105.67-.28l8.56-8.56c.37-.37.37-.97 0-1.34l-8.56-8.56c-.175-.175-.415-.28-.67-.28zm0 2.27l7.29 7.23-7.29 7.29-7.29-7.29 7.29-7.23zm0 2.8c-.14 0-.27.05-.37.15l-4.43 4.43c-.2.2-.2.53 0 .73l4.43 4.43c.1.1.23.15.37.15s.27-.05.37-.15l4.43-4.43c.2-.2.2-.53 0-.73l-4.43-4.43c-.1-.1-.23-.15-.37-.15z" />
   </svg>
 );
 
@@ -174,8 +172,8 @@ export default function CheckoutPage() {
               <div className="rounded-xl bg-white p-6 shadow-sm border border-zinc-100">
                 <h2 className="mb-4 text-lg font-bold text-zinc-900">Pagamento</h2>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-16 w-32 flex-col items-center justify-center rounded-lg border-2 border-emerald-500 bg-emerald-50 text-emerald-600 p-2 shadow-sm">
-                    <PixIcon className="h-7 w-7 mb-1" />
+                  <div className="flex h-16 w-32 flex-col items-center justify-center rounded-lg border-2 border-emerald-500 bg-emerald-50/50 text-emerald-600 p-2 shadow-sm">
+                    <PixIcon className="h-8 w-8 mb-1" />
                     <span className="text-[10px] font-black uppercase tracking-wider">PIX</span>
                   </div>
                 </div>
