@@ -24,7 +24,8 @@ const EXCLUDED_PATHS = [
   '/portaldochefe',
   '/downsell',
   '/oferta-recusada',
-  '/upsell'
+  '/upsell',
+  '/checkout'
 ];
 
 export default function SalesNotification() {
@@ -85,7 +86,7 @@ export default function SalesNotification() {
         isVisible ? "translate-x-0" : "-translate-x-[calc(100%+2rem)]"
       )}
     >
-      <Card className="p-3 shadow-2xl bg-background/80 backdrop-blur-lg">
+      <Card className="p-3 shadow-2xl bg-background/80 backdrop-blur-lg border-primary/20">
         <div className="flex items-center gap-3">
           <div className="bg-primary/20 text-primary p-2 rounded-full">
             <CheckCircle className="h-5 w-5" />
