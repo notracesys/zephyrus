@@ -24,8 +24,7 @@ const EXCLUDED_PATHS = [
   '/portaldochefe',
   '/downsell',
   '/oferta-recusada',
-  '/upsell',
-  '/checkout'
+  '/upsell'
 ];
 
 export default function SalesNotification() {
