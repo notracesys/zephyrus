@@ -11,11 +11,11 @@ export const translations = {
     terms_title: "Liability Terms and Conditions",
     terms_desc: "Please read carefully before proceeding with your Unban request.",
     terms_body: [
-      "It is expressly recognized that the CONTRACTOR does not guarantee, promise or ensure the reversal, unblocking, recovery or re-establishment of accounts, virtual items, progress, ranks or any digital assets, since the final and sovereign decision belongs exclusively to the responsible platform (Garena).",
       "This site is intended for the provision of independent technical analysis, guidance and informational support services, exclusively focused on administrative ban appeals.",
       "The CLIENT declares unequivocal knowledge that the CONTRACTOR has no link, partnership or affiliation with Garena, and all brands mentioned are the exclusive property of their respective owners.",
       "The CONTRACTOR does not perform, under any circumstances, direct or indirect access to internal servers of the platform.",
-      "By using this site or contracting any services offered therein, the CLIENT declares to have read, understood and fully agreed to these terms."
+      "By using this site or contracting any services offered therein, the CLIENT declares to have read, understood and fully agreed to these terms.",
+      "It is expressly recognized that the CONTRACTOR does not guarantee, promise or ensure the reversal, unblocking, recovery or re-establishment of accounts, virtual items, progress, ranks or any digital assets, since the final and sovereign decision belongs exclusively to the responsible platform (Garena)."
     ],
     terms_agree: "I have read and agree to the terms and I want to proceed.",
     cancel: "Cancel",
@@ -145,11 +145,11 @@ export const translations = {
     terms_title: "Términos y Condiciones de Responsabilidade",
     terms_desc: "Por favor, lea atentamente antes de continuar con su solicitud de Desbaneo.",
     terms_body: [
-      "Se reconoce expresamente que el CONTRATADO no garantiza, promete ni asegura la reversión, desbloqueo, recuperación o restablecimiento de cuentas, ítems virtuales, progresos, rumbos o cualquier activo digital, ya que la decisión final y soberana corresponde exclusivamente a la plataforma responsable (Garena).",
       "Este sitio está destinado a la prestación de servicios independientes de análisis técnico, orientación y soporte informativo, enfocados exclusivamente en apelaciones administrativas de baneo.",
       "EL CLIENTE declara conocimiento inequívoco de que el CONTRATADO no tiene ningún vínculo, asociación o afiliación con Garena, y todas las marcas mencionadas son propiedad exclusiva de sus respectivos dueños.",
       "EL CONTRATADO no realiza, bajo ninguna circunstancia, acceso directo o indirecto a servidores internos de la plataforma.",
-      "Al utilizar este sitio o contratar cualquier servicio ofrecido en él, EL CLIENTE declara haber leído, entendido y aceptado plenamente estos términos."
+      "Al utilizar este sitio o contratar cualquier servicio ofrecido en él, EL CLIENTE declara haber leído, entendido y aceptado plenamente estos términos.",
+      "Se reconoce expresamente que el CONTRATADO no garantiza, promete ni asegura la reversión, desbloqueo, recuperación o restablecimiento de cuentas, ítems virtuales, progresos, rumbos o cualquier activo digital, ya que la decisión final y soberana corresponde exclusivamente a la plataforma responsable (Garena)."
     ],
     terms_agree: "He leído y acepto los términos y quiero continuar.",
     cancel: "Cancelar",
@@ -279,11 +279,11 @@ export const translations = {
     terms_title: "Termos e Condições de Responsabilidade",
     terms_desc: "Por favor, leia atentamente antes de prosseguir com sua solicitação de Unban.",
     terms_body: [
-      "É expressamente reconhecido que o CONTRATADO não garante, promete ou assegura a reversão, desbloqueio, recuperação ou restabelecimentos de contas, itens virtuais, progressos, patentes ou quaisquer ativos digitais, visto que a decisão final e sovereign pertence exclusivamente à plataforma responsável (Garena).",
       "Este site destina-se à prestação de serviços de análise técnica independente, orientação e suporte informativo, exclusivamente voltados para recursos administrativos de banimento.",
       "O CLIENTE declara conhecimento inequívoco de que o CONTRATADO não possui qualquer vínculo, parceria ou filiação com a Garena, sendo todas as marcas mencionadas de propriedade exclusiva de seus respectivos titulares.",
       "O CONTRATADO não realiza, sob hipótese alguma, acesso direto ou indireto a servidores internos da plataforma.",
-      "Ao utilizar este site ou contratar quaisquer serviços nele oferecidos, o CLIENTE declara ter lido, compreendido e concordado integralmente com estes termos."
+      "Ao utilizar este site ou contratar quaisquer serviços nele oferecidos, o CLIENTE declara ter lido, compreendido e concordado integralmente com estes termos.",
+      "É expressamente reconhecido que o CONTRATADO não garante, promete ou assegura a reversão, desbloqueio, recuperação ou restabelecimentos de contas, itens virtuais, progressos, patentes ou quaisquer ativos digitais, visto que a decisão final e sovereign pertence exclusivamente à plataforma responsável (Garena)."
     ],
     terms_agree: "Li e concordo com os termos e desejo prosseguir.",
     cancel: "Cancelar",
@@ -366,7 +366,7 @@ export const translations = {
     delivery_title: "ÁREA DE ACESSO",
     delivery_subtitle: "Insira o ID da sua transação recebido por e-mail.",
     delivery_placeholder: "Ex: A1B2C3D4...",
-    delivery_btn: "Liberar Acesso",
+    delivery_btn: "Liberar Aceso",
     delivery_important: "Importante: O acesso é permitido apenas uma vez. Certifique-se de estar em uma conexão estável.",
     delivery_authorized: "ACESSO LIBERADO!",
     delivery_authorized_subtitle: "Não feche esta página antes de concluir o download.",
