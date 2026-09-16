@@ -12,22 +12,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'ID do jogador é obrigatório.' }, { status: 400 });
     }
 
-    // Endpoint da Free Fire API
+    // Endpoint da Free Fire API conforme documentação
     const apiURL = `https://www.freefireapi.me/info?uid=${encodeURIComponent(uid)}&details=true`;
 
     console.log(`[FF_LOOKUP]: Consultando UID ${uid} na Free Fire API...`);
 
-    // AbortController para timeout de 15 segundos
+    // AbortController para timeout de 20 segundos
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
 
     try {
       const response = await fetch(apiURL, {
         method: 'GET',
         headers: { 
           'Accept': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-          'Cache-Control': 'no-cache'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         },
         signal: controller.signal,
       });
@@ -47,6 +48,8 @@ export async function POST(request: Request) {
       }
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[FF_LOOKUP_API_ERROR]: Status ${response.status} - ${errorText}`);
         return NextResponse.json({ 
           error: 'O servidor de dados não respondeu corretamente. Tente novamente.' 
         }, { status: response.status });

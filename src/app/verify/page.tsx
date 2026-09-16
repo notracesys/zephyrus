@@ -62,23 +62,24 @@ export default function VerifyPage() {
       throw new Error(json.error || "Não foi possível verificar a conta agora.");
     }
 
-    // A API costuma retornar os dados dentro de 'data' ou na raiz
+    // A API costuma retornar os dados diretamente na raiz ou em um objeto data
     const data = json.data || json;
 
-    if (!data || (!data.uid && !data.AccountID && !data.AccountName)) {
-      throw new Error("Conta não encontrada. Verifique o ID informado.");
-    }
-
+    // Normalização dos campos baseada na estrutura do freefireapi.me
     const normalized: PlayerData = {
-      nickname: data.name || data.AccountName || 'N/A',
-      account_id: data.uid || data.AccountID || uid,
-      level: data.level || data.AccountLevel || '?',
-      region: data.region || data.AccountRegion || 'BR',
-      guild_name: data.guild?.name || data.GuildName || null,
-      guild_role: data.guild?.role || null,
-      last_active: data.last_active || null,
+      nickname: data.name || data.nickname || data.AccountName || 'N/A',
+      account_id: data.uid || data.accountId || data.AccountID || uid,
+      level: data.level || data.level_id || data.AccountLevel || '?',
+      region: data.region || data.region_id || data.AccountRegion || 'BR',
+      guild_name: data.guild?.name || data.guild_name || null,
+      guild_role: data.guild?.role || data.guild_role || null,
+      last_active: data.last_active || data.last_login || null,
       stats: data.stats || null,
     };
+
+    if (normalized.nickname === 'N/A' && !data.uid) {
+        throw new Error("Conta não encontrada. Verifique o ID informado.");
+    }
 
     return normalized;
   }
