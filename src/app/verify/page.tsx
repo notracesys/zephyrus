@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ShieldCheck, Loader2, AlertTriangle, PartyPopper, ArrowRight, User, Trophy, Star, Globe, Shield, Users } from 'lucide-react';
+import { ShieldCheck, Loader2, PartyPopper, ArrowRight, User, Trophy, Star, Globe, Shield, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -17,8 +17,8 @@ import { toast } from '@/hooks/use-toast';
 
 const accountIdSchema = z.object({
   accountId: z.string()
-    .min(8, { message: 'O ID deve ter pelo menos 8 dígitos.' })
-    .max(12, { message: 'O ID deve ter no máximo 12 dígitos.' })
+    .min(5, { message: 'O ID deve ter pelo menos 5 dígitos.' })
+    .max(15, { message: 'O ID deve ter no máximo 15 dígitos.' })
     .regex(/^\d+$/, { message: 'Insira apenas números.' }),
 });
 
@@ -47,6 +47,40 @@ export default function VerifyPage() {
     defaultValues: { accountId: '' },
   });
 
+  /**
+   * Função para buscar e normalizar dados da conta do Free Fire.
+   * Implementada de forma isolada conforme solicitado.
+   */
+  async function buscarContaFreeFire(uid: string): Promise<PlayerData> {
+    const response = await fetch('/api/ff-lookup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Não foi possível encontrar essa conta. Verifique o ID informado.');
+    }
+
+    // Normalização dos dados baseada na estrutura da API glob-info2 (basicInfo)
+    const base = data.basicInfo || data;
+    
+    // Filtragem de campos: apenas valores válidos são extraídos
+    const normalized: PlayerData = {
+      nickname: base.nickname || base.account_name || 'N/A',
+      account_id: base.accountId || base.account_id || uid,
+      level: base.level || base.account_level || '?',
+      region: base.region || 'BR',
+      likes: base.liked || base.likes || 0,
+      rank: data.rank || data.rank_name || 'N/A',
+      guild_name: data.clan_name || (data.guildInfo?.guildName !== "null" ? data.guildInfo?.guildName : null),
+    };
+
+    return normalized;
+  }
+
   const handleVerify = async (values: AccountIdForm) => {
     if (isVerified) return;
 
@@ -54,34 +88,12 @@ export default function VerifyPage() {
     setPlayerData(null);
 
     try {
-      const response = await fetch('/api/ff-lookup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid: values.accountId }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || t.verify_error_not_found);
-      }
-
-      // Normalização robusta para lidar com diferentes versões da API
-      const normalized: PlayerData = {
-        nickname: data.nickname || data.basicInfo?.nickname || data.account_name || 'N/A',
-        account_id: data.account_id || data.basicInfo?.accountId || values.accountId,
-        level: data.level || data.basicInfo?.level || '?',
-        region: data.region || data.basicInfo?.region || 'BR',
-        likes: data.likes || data.basicInfo?.likes || 0,
-        rank: data.rank || data.rank_name || data.rank_points || 'N/A',
-        guild_name: data.guild_name || data.clan_name || (data.guildInfo?.guildName !== "null" ? data.guildInfo?.guildName : null),
-      };
-
-      setPlayerData(normalized);
+      const normalizedData = await buscarContaFreeFire(values.accountId);
+      setPlayerData(normalizedData);
       setIsVerified(true);
       toast({
         title: t.verified,
-        description: `${normalized.nickname} encontrado com sucesso.`,
+        description: `${normalizedData.nickname} encontrado com sucesso.`,
       });
     } catch (error: any) {
       toast({
@@ -143,7 +155,7 @@ export default function VerifyPage() {
                               {isVerifying ? (
                                 <div className="flex items-center gap-2">
                                   <Loader2 className="animate-spin h-4 w-4" />
-                                  <span className="hidden sm:inline">...</span>
+                                  <span className="hidden sm:inline">Verificando...</span>
                                 </div>
                               ) : isVerified ? (
                                 <ShieldCheck />
@@ -171,7 +183,7 @@ export default function VerifyPage() {
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {playerData.nickname && (
+                      {playerData.nickname && playerData.nickname !== 'N/A' && (
                         <div className="space-y-1">
                           <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" /> {t.player_nickname}</p>
                           <p className="font-black truncate">{playerData.nickname}</p>
@@ -195,13 +207,13 @@ export default function VerifyPage() {
                           <p className="font-black">{playerData.region}</p>
                         </div>
                       )}
-                      {playerData.likes && (
+                      {playerData.likes !== undefined && (
                         <div className="space-y-1">
                           <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">👍 {t.player_likes}</p>
                           <p className="font-black">{playerData.likes}</p>
                         </div>
                       )}
-                      {playerData.rank && (
+                      {playerData.rank && playerData.rank !== 'N/A' && (
                         <div className="space-y-1">
                           <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Trophy className="h-3 w-3" /> {t.player_rank}</p>
                           <p className="font-black text-primary">{playerData.rank}</p>
