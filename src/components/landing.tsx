@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -69,9 +68,9 @@ export default function Landing() {
                 size="lg"
                 className="group relative overflow-hidden h-20 w-full px-8 bg-primary hover:bg-primary/90 text-white font-black italic text-xl sm:text-2xl uppercase tracking-tighter rounded-2xl shadow-[0_10px_40px_rgba(255,0,184,0.4)] transition-all hover:scale-[1.02] active:scale-95 border-t-2 border-white/20 flex items-center justify-center gap-3"
               >
-                {/* Continuous Pink Shine Animation - Fixed overflow and color */}
+                {/* Continuous Pink Shine Animation */}
                 <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none rounded-2xl">
-                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-primary-foreground/30 to-transparent -translate-x-full animate-shine skew-x-12" />
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-shine skew-x-12" />
                 </div>
                 
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
