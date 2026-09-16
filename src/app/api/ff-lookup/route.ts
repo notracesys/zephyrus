@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 /**
  * API Route para consultar dados do Free Fire via backend.
- * Conectada à API baseada no repositório PRINCE-LKTEAM/Free-Fire-API
+ * Atua como proxy para a Free Fire API (freefireapi.me) evitando erros de CORS.
  */
 export async function POST(request: Request) {
   try {
@@ -12,14 +12,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'ID do jogador é obrigatório.' }, { status: 400 });
     }
 
-    // Endpoint da API (Render)
-    const apiURL = `https://freefireinfo-zy9l.onrender.com/api/v1/player-profile?uid=${uid}&server=BR`;
+    // Endpoint da Free Fire API
+    const apiURL = `https://www.freefireapi.me/info?uid=${encodeURIComponent(uid)}&details=true`;
 
-    console.log(`[FF_LOOKUP]: Consultando UID ${uid} na API LK TEAM...`);
+    console.log(`[FF_LOOKUP]: Consultando UID ${uid} na Free Fire API...`);
 
-    // AbortController para timeout de 20 segundos (Render pode ser lento para acordar)
+    // AbortController para timeout de 15 segundos
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
       const response = await fetch(apiURL, {
@@ -40,23 +40,19 @@ export async function POST(request: Request) {
         }, { status: 404 });
       }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`[FF_LOOKUP_API_ERROR]: Status ${response.status}`, errorText);
+      if (response.status === 429) {
         return NextResponse.json({ 
-          error: 'O servidor de dados não respondeu corretamente. Tente novamente em instantes.' 
+          error: 'Muitas verificações foram feitas. Tente novamente em instantes.' 
+        }, { status: 429 });
+      }
+
+      if (!response.ok) {
+        return NextResponse.json({ 
+          error: 'O servidor de dados não respondeu corretamente. Tente novamente.' 
         }, { status: response.status });
       }
 
       const data = await response.json();
-
-      // Verifica se a API retornou erro no corpo do JSON (padrão LK API)
-      if (data.error || data.status === 'error' || !data.basicinfo) {
-        return NextResponse.json({ 
-          error: data.message || data.error || 'Não foi possível encontrar essa conta. Verifique o ID informado.' 
-        }, { status: 404 });
-      }
-
       return NextResponse.json(data);
     } catch (e: any) {
       if (e.name === 'AbortError') {

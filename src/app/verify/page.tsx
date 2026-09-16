@@ -47,51 +47,40 @@ export default function VerifyPage() {
   });
 
   /**
-   * Busca dados da conta na Free Fire API (freefireapi.me)
+   * Busca dados da conta via nossa API interna (Proxy)
    */
   async function buscarContaFreeFire(uid: string): Promise<PlayerData> {
-    try {
-      const response = await fetch(`https://www.freefireapi.me/info?uid=${encodeURIComponent(uid)}&details=true`);
+    const response = await fetch('/api/ff-lookup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid }),
+    });
 
-      if (response.status === 404) {
-        throw new Error("Conta não encontrada. Verifique o ID informado.");
-      }
+    const json = await response.json();
 
-      if (response.status === 429) {
-        throw new Error("Muitas verificações foram feitas. Tente novamente em alguns instantes.");
-      }
-
-      if (!response.ok) {
-        throw new Error("Não foi possível verificar a conta agora. Tente novamente.");
-      }
-
-      const json = await response.json();
-      
-      // A API retorna os dados dentro de 'data'
-      const data = json.data;
-
-      if (!data || !data.uid) {
-        throw new Error("Conta não encontrada. Verifique o ID informado.");
-      }
-
-      const normalized: PlayerData = {
-        nickname: data.name || 'N/A',
-        account_id: data.uid || uid,
-        level: data.level || '?',
-        region: data.region || 'BR',
-        guild_name: data.guild?.name || null,
-        guild_role: data.guild?.role || null,
-        last_active: data.last_active || null,
-        stats: data.stats || null,
-      };
-
-      return normalized;
-    } catch (error: any) {
-      if (error.message.includes('Failed to fetch')) {
-        throw new Error("Não foi possível verificar a conta agora. Tente novamente.");
-      }
-      throw error;
+    if (!response.ok) {
+      throw new Error(json.error || "Não foi possível verificar a conta agora.");
     }
+
+    // A API costuma retornar os dados dentro de 'data' ou na raiz
+    const data = json.data || json;
+
+    if (!data || (!data.uid && !data.AccountID && !data.AccountName)) {
+      throw new Error("Conta não encontrada. Verifique o ID informado.");
+    }
+
+    const normalized: PlayerData = {
+      nickname: data.name || data.AccountName || 'N/A',
+      account_id: data.uid || data.AccountID || uid,
+      level: data.level || data.AccountLevel || '?',
+      region: data.region || data.AccountRegion || 'BR',
+      guild_name: data.guild?.name || data.GuildName || null,
+      guild_role: data.guild?.role || null,
+      last_active: data.last_active || null,
+      stats: data.stats || null,
+    };
+
+    return normalized;
   }
 
   const handleVerify = async (values: AccountIdForm) => {
