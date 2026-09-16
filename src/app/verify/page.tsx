@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -54,20 +55,33 @@ export default function VerifyPage() {
 
     try {
       const response = await fetch(`https://wzapiinfo.vercel.app/get?uid=${uid}`);
+      
+      if (!response.ok) {
+        toast({
+          variant: "destructive",
+          title: "Erro na verificação",
+          description: "Não foi possível encontrar essa conta. Verifique o ID informado.",
+        });
+        setIsVerifying(false);
+        return;
+      }
+
       const data = await response.json();
       
       // Log do resultado bruto conforme solicitado
       console.log(data);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
       // Tenta extrair o nickname da resposta (comumente 'name' ou 'nickname')
       const playerNickname = data.name || data.nickname || data.basicInfo?.name || data.basicinfo?.nickname || null;
 
       if (!playerNickname) {
-        throw new Error('Player not found');
+        toast({
+          variant: "destructive",
+          title: "Erro na verificação",
+          description: "Não foi possível encontrar essa conta. Verifique o ID informado.",
+        });
+        setIsVerifying(false);
+        return;
       }
 
       setNickname(playerNickname);
@@ -78,11 +92,10 @@ export default function VerifyPage() {
         description: "Conta localizada com sucesso.",
       });
     } catch (error: any) {
-      console.error(error);
       toast({
         variant: "destructive",
         title: "Erro na verificação",
-        description: "Não foi possível encontrar essa conta. Verifique o ID informado.",
+        description: "Não foi possível verificar a conta agora. Tente novamente.",
       });
     } finally {
       setIsVerifying(false);
