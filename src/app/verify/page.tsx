@@ -52,9 +52,6 @@ export default function VerifyPage() {
       const response = await fetch(`https://wzapiinfo.vercel.app/get?uid=${encodeURIComponent(uid)}`);
       const data = await response.json();
 
-      console.log(data);
-      console.log("Nickname:", data?.basic_info?.nickname);
-
       if (data && data.basic_info && data.basic_info.nickname) {
         setPlayerData({
           nickname: String(data.basic_info.nickname),
@@ -95,17 +92,7 @@ export default function VerifyPage() {
 
       <Header />
 
-      <main className="flex-grow container mx-auto px-4 py-12 md:py-24 flex flex-col items-center justify-start relative z-10">
-        <div className="mb-8 animate-in slide-in-from-top-4 duration-700">
-            <div className="inline-flex items-center gap-2 bg-[#ff00b8]/10 border border-[#ff00b8]/40 px-5 py-2 rounded-full backdrop-blur-md">
-                <Zap className="h-4 w-4 text-[#ff00b8] fill-[#ff00b8] animate-pulse" />
-                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-[#ff00b8]">
-                    Scanner de Servidor Ativo
-                </span>
-                <div className="h-2 w-2 rounded-full bg-[#ff00b8] animate-ping ml-1" />
-            </div>
-        </div>
-
+      <main className="flex-grow container mx-auto px-4 py-12 md:py-24 flex flex-col items-center justify-center relative z-10">
         <div className="w-full max-w-[500px] space-y-10">
           <section className="text-center space-y-4 animate-in fade-in duration-1000">
             <h1 className="font-black italic text-5xl md:text-7xl tracking-tighter uppercase leading-[0.8] drop-shadow-[0_0_15px_rgba(255,0,184,0.4)]">
