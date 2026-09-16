@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ShieldCheck, Loader2, PartyPopper, ArrowRight, User, Trophy, Star, Globe, Shield, Users } from 'lucide-react';
+import { ShieldCheck, Loader2, PartyPopper, ArrowRight, User, Trophy, Star, Globe, Shield, Users, Clock, Briefcase } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -29,9 +29,10 @@ interface PlayerData {
   account_id: string;
   level: string | number;
   region: string;
-  likes: string | number;
-  rank?: string | number;
   guild_name?: string;
+  guild_role?: string;
+  last_active?: string;
+  stats?: any;
 }
 
 export default function VerifyPage() {
@@ -46,44 +47,51 @@ export default function VerifyPage() {
   });
 
   /**
-   * Busca dados da conta normalizando os campos da LK API
+   * Busca dados da conta na Free Fire API (freefireapi.me)
    */
   async function buscarContaFreeFire(uid: string): Promise<PlayerData> {
-    const response = await fetch('/api/ff-lookup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid }),
-    });
+    try {
+      const response = await fetch(`https://www.freefireapi.me/info?uid=${encodeURIComponent(uid)}&details=true`);
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Erro ao consultar servidor de dados.');
-    }
-
-    // A LK API retorna os dados dentro de 'basicinfo'
-    const base = data.basicinfo || data.basicInfo || data;
-    
-    // Normalização agressiva para suportar variações de nomes de campos (PascalCase vs camelCase)
-    const normalized: PlayerData = {
-      nickname: base.AccountName || base.nickname || base.account_name || 'N/A',
-      account_id: base.AccountID || base.accountId || base.account_id || uid,
-      level: base.AccountLevel || base.level || base.account_level || '?',
-      region: base.AccountRegion || base.region || 'BR',
-      likes: base.AccountLikes || base.liked || base.likes || 0,
-      rank: base.RankName || base.rank_name || base.rank || 'N/A',
-      guild_name: data.guildInfo?.GuildName || data.guildInfo?.guildName || null,
-    };
-
-    // Limpeza de campos vazios ou strings "null" retornadas pela API
-    Object.keys(normalized).forEach(key => {
-      const k = key as keyof PlayerData;
-      if (normalized[k] === undefined || normalized[k] === null || normalized[k] === '' || normalized[k] === 'null') {
-        if (k !== 'likes') delete normalized[k];
+      if (response.status === 404) {
+        throw new Error("Conta não encontrada. Verifique o ID informado.");
       }
-    });
 
-    return normalized;
+      if (response.status === 429) {
+        throw new Error("Muitas verificações foram feitas. Tente novamente em alguns instantes.");
+      }
+
+      if (!response.ok) {
+        throw new Error("Não foi possível verificar a conta agora. Tente novamente.");
+      }
+
+      const json = await response.json();
+      
+      // A API retorna os dados dentro de 'data'
+      const data = json.data;
+
+      if (!data || !data.uid) {
+        throw new Error("Conta não encontrada. Verifique o ID informado.");
+      }
+
+      const normalized: PlayerData = {
+        nickname: data.name || 'N/A',
+        account_id: data.uid || uid,
+        level: data.level || '?',
+        region: data.region || 'BR',
+        guild_name: data.guild?.name || null,
+        guild_role: data.guild?.role || null,
+        last_active: data.last_active || null,
+        stats: data.stats || null,
+      };
+
+      return normalized;
+    } catch (error: any) {
+      if (error.message.includes('Failed to fetch')) {
+        throw new Error("Não foi possível verificar a conta agora. Tente novamente.");
+      }
+      throw error;
+    }
   }
 
   const handleVerify = async (values: AccountIdForm) => {
@@ -211,22 +219,22 @@ export default function VerifyPage() {
                         <p className="font-black">{playerData.region}</p>
                       </div>
                     )}
-                    {playerData.likes !== undefined && (
-                      <div className="space-y-1">
-                        <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">👍 {t.player_likes || 'Likes'}</p>
-                        <p className="font-black">{playerData.likes}</p>
-                      </div>
-                    )}
-                    {playerData.rank && (
-                      <div className="space-y-1">
-                        <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Trophy className="h-3 w-3" /> {t.player_rank || 'Patente'}</p>
-                        <p className="font-black text-primary">{playerData.rank}</p>
-                      </div>
-                    )}
                     {playerData.guild_name && (
-                      <div className="space-y-1 col-span-2">
+                      <div className="space-y-1">
                         <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> {t.player_guild || 'Guilda'}</p>
                         <p className="font-black truncate">{playerData.guild_name}</p>
+                      </div>
+                    )}
+                    {playerData.guild_role && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Briefcase className="h-3 w-3" /> Cargo</p>
+                        <p className="font-black truncate uppercase text-[11px]">{playerData.guild_role}</p>
+                      </div>
+                    )}
+                    {playerData.last_active && (
+                      <div className="space-y-1 col-span-2 md:col-span-1">
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> Última Atividade</p>
+                        <p className="font-black text-[11px] truncate">{playerData.last_active}</p>
                       </div>
                     )}
                   </div>
