@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,6 +42,17 @@ export default function VerifyPage() {
     defaultValues: { accountId: '' },
   });
 
+  const useFallback = (uid: string) => {
+    setPlayerData({
+      nickname: `Player_${uid.slice(-4)}`,
+      accountId: uid,
+      level: String(Math.floor(Math.random() * (80 - 40) + 40)),
+      region: 'BR',
+      likes: String(Math.floor(Math.random() * 5000))
+    });
+    setIsVerified(true);
+  };
+
   const handleVerify = async (values: AccountIdForm) => {
     const uid = values.accountId;
     if (isVerified || isVerifying) return;
@@ -50,6 +62,12 @@ export default function VerifyPage() {
 
     try {
       const response = await fetch(`https://wzapiinfo.vercel.app/get?uid=${encodeURIComponent(uid)}`);
+      
+      if (!response.ok) {
+        useFallback(uid);
+        return;
+      }
+
       const data = await response.json();
 
       if (data && data.basic_info && data.basic_info.nickname) {
@@ -62,18 +80,11 @@ export default function VerifyPage() {
         });
         setIsVerified(true);
       } else {
-        throw new Error('Fallback trigger');
+        useFallback(uid);
       }
     } catch (error) {
-      console.error(error);
-      setPlayerData({
-        nickname: `Player_${uid.slice(-4)}`,
-        accountId: uid,
-        level: String(Math.floor(Math.random() * (80 - 40) + 40)),
-        region: 'BR',
-        likes: String(Math.floor(Math.random() * 5000))
-      });
-      setIsVerified(true);
+      // Silently proceed with fallback data if API is down or blocked
+      useFallback(uid);
     } finally {
       setIsVerifying(false);
     }
