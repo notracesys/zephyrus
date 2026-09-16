@@ -49,7 +49,6 @@ export default function VerifyPage() {
 
   /**
    * Função para buscar e normalizar dados da conta do Free Fire.
-   * Implementada de forma isolada conforme solicitado.
    */
   async function buscarContaFreeFire(uid: string): Promise<PlayerData> {
     const response = await fetch('/api/ff-lookup', {
@@ -67,7 +66,6 @@ export default function VerifyPage() {
     // Normalização dos dados baseada na estrutura da API glob-info2 (basicInfo)
     const base = data.basicInfo || data;
     
-    // Filtragem de campos: apenas valores válidos são extraídos
     const normalized: PlayerData = {
       nickname: base.nickname || base.account_name || 'N/A',
       account_id: base.accountId || base.account_id || uid,
@@ -92,14 +90,14 @@ export default function VerifyPage() {
       setPlayerData(normalizedData);
       setIsVerified(true);
       toast({
-        title: t.verified,
-        description: `${normalizedData.nickname} encontrado com sucesso.`,
+        title: "Sucesso",
+        description: `${normalizedData.nickname} encontrado.`,
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro na verificação",
-        description: error.message || t.verify_error_not_found,
+        description: error.message,
       });
     } finally {
       setIsVerifying(false);

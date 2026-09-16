@@ -19,13 +19,27 @@ export async function POST(request: Request) {
 
     const response = await fetch(apiURL, {
       method: 'GET',
-      headers: { 'Accept': 'application/json' },
+      headers: { 
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Origin': 'https://glob-info2.vercel.app',
+        'Referer': 'https://glob-info2.vercel.app/'
+      },
       cache: 'no-store'
     });
 
+    // Se o status for 404 ou 400, provavelmente o UID é inválido
+    if (response.status === 404 || response.status === 400) {
+      return NextResponse.json({ 
+        error: 'Não foi possível encontrar essa conta. Verifique o ID informado.' 
+      }, { status: 404 });
+    }
+
     if (!response.ok) {
-        // Se a primeira API falhar, poderíamos adicionar um fallback aqui no futuro
-        return NextResponse.json({ error: 'Erro na resposta do servidor de dados.' }, { status: response.status });
+        console.error(`[FF_LOOKUP_API_ERROR]: Status ${response.status} retornado pela API externa.`);
+        return NextResponse.json({ 
+          error: 'O servidor de dados está instável no momento. Tente novamente em instantes.' 
+        }, { status: response.status });
     }
 
     const data = await response.json();
