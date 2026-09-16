@@ -1,90 +1,105 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ShieldCheck, Loader2, AlertTriangle, PartyPopper, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Loader2, AlertTriangle, PartyPopper, ArrowRight, User, Trophy, Star, Globe, Shield, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { cn } from '@/lib/utils';
 import Header from '@/components/header';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n';
+import { toast } from '@/hooks/use-toast';
 
 const accountIdSchema = z.object({
   accountId: z.string()
-    .min(8)
-    .max(12)
-    .regex(/^\d+$/),
+    .min(8, { message: 'O ID deve ter pelo menos 8 dígitos.' })
+    .max(12, { message: 'O ID deve ter no máximo 12 dígitos.' })
+    .regex(/^\d+$/, { message: 'Insira apenas números.' }),
 });
 
 type AccountIdForm = z.infer<typeof accountIdSchema>;
+
+interface PlayerData {
+  nickname: string;
+  account_id: string;
+  level: string | number;
+  region: string;
+  likes: string | number;
+  rank?: string | number;
+  rank_points?: string | number;
+  guild_name?: string;
+  avatar_url?: string;
+}
 
 export default function VerifyPage() {
   const { t } = useLanguage();
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const [showDialog, setShowDialog] = useState(false);
-  const [dialogContent, setDialogContent] = useState({ title: '', description: '', isError: true });
+  const [playerData, setPlayerData] = useState<PlayerData | null>(null);
 
   const form = useForm<AccountIdForm>({
     resolver: zodResolver(accountIdSchema),
     defaultValues: { accountId: '' },
   });
 
-  const handleVerify = (values: AccountIdForm) => {
+  const handleVerify = async (values: AccountIdForm) => {
     if (isVerified) return;
 
     setIsVerifying(true);
-    setTimeout(() => {
-      setIsVerifying(false);
+    setPlayerData(null);
+
+    try {
+      const response = await fetch('/api/ff-lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: values.accountId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || t.verify_error_not_found);
+      }
+
+      // Normaliza os dados da API (cada API retorna de um jeito, aqui tentamos ser flexíveis)
+      const normalized: PlayerData = {
+        nickname: data.nickname || data.account_name || 'N/A',
+        account_id: data.account_id || values.accountId,
+        level: data.level || data.account_level || '?',
+        region: data.region || data.account_region || 'BR',
+        likes: data.likes || data.account_likes || 0,
+        rank: data.rank || data.account_rank || data.rank_points,
+        guild_name: data.guild_name || data.clan_name,
+      };
+
+      setPlayerData(normalized);
       setIsVerified(true);
-    }, 1500);
+      toast({
+        title: t.verified,
+        description: `${normalized.nickname} encontrado com sucesso.`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro na verificação",
+        description: error.message || t.verify_error_not_found,
+      });
+    } finally {
+      setIsVerifying(false);
+    }
   };
-  
-  const onDialogClose = () => {
-    setShowDialog(false);
-  }
 
   return (
     <>
       <div className="flex min-h-full flex-col">
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8 md:py-16 flex flex-col items-center justify-center">
-          <AlertDialog open={showDialog} onOpenChange={setShowDialog}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle className="flex items-center gap-2 justify-center">
-                  {dialogContent.isError ? 
-                    <AlertTriangle className="text-destructive" /> : 
-                    <PartyPopper className="text-primary" />
-                  }
-                  {dialogContent.title}
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  {dialogContent.description}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogAction onClick={onDialogClose} className="bg-primary hover:bg-primary/90">
-                  {t.proceed}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-
           <div className="w-full max-w-2xl space-y-8 animate-in fade-in-50 duration-1000">
             <section className="text-center">
               <h1 className="font-headline text-3xl md:text-4xl font-bold">{t.verify_title}</h1>
@@ -121,13 +136,16 @@ export default function VerifyPage() {
                             <Button 
                               type="submit" 
                               className={cn(
-                                "px-8 font-bold",
+                                "px-8 font-bold min-w-[120px]",
                                 isVerified && "bg-green-500 hover:bg-green-600"
                               )}
                               disabled={isVerifying || isVerified}
                             >
                               {isVerifying ? (
-                                <Loader2 className="animate-spin" />
+                                <div className="flex items-center gap-2">
+                                  <Loader2 className="animate-spin h-4 w-4" />
+                                  <span className="hidden sm:inline">...</span>
+                                </div>
                               ) : isVerified ? (
                                 <ShieldCheck />
                               ) : t.verify_btn}
@@ -142,21 +160,74 @@ export default function VerifyPage() {
               </CardContent>
             </Card>
 
-            {isVerified && (
-              <Card className="w-full animate-in fade-in-50 duration-1000">
-                <CardHeader>
-                    <CardTitle>{t.verified}!</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 text-center">
-                    <p className="text-muted-foreground mb-4">{t.proceed}</p>
-                    <Button asChild size="lg" className="font-bold bg-primary hover:bg-primary/90 text-primary-foreground">
+            {isVerified && playerData && (
+              <div className="space-y-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-1000">
+                <Card className="w-full border-green-500/20 bg-green-500/5">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-xl font-bold flex items-center gap-2">
+                      <PartyPopper className="text-green-500" />
+                      {t.verified}!
+                    </CardTitle>
+                    <div className="bg-green-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase">ONLINE</div>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {playerData.nickname && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" /> {t.player_nickname}</p>
+                          <p className="font-black truncate">{playerData.nickname}</p>
+                        </div>
+                      )}
+                      {playerData.account_id && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Shield className="h-3 w-3" /> UID</p>
+                          <p className="font-mono text-sm">{playerData.account_id}</p>
+                        </div>
+                      )}
+                      {playerData.level && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3" /> {t.player_level}</p>
+                          <p className="font-black">Lvl {playerData.level}</p>
+                        </div>
+                      )}
+                      {playerData.region && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Globe className="h-3 w-3" /> {t.player_region}</p>
+                          <p className="font-black">{playerData.region}</p>
+                        </div>
+                      )}
+                      {playerData.likes && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">👍 {t.player_likes}</p>
+                          <p className="font-black">{playerData.likes}</p>
+                        </div>
+                      )}
+                      {playerData.rank && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Trophy className="h-3 w-3" /> {t.player_rank}</p>
+                          <p className="font-black text-primary">{playerData.rank}</p>
+                        </div>
+                      )}
+                      {playerData.guild_name && (
+                        <div className="space-y-1 col-span-2">
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> {t.player_guild}</p>
+                          <p className="font-black truncate">{playerData.guild_name}</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="flex flex-col items-center">
+                    <p className="text-muted-foreground mb-4 text-center">{t.proceed}</p>
+                    <Button asChild size="lg" className="w-full md:w-auto font-bold bg-primary hover:bg-primary/90 text-primary-foreground h-14 px-12">
                        <Link href="/analysis">
                            {t.proceed}
                            <ArrowRight className="ml-2 h-5 w-5" />
                        </Link>
                     </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
           </div>
         </main>
