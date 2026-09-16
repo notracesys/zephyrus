@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -126,7 +125,7 @@ export default function Landing() {
                 </DialogClose>
                 <Button 
                   onClick={handleProceed} 
-                  disabled={ Agendado = !agreed } 
+                  disabled={!agreed} 
                   className={cn(
                     "w-full font-black italic uppercase tracking-tighter text-lg bg-primary hover:bg-primary/90 text-white px-8 rounded-xl h-12 flex items-center justify-center gap-2", 
                     !agreed && "opacity-50"
