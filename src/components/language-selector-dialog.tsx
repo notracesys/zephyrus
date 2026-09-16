@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Language } from '@/lib/i18n';
 import { usePathname } from 'next/navigation';
 import { Globe, ShieldCheck, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Bandeiras em SVG compactas
 const BRFlag = () => (
   <svg viewBox="0 0 720 504" xmlns="http://www.w3.org/2000/svg" className="w-full h-full rounded-sm">
     <path fill="#009b3a" d="M0 0h720v504H0z"/><path fill="#fedf00" d="m360 54 306 198-306 198L54 252z"/><circle fill="#002776" cx="360" cy="252" r="108"/><path fill="#fff" d="M256.7 274.5c34.8-13 74.5-20.2 116.3-20.2 36 0 70.4 5.3 101.5 15.1l-1.4-17c-30.8-10.4-65.4-16.1-102.1-16.1-42.5 0-83 7.6-118.4 21.1z"/>
@@ -66,18 +66,20 @@ export default function LanguageSelectorDialog() {
         onPointerDownOutside={(e) => e.preventDefault()} 
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        {/* Background Gradient Effect */}
+        <div className="sr-only">
+          <DialogTitle>Language Selection / Seleção de Idioma</DialogTitle>
+          <DialogDescription>Please select your preferred language to customize the system interface.</DialogDescription>
+        </div>
+
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
         
         <div className="relative z-10 p-8 flex flex-col items-start gap-6">
           
-          {/* SETUP Badge */}
           <div className="flex items-center gap-2">
             <div className="w-6 h-[2px] bg-primary" />
             <span className="text-[10px] font-black tracking-[0.3em] text-zinc-500 uppercase">Setup</span>
           </div>
 
-          {/* Header Section */}
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-xl border border-primary/30 bg-zinc-900/50 flex items-center justify-center shadow-[0_0_15px_rgba(255,0,184,0.2)]">
               <Globe className="w-7 h-7 text-primary" />
@@ -92,7 +94,6 @@ export default function LanguageSelectorDialog() {
             Choose your preferred language to start.
           </p>
 
-          {/* Options List */}
           <div className="w-full flex flex-col gap-3 mt-2">
             {[
               { id: 'pt' as Language, label: 'Português', sub: 'BRASIL / PORTUGAL', flag: <BRFlag />, selected: true },
@@ -109,12 +110,10 @@ export default function LanguageSelectorDialog() {
                     : "border-zinc-800 hover:border-zinc-700"
                 )}
               >
-                {/* Flag Icon Box */}
                 <div className="w-12 h-12 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center p-2.5 shadow-inner">
                   {item.flag}
                 </div>
 
-                {/* Text Content */}
                 <div className="flex flex-col items-start ml-4 flex-grow leading-tight">
                   <span className="text-base font-black text-white">{item.label}</span>
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-1">
@@ -122,7 +121,6 @@ export default function LanguageSelectorDialog() {
                   </span>
                 </div>
 
-                {/* Selection Circle */}
                 <div className={cn(
                   "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors",
                   item.selected 
@@ -135,7 +133,6 @@ export default function LanguageSelectorDialog() {
             ))}
           </div>
 
-          {/* Footer Section */}
           <div className="w-full pt-6 flex items-center justify-center gap-4">
             <div className="w-10 h-10 rounded-lg border border-primary/30 bg-zinc-900/50 flex items-center justify-center">
               <ShieldCheck className="w-5 h-5 text-primary" />
@@ -148,7 +145,6 @@ export default function LanguageSelectorDialog() {
 
         </div>
         
-        {/* Decorative Bottom Mesh/Texture could be added via CSS if needed */}
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-primary/10 to-transparent pointer-events-none" />
       </DialogContent>
     </Dialog>
