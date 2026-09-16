@@ -1,4 +1,3 @@
-
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -67,15 +66,15 @@ export default function VerifyPage() {
         throw new Error(data.error || t.verify_error_not_found);
       }
 
-      // Normaliza os dados da API (cada API retorna de um jeito, aqui tentamos ser flexíveis)
+      // Normalização robusta para lidar com diferentes versões da API
       const normalized: PlayerData = {
-        nickname: data.nickname || data.account_name || 'N/A',
-        account_id: data.account_id || values.accountId,
-        level: data.level || data.account_level || '?',
-        region: data.region || data.account_region || 'BR',
-        likes: data.likes || data.account_likes || 0,
-        rank: data.rank || data.account_rank || data.rank_points,
-        guild_name: data.guild_name || data.clan_name,
+        nickname: data.nickname || data.basicInfo?.nickname || data.account_name || 'N/A',
+        account_id: data.account_id || data.basicInfo?.accountId || values.accountId,
+        level: data.level || data.basicInfo?.level || '?',
+        region: data.region || data.basicInfo?.region || 'BR',
+        likes: data.likes || data.basicInfo?.likes || 0,
+        rank: data.rank || data.rank_name || data.rank_points || 'N/A',
+        guild_name: data.guild_name || data.clan_name || (data.guildInfo?.guildName !== "null" ? data.guildInfo?.guildName : null),
       };
 
       setPlayerData(normalized);
@@ -168,7 +167,7 @@ export default function VerifyPage() {
                       <PartyPopper className="text-green-500" />
                       {t.verified}!
                     </CardTitle>
-                    <div className="bg-green-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase">ONLINE</div>
+                    <div className="bg-green-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase">CONTA ATIVA</div>
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -187,7 +186,7 @@ export default function VerifyPage() {
                       {playerData.level && (
                         <div className="space-y-1">
                           <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3" /> {t.player_level}</p>
-                          <p className="font-black">Lvl {playerData.level}</p>
+                          <p className="font-black">Nível {playerData.level}</p>
                         </div>
                       )}
                       {playerData.region && (
