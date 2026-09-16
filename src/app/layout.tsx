@@ -1,7 +1,7 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import SalesNotification from '@/components/sales-notification';
 import Script from 'next/script';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { VisitTracker } from '@/components/visit-tracker';
@@ -82,7 +82,6 @@ export default function RootLayout({
               <LanguageSelectorDialog />
               {children}
               <Toaster />
-              <SalesNotification />
             </ConfigProvider>
           </FirebaseClientProvider>
       </body>

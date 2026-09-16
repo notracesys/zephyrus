@@ -1,7 +1,7 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
 import { CheckCircle } from 'lucide-react';
 import { names } from '@/lib/names';
 import { cn } from '@/lib/utils';
@@ -18,28 +18,18 @@ const timeDescriptions = [
   'adquiriu há 1 hora.',
 ];
 
-const EXCLUDED_PATHS = [
-  '/chat',
-  '/creator-studio-xyz',
-  '/portaldochefe',
-  '/downsell',
-  '/oferta-recusada',
-  '/upsell'
-];
-
 export default function SalesNotification() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentName, setCurrentName] = useState('');
   const [currentTimeText, setCurrentTimeText] = useState('');
   const [isMounted, setIsMounted] = useState(false);
-  const pathname = usePathname();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!isMounted || EXCLUDED_PATHS.includes(pathname)) {
+    if (!isMounted) {
       return;
     }
 
@@ -68,20 +58,16 @@ export default function SalesNotification() {
       clearTimeout(initialTimeout);
       clearInterval(interval);
     };
-  }, [isMounted, pathname]);
+  }, [isMounted]);
 
   if (!isMounted) {
     return null;
-  }
-  
-  if (EXCLUDED_PATHS.includes(pathname)) {
-      return null;
   }
 
   return (
     <div
       className={cn(
-        "fixed top-20 left-4 z-50 w-full max-w-[280px] transition-transform duration-500 ease-in-out",
+        "fixed top-20 left-4 z-[9999] w-full max-w-[280px] transition-transform duration-500 ease-in-out",
         isVisible ? "translate-x-0" : "-translate-x-[calc(100%+2rem)]"
       )}
     >
