@@ -1,4 +1,3 @@
-
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,11 +24,19 @@ const accountIdSchema = z.object({
 
 type AccountIdForm = z.infer<typeof accountIdSchema>;
 
+interface PlayerData {
+  nickname: string;
+  accountId: string | number;
+  level: string | number;
+  region: string;
+  likes: string | number;
+}
+
 export default function VerifyPage() {
   const { t } = useLanguage();
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const [nickname, setNickname] = useState<string | null>(null);
+  const [playerData, setPlayerData] = useState<PlayerData | null>(null);
 
   const form = useForm<AccountIdForm>({
     resolver: zodResolver(accountIdSchema),
@@ -51,10 +58,10 @@ export default function VerifyPage() {
     if (isVerified || isVerifying) return;
 
     setIsVerifying(true);
-    setNickname(null);
+    setPlayerData(null);
 
     try {
-      const response = await fetch(`https://wzapiinfo.vercel.app/get?uid=${uid}`);
+      const response = await fetch(`https://wzapiinfo.vercel.app/get?uid=${encodeURIComponent(uid)}`);
       
       if (!response.ok) {
         toast({
@@ -68,13 +75,14 @@ export default function VerifyPage() {
 
       const data = await response.json();
       
-      // Log do resultado bruto conforme solicitado
       console.log(data);
+      if (data && data.basic_info) {
+        console.log("Nickname:", data.basic_info.nickname);
+      }
 
-      // Tenta extrair o nickname da resposta (comumente 'name' ou 'nickname')
-      const playerNickname = data.name || data.nickname || data.basicInfo?.name || data.basicinfo?.nickname || null;
+      const basicInfo = data?.basic_info;
 
-      if (!playerNickname) {
+      if (!basicInfo || !basicInfo.nickname) {
         toast({
           variant: "destructive",
           title: "Erro na verificação",
@@ -84,7 +92,13 @@ export default function VerifyPage() {
         return;
       }
 
-      setNickname(playerNickname);
+      setPlayerData({
+        nickname: basicInfo.nickname,
+        accountId: basicInfo.account_id || uid,
+        level: basicInfo.level || 0,
+        region: basicInfo.region || 'BR',
+        likes: basicInfo.liked || 0
+      });
       setIsVerified(true);
       
       toast({
@@ -92,6 +106,7 @@ export default function VerifyPage() {
         description: "Conta localizada com sucesso.",
       });
     } catch (error: any) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Erro na verificação",
@@ -166,7 +181,7 @@ export default function VerifyPage() {
             </CardContent>
           </Card>
 
-          {isVerified && nickname && (
+          {isVerified && playerData && (
             <div className="space-y-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-1000">
               <Card className="w-full border-green-500/20 bg-green-50/5 dark:bg-green-950/5">
                 <CardContent className="p-8 text-center space-y-4">
@@ -175,12 +190,21 @@ export default function VerifyPage() {
                     <span className="text-xl font-black uppercase tracking-tighter">Conta Encontrada</span>
                   </div>
                   
-                  <div className="space-y-1">
-                    <p className="text-xs uppercase font-bold text-muted-foreground flex items-center justify-center gap-1">
-                      <User className="h-3 w-3" /> Nickname
+                  <div className="space-y-2 max-w-sm mx-auto text-left border-t pt-4">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      <span className="font-bold text-foreground">Nickname:</span> {playerData.nickname}
                     </p>
-                    <p className="text-3xl font-black italic text-foreground tracking-tighter">
-                      {nickname}
+                    <p className="text-sm font-medium text-muted-foreground">
+                      <span className="font-bold text-foreground">ID:</span> {playerData.accountId}
+                    </p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      <span className="font-bold text-foreground">Nível:</span> {playerData.level}
+                    </p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      <span className="font-bold text-foreground">Região:</span> {playerData.region}
+                    </p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      <span className="font-bold text-foreground">Likes:</span> {playerData.likes}
                     </p>
                   </div>
                 </CardContent>
