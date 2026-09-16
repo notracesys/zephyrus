@@ -49,6 +49,7 @@ export default function VerifyPage() {
 
   /**
    * Função para buscar e normalizar dados da conta do Free Fire.
+   * Conecta-se ao endpoint da API via proxy do backend.
    */
   async function buscarContaFreeFire(uid: string): Promise<PlayerData> {
     const response = await fetch('/api/ff-lookup', {
@@ -63,24 +64,42 @@ export default function VerifyPage() {
       throw new Error(data.error || 'Não foi possível encontrar essa conta. Verifique o ID informado.');
     }
 
-    // Normalização dos dados baseada na estrutura da API glob-info2 (basicInfo)
-    const base = data.basicInfo || data;
+    // Normalização dos dados baseada na estrutura da API freefireinfo (Render)
+    // Tenta encontrar o objeto de informações básicas independente do nome (basicinfo, accountInfo, etc)
+    const base = data.basicinfo || data.basicInfo || data.accountInfo || data.data?.accountInfo || data;
     
     const normalized: PlayerData = {
-      nickname: base.nickname || base.account_name || 'N/A',
-      account_id: base.accountId || base.account_id || uid,
-      level: base.level || base.account_level || '?',
-      region: base.region || 'BR',
-      likes: base.liked || base.likes || 0,
-      rank: data.rank || data.rank_name || 'N/A',
-      guild_name: data.clan_name || (data.guildInfo?.guildName !== "null" ? data.guildInfo?.guildName : null),
+      nickname: base.nickname || base.account_name || base.AccountName || 'N/A',
+      account_id: base.accountId || base.account_id || base.AccountID || uid,
+      level: base.level || base.account_level || base.AccountLevel || '?',
+      region: base.region || base.AccountRegion || 'BR',
+      likes: base.liked || base.likes || base.AccountLikes || 0,
+      rank: data.rank || base.rank_name || base.RankName || 'N/A',
+      guild_name: data.clan_name || (data.guildInfo?.guildName && data.guildInfo.guildName !== "null" ? data.guildInfo.guildName : null),
     };
+
+    // Remove campos que não possuem valor real
+    Object.keys(normalized).forEach(key => {
+      const k = key as keyof PlayerData;
+      if (normalized[k] === undefined || normalized[k] === null || normalized[k] === '' || normalized[k] === 'null') {
+        delete normalized[k];
+      }
+    });
 
     return normalized;
   }
 
   const handleVerify = async (values: AccountIdForm) => {
-    if (isVerified) return;
+    if (isVerified || isVerifying) return;
+
+    if (!values.accountId) {
+      toast({
+        variant: "destructive",
+        title: "Atenção",
+        description: "Digite um ID válido.",
+      });
+      return;
+    }
 
     setIsVerifying(true);
     setPlayerData(null);
@@ -91,7 +110,7 @@ export default function VerifyPage() {
       setIsVerified(true);
       toast({
         title: "Sucesso",
-        description: `${normalizedData.nickname} encontrado.`,
+        description: `${normalizedData.nickname} encontrado com sucesso.`,
       });
     } catch (error: any) {
       toast({
@@ -145,7 +164,7 @@ export default function VerifyPage() {
                             <Button 
                               type="submit" 
                               className={cn(
-                                "px-8 font-bold min-w-[120px]",
+                                "px-8 font-bold min-w-[140px]",
                                 isVerified && "bg-green-500 hover:bg-green-600"
                               )}
                               disabled={isVerifying || isVerified}
@@ -153,11 +172,11 @@ export default function VerifyPage() {
                               {isVerifying ? (
                                 <div className="flex items-center gap-2">
                                   <Loader2 className="animate-spin h-4 w-4" />
-                                  <span className="hidden sm:inline">Verificando...</span>
+                                  <span>{t.verifying || 'Verificando...'}</span>
                                 </div>
                               ) : isVerified ? (
                                 <ShieldCheck />
-                              ) : t.verify_btn}
+                              ) : (t.verify_btn || 'Verificar')}
                             </Button>
                           </div>
                           <FormMessage />
@@ -175,15 +194,15 @@ export default function VerifyPage() {
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-xl font-bold flex items-center gap-2">
                       <PartyPopper className="text-green-500" />
-                      {t.verified}!
+                      {t.verified || 'Conta Encontrada'}!
                     </CardTitle>
                     <div className="bg-green-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase">CONTA ATIVA</div>
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {playerData.nickname && playerData.nickname !== 'N/A' && (
+                      {playerData.nickname && (
                         <div className="space-y-1">
-                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" /> {t.player_nickname}</p>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" /> {t.player_nickname || 'Nickname'}</p>
                           <p className="font-black truncate">{playerData.nickname}</p>
                         </div>
                       )}
@@ -195,31 +214,31 @@ export default function VerifyPage() {
                       )}
                       {playerData.level && (
                         <div className="space-y-1">
-                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3" /> {t.player_level}</p>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3" /> {t.player_level || 'Nível'}</p>
                           <p className="font-black">Nível {playerData.level}</p>
                         </div>
                       )}
                       {playerData.region && (
                         <div className="space-y-1">
-                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Globe className="h-3 w-3" /> {t.player_region}</p>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Globe className="h-3 w-3" /> {t.player_region || 'Região'}</p>
                           <p className="font-black">{playerData.region}</p>
                         </div>
                       )}
                       {playerData.likes !== undefined && (
                         <div className="space-y-1">
-                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">👍 {t.player_likes}</p>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">👍 {t.player_likes || 'Likes'}</p>
                           <p className="font-black">{playerData.likes}</p>
                         </div>
                       )}
-                      {playerData.rank && playerData.rank !== 'N/A' && (
+                      {playerData.rank && (
                         <div className="space-y-1">
-                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Trophy className="h-3 w-3" /> {t.player_rank}</p>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Trophy className="h-3 w-3" /> {t.player_rank || 'Patente'}</p>
                           <p className="font-black text-primary">{playerData.rank}</p>
                         </div>
                       )}
                       {playerData.guild_name && (
                         <div className="space-y-1 col-span-2">
-                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> {t.player_guild}</p>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> {t.player_guild || 'Guilda'}</p>
                           <p className="font-black truncate">{playerData.guild_name}</p>
                         </div>
                       )}
@@ -228,10 +247,10 @@ export default function VerifyPage() {
                 </Card>
 
                 <div className="flex flex-col items-center">
-                    <p className="text-muted-foreground mb-4 text-center">{t.proceed}</p>
+                    <p className="text-muted-foreground mb-4 text-center">{t.proceed || 'Prossiga para a análise técnica'}</p>
                     <Button asChild size="lg" className="w-full md:w-auto font-bold bg-primary hover:bg-primary/90 text-primary-foreground h-14 px-12">
                        <Link href="/analysis">
-                           {t.proceed}
+                           {t.proceed || 'Prosseguir'}
                            <ArrowRight className="ml-2 h-5 w-5" />
                        </Link>
                     </Button>
