@@ -25,10 +25,10 @@ const accountIdSchema = z.object({
 type AccountIdForm = z.infer<typeof accountIdSchema>;
 
 interface PlayerData {
-  nickname: string;
-  account_id: string;
-  level: string | number;
-  region: string;
+  nickname?: string;
+  account_id?: string;
+  level?: string | number;
+  region?: string;
   guild_name?: string | null;
   guild_role?: string | null;
   last_active?: string | null;
@@ -48,32 +48,67 @@ export default function VerifyPage() {
   });
 
   async function buscarContaFreeFire(uid: string): Promise<PlayerData> {
-    const response = await fetch('/api/ff-lookup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid }),
-    });
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 20000); // 20 segundos de timeout
 
-    const json = await response.json();
+    try {
+      const response = await fetch(`https://wzapiinfo.vercel.app/get?uid=${encodeURIComponent(uid)}`, {
+        method: 'GET',
+        signal: controller.signal,
+      });
 
-    if (!response.ok) {
-      throw new Error(json.error || "Não foi possível verificar a conta agora. Tente novamente.");
+      clearTimeout(id);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('NOT_FOUND');
+        }
+        throw new Error('API_ERROR');
+      }
+
+      const json = await response.json();
+      
+      // Se a resposta vier vazia ou sem identificadores válidos primários
+      if (!json || (!json.name && !json.uid && !json.basicInfo && !json.basicinfo && !json.AccountName)) {
+        throw new Error('NOT_FOUND');
+      }
+
+      // Normalização robusta inspecionando múltiplas variações comuns em APIs de Free Fire
+      const basic = json.basicInfo || json.basicinfo || json;
+      
+      const nickname = basic.name || basic.nickname || basic.AccountName || json.name || null;
+      const account_id = basic.uid || basic.accountId || basic.AccountID || json.uid || uid;
+      const level = basic.level || basic.AccountLevel || json.level || null;
+      const region = basic.region || json.region || null;
+      
+      const guild = json.guild || basic.guild || null;
+      const guild_name = guild?.name || guild?.GuildName || null;
+      const guild_role = guild?.role || guild?.GuildRole || null;
+      
+      const stats = json.stats || basic.stats || null;
+      const kills = stats?.kills || null;
+      const win_rate = stats?.win_rate || null;
+      const last_active = json.last_active || basic.last_active || null;
+
+      return {
+        nickname: nickname || undefined,
+        account_id: String(account_id),
+        level: level || undefined,
+        region: region || undefined,
+        guild_name: guild_name || null,
+        guild_role: guild_role || null,
+        last_active: last_active || null,
+        kills: kills || null,
+        win_rate: win_rate || null
+      };
+
+    } catch (error: any) {
+      clearTimeout(id);
+      if (error.name === 'AbortError') {
+        throw new Error('TIMEOUT');
+      }
+      throw error;
     }
-
-    // Mapeamento baseado exatamente no JSON documentado da freefireapi.me
-    const normalized: PlayerData = {
-      nickname: json.name || 'N/A',
-      account_id: json.uid || uid,
-      level: json.level || '?',
-      region: json.region || 'BR',
-      guild_name: json.guild?.name || null,
-      guild_role: json.guild?.role || null,
-      last_active: json.last_active || null,
-      kills: json.stats?.kills || null,
-      win_rate: json.stats?.win_rate || null
-    };
-
-    return normalized;
   }
 
   const handleVerify = async (values: AccountIdForm) => {
@@ -100,11 +135,19 @@ export default function VerifyPage() {
         description: "Conta localizada com sucesso.",
       });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro na verificação",
-        description: error.message,
-      });
+      if (error.message === 'NOT_FOUND') {
+        toast({
+          variant: "destructive",
+          title: "Erro na verificação",
+          description: "Não foi possível encontrar essa conta. Verifique o ID informado.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erro na verificação",
+          description: "Não foi possível verificar a conta agora. Tente novamente.",
+        });
+      }
     } finally {
       setIsVerifying(false);
     }
@@ -186,7 +229,7 @@ export default function VerifyPage() {
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {playerData.nickname && playerData.nickname !== 'N/A' && (
+                    {playerData.nickname && (
                       <div className="space-y-1">
                         <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" /> Nickname</p>
                         <p className="font-black truncate">{playerData.nickname}</p>
