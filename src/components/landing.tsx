@@ -35,21 +35,17 @@ export default function Landing() {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-[calc(100vh-6rem)] px-4 py-4 text-center overflow-x-hidden bg-black w-full">
+    <div className="relative flex flex-col items-center justify-center px-4 py-2 text-center bg-black w-full overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[300px] sm:w-[800px] h-[400px] bg-primary/10 blur-[100px] rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] sm:w-[800px] h-[400px] bg-primary/10 blur-[100px] rounded-full" />
         <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-primary/5 to-transparent" />
-        
-        {/* Floating Sparks */}
-        <div className="absolute top-[20%] right-[15%] w-1.5 h-1.5 bg-primary rounded-full blur-sm animate-pulse" />
-        <div className="absolute bottom-[30%] left-[10%] w-1 h-1 bg-primary rounded-full blur-[1px] animate-bounce" />
       </div>
 
-      <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center gap-8 sm:gap-12">
+      <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center gap-6 sm:gap-10 -mt-10">
         {/* Title Section */}
         <div className="space-y-4 animate-in fade-in zoom-in-95 duration-1000">
-          <h1 className="font-black italic text-[2.8rem] sm:text-6xl md:text-7xl tracking-tighter uppercase leading-[0.85] text-white break-words">
+          <h1 className="font-black italic text-[2.6rem] sm:text-6xl md:text-7xl tracking-tighter uppercase leading-[0.85] text-white break-words">
             Sua conta foi <br />
             <span className="text-white">Banida?</span> <br />
             <span className="text-white opacity-90 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">Ainda dá tempo.</span>
@@ -59,7 +55,7 @@ export default function Landing() {
             <p className="text-lg sm:text-2xl font-black italic text-white uppercase tracking-tight">
               Quem demora, perde chances.
             </p>
-            <p className="text-[13px] sm:text-base text-zinc-400 font-medium leading-tight max-w-[280px] sm:max-w-md mx-auto">
+            <p className="text-[12px] sm:text-base text-zinc-400 font-medium leading-tight max-w-[280px] sm:max-w-md mx-auto">
               Nossa análise mostra o caminho certo antes que seja tarde.
             </p>
           </div>
@@ -73,8 +69,10 @@ export default function Landing() {
                 size="lg"
                 className="group relative overflow-hidden h-20 w-full px-8 bg-primary hover:bg-primary/90 text-white font-black italic text-xl sm:text-2xl uppercase tracking-tighter rounded-2xl shadow-[0_10px_40px_rgba(255,0,184,0.4)] transition-all hover:scale-[1.02] active:scale-95 border-t-2 border-white/20 flex items-center justify-center gap-3"
               >
-                {/* Continuous Pink Shine Animation */}
-                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-shine skew-x-12 pointer-events-none" />
+                {/* Continuous Pink Shine Animation - Fixed overflow and color */}
+                <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none rounded-2xl">
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-primary-foreground/30 to-transparent -translate-x-full animate-shine skew-x-12" />
+                </div>
                 
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   {config.ctaText || t.cta}
@@ -132,9 +130,6 @@ export default function Landing() {
           </Dialog>
         </div>
       </div>
-
-      {/* Footer Bar */}
-      <div className="fixed bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-primary to-transparent opacity-60 shadow-[0_0_20px_rgba(255,0,184,0.8)] z-40" />
     </div>
   );
 }
