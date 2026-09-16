@@ -41,7 +41,7 @@ export default function Landing() {
         <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-primary/5 to-transparent" />
       </div>
 
-      <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center gap-6 sm:gap-10 -mt-10">
+      <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center gap-6 sm:gap-10">
         {/* Title Section */}
         <div className="space-y-4 animate-in fade-in zoom-in-95 duration-1000">
           <h1 className="font-black italic text-[2.6rem] sm:text-6xl md:text-7xl tracking-tighter uppercase leading-[0.85] text-white break-words">
