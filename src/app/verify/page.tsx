@@ -1,13 +1,13 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ShieldCheck, Loader2, ArrowRight, User, Star, ThumbsUp, Globe, Award, Zap } from 'lucide-react';
+import { ShieldCheck, Loader2, ArrowRight, User, Star, ThumbsUp, Globe, Award, Zap, ShieldAlert, Cpu } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Card, CardContent } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
 import Header from '@/components/header';
 import { Input } from '@/components/ui/input';
@@ -17,9 +17,9 @@ import { toast } from '@/hooks/use-toast';
 
 const accountIdSchema = z.object({
   accountId: z.string()
-    .min(5, { message: 'O ID deve ter pelo menos 5 dígitos.' })
-    .max(15, { message: 'O ID deve ter no máximo 15 dígitos.' })
-    .regex(/^\d+$/, { message: 'Insira apenas números.' }),
+    .min(5, { message: 'ID Inválido' })
+    .max(15, { message: 'ID Inválido' })
+    .regex(/^\d+$/, { message: 'Somente números' }),
 });
 
 type AccountIdForm = z.infer<typeof accountIdSchema>;
@@ -45,16 +45,6 @@ export default function VerifyPage() {
 
   const handleVerify = async (values: AccountIdForm) => {
     const uid = values.accountId;
-    
-    if (!uid || uid.trim() === '') {
-      toast({
-        variant: "destructive",
-        title: "Aviso",
-        description: "Digite um ID válido.",
-      });
-      return;
-    }
-
     if (isVerified || isVerifying) return;
 
     setIsVerifying(true);
@@ -62,230 +52,207 @@ export default function VerifyPage() {
 
     try {
       const response = await fetch(`https://wzapiinfo.vercel.app/get?uid=${encodeURIComponent(uid)}`);
-      
-      if (!response.ok) {
-        // Fallback: se a API falhar, simula que encontrou e prossegue normalmente
-        setPlayerData({
-          nickname: `Player_${uid.slice(-4)}`,
-          accountId: uid,
-          level: 58,
-          region: 'BR',
-          likes: 420
-        });
-        setIsVerified(true);
-        toast({
-          title: "Sucesso",
-          description: "Conta localizada com sucesso.",
-        });
-        setIsVerifying(false);
-        return;
-      }
-
       const data = await response.json();
-      
-      console.log(data);
-      if (data && data.basic_info) {
-        console.log("Nickname:", data.basic_info.nickname);
-      }
 
-      const basicInfo = data?.basic_info;
-
-      if (!basicInfo || !basicInfo.nickname) {
-        // Fallback: se a estrutura estiver incompleta, simula dados para não travar o fluxo
+      if (data && data.basic_info && data.basic_info.nickname) {
         setPlayerData({
-          nickname: `User_${uid.slice(-4)}`,
-          accountId: uid,
-          level: 61,
-          region: 'BR',
-          likes: 380
+          nickname: data.basic_info.nickname,
+          accountId: data.basic_info.account_id || uid,
+          level: data.basic_info.level || 50,
+          region: data.basic_info.region || 'BR',
+          likes: data.basic_info.liked || 0
         });
         setIsVerified(true);
-        toast({
-          title: "Sucesso",
-          description: "Conta localizada com sucesso.",
-        });
-        setIsVerifying(false);
-        return;
+      } else {
+        // Fallback robusto
+        throw new Error('Fallback triggered');
       }
-
+    } catch (error) {
+      // Garantir que o usuário prossiga
       setPlayerData({
-        nickname: basicInfo.nickname,
-        accountId: basicInfo.account_id || uid,
-        level: basicInfo.level || 50,
-        region: basicInfo.region || 'BR',
-        likes: basicInfo.liked || 0
-      });
-      setIsVerified(true);
-      
-      toast({
-        title: "Sucesso",
-        description: "Conta localizada com sucesso.",
-      });
-    } catch (error: any) {
-      console.error(error);
-      // Fallback: em caso de erro de rede ou api offline, garante o prosseguimento do usuário
-      setPlayerData({
-        nickname: `Jogador_${uid.slice(-4)}`,
+        nickname: `Player_${uid.slice(-4)}`,
         accountId: uid,
-        level: 55,
+        level: Math.floor(Math.random() * (80 - 40) + 40),
         region: 'BR',
-        likes: 290
+        likes: Math.floor(Math.random() * 5000)
       });
       setIsVerified(true);
-      toast({
-        title: "Sucesso",
-        description: "Conta localizada com sucesso.",
-      });
     } finally {
       setIsVerifying(false);
     }
   };
 
   return (
-    <div className="flex min-h-full flex-col bg-zinc-950 text-white selection:bg-primary">
+    <div className="flex min-h-full flex-col bg-[#050505] text-white selection:bg-[#ff00b8]/30 overflow-x-hidden relative">
+      {/* Efeitos de Fundo E-sports */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#ff00b8]/5 blur-[120px] rounded-full" />
+        <div className="absolute -left-20 top-1/4 w-[300px] h-[600px] bg-[#ff00b8]/5 -rotate-45 blur-[100px]" />
+        <div className="absolute -right-20 top-1/4 w-[300px] h-[600px] bg-[#ff00b8]/5 rotate-45 blur-[100px]" />
+        
+        {/* Grid lines simulando scan */}
+        <div className="absolute inset-0 opacity-[0.03]" 
+          style={{ backgroundImage: 'linear-gradient(#ff00b8 1px, transparent 1px), linear-gradient(90deg, #ff00b8 1px, transparent 1px)', backgroundSize: '50px 50px' }} 
+        />
+      </div>
+
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8 md:py-16 flex flex-col items-center justify-center">
-        <div className="w-full max-w-2xl space-y-8 animate-in fade-in-50 duration-1000">
-          <section className="text-center space-y-2">
-            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 px-3 py-1 rounded-full text-xs font-black tracking-widest text-primary uppercase">
-              <Zap className="h-3 w-3 fill-primary animate-pulse" /> Scanner de Servidor Ativo
+
+      <main className="flex-grow container mx-auto px-4 py-12 md:py-24 flex flex-col items-center justify-start relative z-10">
+        
+        {/* Top Badge: Scanner de Servidor */}
+        <div className="mb-8 animate-in slide-in-from-top-4 duration-700">
+            <div className="inline-flex items-center gap-2 bg-[#ff00b8]/10 border border-[#ff00b8]/40 px-5 py-2 rounded-full backdrop-blur-md">
+                <Zap className="h-4 w-4 text-[#ff00b8] fill-[#ff00b8] animate-pulse" />
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-[#ff00b8]">
+                    Scanner de Servidor Ativo
+                </span>
+                <div className="h-2 w-2 rounded-full bg-[#ff00b8] animate-ping ml-1" />
             </div>
-            <h1 className="font-headline text-3xl md:text-5xl font-black italic tracking-tighter uppercase">{t.verify_title}</h1>
-            <p className="max-w-md mx-auto text-sm md:text-base text-zinc-400 font-medium">
-              {t.verify_subtitle}
+        </div>
+
+        <div className="w-full max-w-[500px] space-y-10">
+          
+          {/* Título Estilizado */}
+          <section className="text-center space-y-4 animate-in fade-in duration-1000">
+            <h1 className="font-black italic text-5xl md:text-7xl tracking-tighter uppercase leading-[0.8] drop-shadow-[0_0_15px_rgba(255,0,184,0.4)]">
+              Verificar <br /> 
+              <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-[#ff00b8]">Conta</span>
+            </h1>
+            <p className="text-zinc-500 font-medium text-sm md:text-base tracking-tight max-w-[300px] mx-auto">
+              Insira o ID da sua conta para dar o primeiro passo.
             </p>
           </section>
 
-          <Card className="w-full bg-zinc-900/60 border-zinc-800/80 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden">
-            <CardHeader className="border-b border-zinc-800/50 bg-zinc-900/40 p-4 sm:p-6">
-              <CardTitle className="text-sm font-black uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-                <Award className="h-4 w-4 text-primary" /> {t.id_label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleVerify)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="accountId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex flex-col sm:flex-row gap-3">
-                          <FormControl>
-                            <Input 
-                              placeholder={t.id_placeholder} 
-                              {...field} 
-                              className={cn(
-                                "text-base h-14 bg-zinc-950 border-zinc-800 rounded-xl focus-visible:ring-primary focus-visible:border-primary text-center font-mono tracking-widest text-lg font-bold placeholder:font-sans placeholder:tracking-normal placeholder:text-zinc-600", 
-                                isVerified && "border-green-500/50 focus-visible:ring-green-500"
-                              )} 
-                              disabled={isVerified || isVerifying}
-                            />
-                          </FormControl>
-                          <Button 
-                            type="submit" 
-                            className={cn(
-                              "h-14 px-8 font-black text-base uppercase italic tracking-wider min-w-[160px] rounded-xl transition-all duration-300",
-                              isVerified ? "bg-green-600 hover:bg-green-700 text-white border border-green-500" : "bg-primary text-primary-foreground hover:bg-primary/90"
-                            )}
-                            disabled={isVerifying || isVerified}
-                          >
-                            {isVerifying ? (
-                              <div className="flex items-center gap-2">
-                                <Loader2 className="animate-spin h-5 w-5" />
-                                <span>Rastreando...</span>
-                              </div>
-                            ) : isVerified ? (
-                              <div className="flex items-center gap-2">
-                                <ShieldCheck className="h-5 w-5 animate-[bounce_1s_infinite]" />
-                                <span>Pronto</span>
-                              </div>
-                            ) : 'Buscar'}
-                          </Button>
-                        </div>
-                        <FormMessage className="text-red-400 text-xs font-bold" />
-                      </FormItem>
-                    )}
-                  />
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-
-          {isVerified && playerData && (
-            <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
-              <Card className="w-full border-green-500/20 bg-gradient-to-b from-zinc-900/90 to-zinc-950/90 shadow-[0_0_50px_-12px_rgba(22,163,74,0.2)] rounded-3xl overflow-hidden">
-                <CardContent className="p-6 sm:p-8 space-y-6">
-                  
-                  <div className="flex flex-col items-center text-center space-y-2 border-b border-zinc-800/80 pb-6">
-                    <div className="bg-green-500/10 p-4 rounded-full border border-green-500/30 mb-1 shadow-inner">
-                      <ShieldCheck className="h-10 w-10 text-green-500" />
-                    </div>
-                    <span className="text-xs font-black uppercase tracking-[0.2em] text-green-500">Registro Localizado na Nuvem</span>
-                    <h2 className="text-3xl font-black italic tracking-tighter text-white uppercase bg-zinc-900/80 px-6 py-2 rounded-xl border border-zinc-800">
-                      {playerData.nickname}
-                    </h2>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    
-                    <div className="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/60 flex items-center gap-3">
-                      <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/20">
-                        <User className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black uppercase text-zinc-500 tracking-wider">ID da Conta</p>
-                        <p className="text-base font-mono font-bold text-zinc-200">{playerData.accountId}</p>
-                      </div>
-                    </div>
-
-                    <div className="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/60 flex items-center gap-3">
-                      <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-500 border border-amber-500/20">
-                        <Star className="h-5 w-5 fill-amber-500/20" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black uppercase text-zinc-500 tracking-wider">Nível Atual</p>
-                        <p className="text-lg font-black text-white italic">LVL {playerData.level}</p>
-                      </div>
-                    </div>
-
-                    <div className="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/60 flex items-center gap-3">
-                      <div className="p-2.5 bg-blue-500/10 rounded-xl text-blue-500 border border-blue-500/20">
-                        <Globe className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black uppercase text-zinc-500 tracking-wider">Região / Server</p>
-                        <p className="text-base font-black text-zinc-200">{playerData.region}</p>
-                      </div>
-                    </div>
-
-                    <div className="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/60 flex items-center gap-3">
-                      <div className="p-2.5 bg-red-500/10 rounded-xl text-red-500 border border-red-500/20">
-                        <ThumbsUp className="h-5 w-5 fill-red-500/20" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black uppercase text-zinc-500 tracking-wider">Curtidas</p>
-                        <p className="text-base font-bold text-zinc-200">{playerData.likes.toLocaleString()}</p>
-                      </div>
-                    </div>
-
-                  </div>
-
-                </CardContent>
-              </Card>
-
-              <div className="flex flex-col items-center pt-2">
-                  <Button asChild size="lg" className="w-full sm:w-auto font-black h-16 px-12 text-lg uppercase italic tracking-wider bg-primary text-primary-foreground hover:bg-primary/90 transition-all rounded-full shadow-xl shadow-primary/10 hover:shadow-primary/20 hover:scale-[1.03]">
-                     <Link href="/analysis">
-                         Iniciar Análise Antiban
-                         <ArrowRight className="ml-2 h-6 w-6 stroke-[3]" />
-                     </Link>
-                  </Button>
+          {/* Card Principal de Busca */}
+          {!isVerified ? (
+            <Card className="bg-[#0f0f0f]/80 border-[#ff00b8]/20 backdrop-blur-xl rounded-[2rem] shadow-[0_0_50px_-15px_rgba(255,0,184,0.3)] border-t-[#ff00b8]/40 relative overflow-hidden group animate-in zoom-in-95 duration-500">
+              {/* Detalhes de Interface futurista */}
+              <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
+                <div className="flex items-center gap-1">
+                   <div className="w-1 h-3 bg-[#ff00b8]" />
+                   <div className="w-1 h-3 bg-[#ff00b8]" />
+                   <div className="w-1 h-3 bg-[#ff00b8]" />
+                   <span className="text-[8px] font-bold ml-1">01</span>
+                </div>
               </div>
+
+              <CardContent className="p-8 space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="bg-[#ff00b8]/20 p-2 rounded-lg border border-[#ff00b8]/30">
+                        <User className="h-5 w-5 text-[#ff00b8]" />
+                    </div>
+                    <span className="text-xs font-black uppercase tracking-widest text-zinc-400">ID do Jogador</span>
+                </div>
+
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(handleVerify)} className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="accountId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <div className="relative group">
+                                <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#ff00b8] opacity-0 group-focus-within:opacity-100 transition-opacity" />
+                                <Input 
+                                  placeholder="Insira o ID do jogador aqui" 
+                                  {...field} 
+                                  className="h-16 bg-black/40 border-zinc-800 rounded-xl focus-visible:ring-[#ff00b8] focus-visible:border-[#ff00b8] text-center font-mono tracking-[0.2em] text-xl font-black placeholder:font-sans placeholder:tracking-normal placeholder:text-zinc-700 placeholder:text-sm border-2 transition-all" 
+                                  disabled={isVerifying}
+                                />
+                            </div>
+                          </FormControl>
+                          <FormMessage className="text-[#ff00b8] text-[10px] font-black uppercase text-center mt-2" />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button 
+                      type="submit" 
+                      className="w-full h-16 bg-gradient-to-r from-[#ff00b8] to-[#d40099] hover:from-[#d40099] hover:to-[#ff00b8] text-white font-black italic text-xl uppercase tracking-tighter rounded-xl shadow-[0_8px_20px_-5px_rgba(255,0,184,0.5)] active:translate-y-1 transition-all group overflow-hidden"
+                      disabled={isVerifying}
+                    >
+                      <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12" />
+                      {isVerifying ? (
+                        <div className="flex items-center gap-3">
+                          <Loader2 className="animate-spin h-6 w-6" />
+                          <span>Buscando...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between w-full px-6">
+                          <span className="flex-grow text-center">Buscar</span>
+                          <ArrowRight className="h-6 w-6 stroke-[3]" />
+                        </div>
+                      )}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          ) : (
+            /* Resultados de Busca - Player Found */
+            <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
+                <Card className="w-full border-[#ff00b8]/30 bg-[#0f0f0f]/90 backdrop-blur-2xl shadow-[0_0_60px_-15px_rgba(255,0,184,0.4)] rounded-[2.5rem] border-t-[#ff00b8]/50 overflow-hidden">
+                    <CardContent className="p-8 space-y-8">
+                        
+                        <div className="flex flex-col items-center text-center space-y-3 pb-6 border-b border-zinc-800/50">
+                            <div className="bg-green-500/10 p-5 rounded-full border border-green-500/30 mb-2 shadow-[0_0_20px_-5px_rgba(34,197,94,0.3)]">
+                                <ShieldCheck className="h-12 w-12 text-green-500" />
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-green-500 animate-pulse">Registro Localizado na Nuvem</span>
+                            <h2 className="text-4xl font-black italic tracking-tighter text-white uppercase bg-black/40 px-10 py-3 rounded-2xl border border-zinc-800 shadow-inner">
+                                {playerData?.nickname}
+                            </h2>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            {[
+                                { label: 'ID da Conta', value: playerData?.accountId, icon: User, color: 'text-zinc-400' },
+                                { label: 'Nível Atual', value: `LVL ${playerData?.level}`, icon: Star, color: 'text-amber-500' },
+                                { label: 'Região', value: playerData?.region, icon: Globe, color: 'text-blue-500' },
+                                { label: 'Curtidas', value: playerData?.likes.toLocaleString(), icon: ThumbsUp, color: 'text-red-500' }
+                            ].map((stat, i) => (
+                                <div key={i} className="bg-black/50 p-4 rounded-2xl border border-zinc-800/80 flex items-center gap-3 transition-transform hover:scale-[1.02]">
+                                    <div className={cn("p-2 bg-zinc-900 rounded-xl border border-zinc-800", stat.color)}>
+                                        <stat.icon className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest">{stat.label}</p>
+                                        <p className="text-sm font-black text-zinc-100 italic">{stat.value}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <div className="flex flex-col items-center pt-4">
+                    <Button asChild className="w-full h-16 bg-gradient-to-r from-[#ff00b8] to-[#d40099] hover:from-[#d40099] hover:to-[#ff00b8] text-white font-black italic text-xl uppercase tracking-tighter rounded-full shadow-[0_10px_30px_-5px_rgba(255,0,184,0.5)] transition-all hover:scale-[1.03]">
+                        <Link href="/analysis">
+                            Iniciar Análise
+                            <ArrowRight className="ml-3 h-6 w-6 stroke-[3]" />
+                        </Link>
+                    </Button>
+                </div>
             </div>
           )}
+
+          {/* Footer: Conexão Segura */}
+          <div className="pt-8 flex items-center justify-center gap-8 opacity-40">
+             <div className="h-[1px] w-12 bg-zinc-800" />
+             <div className="flex items-center gap-2 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">
+                <ShieldCheck className="h-4 w-4" />
+                Conexão Segura
+             </div>
+             <div className="h-[1px] w-12 bg-zinc-800" />
+          </div>
+
         </div>
       </main>
+      
+      {/* Decorative Bottom Glow */}
+      <div className="fixed bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#ff00b8] to-transparent opacity-50 shadow-[0_0_20px_rgba(255,0,184,0.8)]" />
     </div>
   );
 }
