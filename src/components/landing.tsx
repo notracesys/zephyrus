@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Flame } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -46,16 +46,6 @@ export default function Landing() {
       </div>
 
       <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center gap-8 sm:gap-12">
-        {/* Badge: ANÁLISES LIMITADAS HOJE */}
-        <div className="animate-in slide-in-from-top-4 duration-700">
-          <div className="inline-flex items-center gap-2 px-6 py-2 border-[3px] border-primary bg-black/40 rounded-full shadow-[0_0_20px_rgba(255,0,184,0.4)]">
-            <Flame className="h-5 w-5 text-primary fill-primary animate-pulse" />
-            <span className="text-[11px] sm:text-xs font-black uppercase tracking-[0.2em] text-white">
-              Análises Limitadas Hoje
-            </span>
-          </div>
-        </div>
-
         {/* Title Section */}
         <div className="space-y-4 animate-in fade-in zoom-in-95 duration-1000">
           <h1 className="font-black italic text-[2.8rem] sm:text-6xl md:text-7xl tracking-tighter uppercase leading-[0.85] text-white break-words">
