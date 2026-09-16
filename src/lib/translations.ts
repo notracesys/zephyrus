@@ -1,11 +1,10 @@
-
 export type Language = 'en' | 'es' | 'pt';
 
 export const translations = {
   en: {
     title: "RECOVERY STRATEGY",
     subtitle: "Your account was banned? Not all is lost.",
-    description: "Recovering your account is not a matter of luck. It's about knowing what to say. Most fail because they say anything, anyway. We discovered what works.",
+    description: "Nossa análise mostra o caminho certo antes que seja tarde.",
     cta: "Recover Banned Account",
     checkout_url: "https://chk.eduzz.com/aziwk6nz?currency=USD",
     terms_title: "Liability Terms and Conditions",
@@ -146,7 +145,7 @@ export const translations = {
   es: {
     title: "ESTRATEGIA RECOVERY",
     subtitle: "¿Tu cuenta fue baneada? No todo está perdido.",
-    description: "Recuperar tu cuenta no é questão de sorte. Se trata de saber qué decir. La mayoría fracasa porque dice cualquier cosa, de cualquier manera. Descubrimos lo que funciona.",
+    description: "Nossa análise mostra o caminho certo antes que seja tarde.",
     cta: "Recuperar Cuenta Baneada",
     checkout_url: "https://chk.eduzz.com/aziwk6nz?currency=USD",
     terms_title: "Términos y Condiciones de Responsabilidade",
@@ -178,7 +177,7 @@ export const translations = {
     player_guild: "Gremio",
     analysis_title: "Cuestionario de Análisis",
     analysis_desc: "Responda las preguntas a continuación para que nuestro equipo possa analizar su caso.",
-    analysis_send: "Enviar para Análisis",
+    analysis_send: "Send for Analysis",
     analysis_error_title: "Preguntas Incompletas",
     analysis_error_desc: "Por favor, responda todas las preguntas para continuar.",
     analysis_q_text_label: "Describa en detalle cómo cree que ocurrió su baneo",
@@ -186,7 +185,7 @@ export const translations = {
     analysis_questions: [
       {
         id: "suspensionTime",
-        label: "¿Hace cuánto tempo foi suspendida su cuenta?",
+        label: "¿Hace quanto tempo foi suspendida su cuenta?",
         options: ["Menos de 1 semana", "Entre 1 semana y 1 mes", "Entre 1 e 6 meses", "Más de 6 meses"],
       },
       {
@@ -232,7 +231,7 @@ export const translations = {
     chat_option_yes: "¡Sí! ¡Por favor salva mi cuenta! 👍",
     chat_option_no: "No, no me importa perderlo todo",
     chat_great_choice: "¡Excelente! Eres inteligente. Te mostraré por qué la mayoría de los chicos nunca recuperan su cuenta...",
-    chat_unban_story: "El mayor error es mandar cualquier cosa al soporte. Si solo pides 'por favor', el robot borra tu cuenta al instante. ¡No tienen corazón! Sin el secreto correcto, tus skins desaparecen para siempre. Nuestro método obliga a un humano a leer tu caso.",
+    chat_unban_story: "El mayor error es mandar cualquier cosa al soporte. Si solo pides 'por favor', el robot borra tu cuenta al instante. ¡Nu tienen corazón! Sin el secreto correcto, tus skins desaparecen para siempre. Nuestro método obliga a un humano a leer tu caso.",
     chat_warning_title: "¡MIRA AQUÍ!",
     chat_warning: "Este truco secreto solo funciona porque encontramos un pequeño agujero en el sistema. Si se enteran, se acabó. ¡Hazlo ahora antes de que cierren el agujero!",
     chat_final_msg: "Mira esto. Este es el mensaje de 'No' que el robot le manda a todos los que no saben el secreto:",
@@ -264,7 +263,7 @@ export const translations = {
     alerta_urgente_main_text: "Nuestros expertos han detectado que Garena está a punto de lanzar una actualización.",
     alerta_urgente_warning: "Una vez que los servidores se actualicen, será físicamente IMPOSSIBLE recuperar cualquier cuenta baneada. El sistema eliminará los metadatos. APROVECHE MIENTRAS HAYA TIEMPO.",
     alerta_urgente_cta: "RECUPERAR ANTES DE LA ACTUALIZACIÓN",
-    alerta_urgente_footer: "Esta ventana se está cerrando. No pierda tiempo.",
+    alerta_urgente_footer: "Esta ventana se está cerrando. No pierda tempo.",
     upsell_title: "¡SERÁS BANEADO OTRA VEZ!",
     upsell_subtitle: "PELIGRO: RIESGO DE DETECCIÓN ALTO",
     upsell_desc: "Identificamos que su proceso de recuperación deja rastros digitales fatales. Garena sabrá que está usando métodos prohibidos y su solicitud será RECHAZADA al instante, e incluso puede que no logre recuperarla en absoluto.",
@@ -287,7 +286,7 @@ export const translations = {
   pt: {
     title: "ESTRATÉGIA RECOVERY",
     subtitle: "Sua conta foi banida? Nem tudo está perdido.",
-    description: "Recuperar sua conta não é questão de sorte. É saber o que dizer. A maioria falha porque diz qualquer coisa, de qualquer jeito. Nós descobrimos o que funciona.",
+    description: "Nossa análise mostra o caminho certo antes que seja tarde.",
     cta: "Recuperar Conta Banida",
     checkout_url: "https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6",
     terms_title: "Termos e Condições de Responsabilidade",
@@ -338,7 +337,7 @@ export const translations = {
       {
         id: "banReason",
         label: "Qual foi o motivo que apareceu na mensagem de banimento?",
-        options: ["Uso de software/app não oficial", "Abuso de bugs ou glitches", "Comportamento tóxico (ofensas)", "Estorno indevido (chargeback)", "Nenhum motivo especificado", "Outro"],
+        options: ["Uso de software/app não oficial", "Abuso de bugs ou glitches", "Comportamiento tóxico (ofensas)", "Estorno indevido (chargeback)", "Nenhum motivo especificado", "Outro"],
       },
       {
         id: "firstOffense",
