@@ -70,9 +70,9 @@ export default function Landing() {
             <DialogTrigger asChild>
               <Button
                 size="lg"
-                className="group relative h-20 w-full px-8 bg-primary hover:bg-primary/90 text-white font-black italic text-xl sm:text-2xl uppercase tracking-tighter rounded-2xl shadow-[0_10px_40px_rgba(255,0,184,0.4)] transition-all hover:scale-[1.02] active:scale-95 border-t-2 border-white/20 flex items-center justify-center gap-3"
+                className="group relative overflow-hidden h-20 w-full px-8 bg-primary hover:bg-primary/90 text-white font-black italic text-xl sm:text-2xl uppercase tracking-tighter rounded-2xl shadow-[0_10px_40px_rgba(255,0,184,0.4)] transition-all hover:scale-[1.02] active:scale-95 border-t-2 border-white/20 flex items-center justify-center gap-3"
               >
-                <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12" />
+                <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12" />
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   {config.ctaText || t.cta}
                   <ArrowRight className="h-7 w-7 stroke-[4] shrink-0" />
