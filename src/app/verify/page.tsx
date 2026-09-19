@@ -1,4 +1,3 @@
-
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -42,56 +41,30 @@ export default function VerifyPage() {
     defaultValues: { accountId: '' },
   });
 
-  const useFallback = (uid: string) => {
-    setPlayerData({
-      nickname: `Player_${uid.slice(-4)}`,
-      accountId: uid,
-      level: String(Math.floor(Math.random() * (80 - 40) + 40)),
-      region: 'BR',
-      likes: String(Math.floor(Math.random() * 5000))
-    });
-    setIsVerified(true);
-  };
-
-  const handleVerify = async (values: AccountIdForm) => {
+  const handleVerify = (values: AccountIdForm) => {
     const uid = values.accountId;
     if (isVerified || isVerifying) return;
 
     setIsVerifying(true);
     setPlayerData(null);
 
-    try {
-      const response = await fetch(`https://wzapiinfo.vercel.app/get?uid=${encodeURIComponent(uid)}`);
-      
-      if (!response.ok) {
-        useFallback(uid);
-        return;
-      }
-
-      const data = await response.json();
-
-      if (data && data.basic_info && data.basic_info.nickname) {
-        setPlayerData({
-          nickname: String(data.basic_info.nickname),
-          accountId: String(data.basic_info.account_id || uid),
-          level: String(data.basic_info.level || 50),
-          region: String(data.basic_info.region || 'BR'),
-          likes: String(data.basic_info.liked || 0)
-        });
-        setIsVerified(true);
-      } else {
-        useFallback(uid);
-      }
-    } catch (error) {
-      // Silently proceed with fallback data if API is down or blocked
-      useFallback(uid);
-    } finally {
+    // Simulação imediata de verificação sem API externa
+    setTimeout(() => {
+      setPlayerData({
+        nickname: `Player_${uid.slice(-4)}`,
+        accountId: uid,
+        level: String(Math.floor(Math.random() * (80 - 40) + 40)),
+        region: 'BR',
+        likes: String(Math.floor(Math.random() * 5000))
+      });
+      setIsVerified(true);
       setIsVerifying(false);
-    }
+    }, 1500); // Delay curto para manter a percepção de processamento técnico
   };
 
   return (
     <div className="flex min-h-full flex-col bg-[#050505] text-white selection:bg-[#ff00b8]/30 overflow-x-hidden relative">
+      {/* Camadas de Fundo Cyberpunk */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#ff00b8]/5 blur-[120px] rounded-full" />
         <div className="absolute -left-20 top-1/4 w-[300px] h-[600px] bg-[#ff00b8]/5 -rotate-45 blur-[100px]" />
