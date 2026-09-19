@@ -68,7 +68,7 @@ function UpsellContent() {
   };
 
   const handleSkip = () => {
-    router.push('/entrega');
+    window.location.href = 'https://unbanstrategyy.netlify.app/';
   };
 
   return (
