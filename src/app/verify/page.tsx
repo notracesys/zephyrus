@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ShieldCheck, Loader2, ArrowRight, User, Star, ThumbsUp, Globe, Zap } from 'lucide-react';
+import { ShieldCheck, Loader2, ArrowRight, User, Zap, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -22,19 +22,10 @@ const accountIdSchema = z.object({
 
 type AccountIdForm = z.infer<typeof accountIdSchema>;
 
-interface PlayerData {
-  nickname: string;
-  accountId: string | number;
-  level: string | number;
-  region: string;
-  likes: string | number;
-}
-
 export default function VerifyPage() {
   const { t } = useLanguage();
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const [playerData, setPlayerData] = useState<PlayerData | null>(null);
 
   const form = useForm<AccountIdForm>({
     resolver: zodResolver(accountIdSchema),
@@ -42,24 +33,15 @@ export default function VerifyPage() {
   });
 
   const handleVerify = (values: AccountIdForm) => {
-    const uid = values.accountId;
     if (isVerified || isVerifying) return;
 
     setIsVerifying(true);
-    setPlayerData(null);
 
-    // Simulação imediata de verificação sem API externa
+    // Simulação imediata de verificação
     setTimeout(() => {
-      setPlayerData({
-        nickname: `Player_${uid.slice(-4)}`,
-        accountId: uid,
-        level: String(Math.floor(Math.random() * (80 - 40) + 40)),
-        region: 'BR',
-        likes: String(Math.floor(Math.random() * 5000))
-      });
       setIsVerified(true);
       setIsVerifying(false);
-    }, 1500); // Delay curto para manter a percepção de processamento técnico
+    }, 1500); 
   };
 
   return (
@@ -155,37 +137,17 @@ export default function VerifyPage() {
           ) : (
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
                 <Card className="w-full border-[#ff00b8]/30 bg-[#0f0f0f]/90 backdrop-blur-2xl shadow-[0_0_60px_-15px_rgba(255,0,184,0.4)] rounded-[2.5rem] border-t-[#ff00b8]/50 overflow-hidden">
-                    <CardContent className="p-8 space-y-8">
-                        <div className="flex flex-col items-center text-center space-y-3 pb-6 border-b border-zinc-800/50">
-                            <div className="bg-green-500/10 p-5 rounded-full border border-green-500/30 mb-2 shadow-[0_0_20px_-5px_rgba(34,197,94,0.3)]">
-                                <ShieldCheck className="h-12 w-12 text-green-500" />
-                            </div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-green-500 animate-pulse">Conta encontrada</span>
-                            <h2 className="text-3xl font-bold tracking-tight text-white px-6 py-3 rounded-2xl bg-black/40 border border-zinc-800 shadow-inner">
-                                {playerData?.nickname}
-                            </h2>
+                    <CardContent className="p-12 space-y-8 flex flex-col items-center text-center">
+                        <div className="bg-green-500/10 p-6 rounded-full border-2 border-green-500/30 mb-2 shadow-[0_0_30px_-5px_rgba(34,197,94,0.4)]">
+                            <CheckCircle2 className="h-16 w-16 text-green-500" />
                         </div>
-
-                        <div className="grid grid-cols-1 gap-4 font-body">
-                            {[
-                                { label: 'Nickname', value: playerData?.nickname, icon: User, color: 'text-[#ff00b8]' },
-                                { label: 'UID', value: playerData?.accountId, icon: Zap, color: 'text-[#ff00b8]' },
-                                { label: 'Nível', value: playerData?.level, icon: Star, color: 'text-[#ff00b8]' },
-                                { label: 'Região', value: playerData?.region, icon: Globe, color: 'text-[#ff00b8]' },
-                                { label: 'Likes', value: playerData?.likes, icon: ThumbsUp, color: 'text-[#ff00b8]' }
-                            ].map((stat, i) => (
-                                stat.value ? (
-                                    <div key={i} className="bg-black/50 p-4 rounded-xl border border-zinc-800/80 flex items-center justify-between transition-transform hover:scale-[1.01]">
-                                        <div className="flex items-center gap-3">
-                                            <div className={stat.color}>
-                                                <stat.icon className="h-4 w-4" />
-                                            </div>
-                                            <span className="text-sm font-medium text-zinc-400">{stat.label}:</span>
-                                        </div>
-                                        <span className="text-sm font-semibold text-zinc-100">{stat.value}</span>
-                                    </div>
-                                ) : null
-                            ))}
+                        <div className="space-y-2">
+                          <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">
+                            Conta Encontrada
+                          </h2>
+                          <p className="text-zinc-400 font-medium text-sm uppercase tracking-widest">
+                            O sistema localizou sua conta com sucesso.
+                          </p>
                         </div>
                     </CardContent>
                 </Card>
