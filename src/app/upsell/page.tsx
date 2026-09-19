@@ -135,9 +135,9 @@ function UpsellContent() {
                           <Button 
                             variant="ghost" 
                             onClick={handleSkip}
-                            className="text-zinc-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em] h-10 px-6 rounded-full group"
+                            className="text-zinc-400 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em] h-10 px-6 rounded-full group"
                           >
-                            <X className="h-3 w-3 mr-2 opacity-50 group-hover:opacity-100" />
+                            <X className="h-3 w-3 mr-2 opacity-70 group-hover:opacity-100" />
                             {t.upsell_skip}
                           </Button>
                         </div>
