@@ -40,10 +40,9 @@ export default function AnalysisPage() {
   function onSubmit(data: QuizFormValues) {
     setIsSubmitting(true);
     const query = new URLSearchParams(data).toString();
-    // Pequeno delay para garantir que o loading apareça
     setTimeout(() => {
       router.push(`/chat?${query}`);
-    }, 500);
+    }, 1200);
   }
 
   function onError() {

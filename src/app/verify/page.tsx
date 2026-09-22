@@ -10,8 +10,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import Header from '@/components/header';
 import { Input } from '@/components/ui/input';
-import Link from 'next/link';
+import Link from 'next/navigation';
 import { useLanguage } from '@/lib/i18n';
+import { useRouter } from 'next/navigation';
 import { LoadingSpinnerAvatar } from '@/components/loading-spinner-avatar';
 
 const accountIdSchema = z.object({
@@ -25,6 +26,7 @@ type AccountIdForm = z.infer<typeof accountIdSchema>;
 
 export default function VerifyPage() {
   const { t } = useLanguage();
+  const router = useRouter();
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -37,11 +39,18 @@ export default function VerifyPage() {
   const handleVerify = (values: AccountIdForm) => {
     if (isVerified || isVerifying) return;
     setIsVerifying(true);
-    // Simulação rápida para evitar lag perceptível
     setTimeout(() => {
       setIsVerified(true);
       setIsVerifying(false);
     }, 1200); 
+  };
+
+  const handleStartAnalysis = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    setTimeout(() => {
+      router.push('/analysis');
+    }, 1000);
   };
 
   if (isNavigating) {
@@ -136,8 +145,8 @@ export default function VerifyPage() {
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
                 <Card className="w-full border-[#ff00b8]/30 bg-[#0f0f0f]/90 backdrop-blur-2xl shadow-[0_0_60px_-15px_rgba(255,0,184,0.4)] rounded-[2.5rem] border-t-[#ff00b8]/50 overflow-hidden">
                     <CardContent className="p-12 space-y-8 flex flex-col items-center text-center">
-                        <div className="bg-green-500/10 p-6 rounded-full border-2 border-green-500/30 mb-2 shadow-[0_0_30px_-5px_rgba(34,197,94,0.4)]">
-                            <CheckCircle2 className="h-16 w-16 text-green-500" />
+                        <div className="mb-2">
+                            <LoadingSpinnerAvatar size="lg" />
                         </div>
                         <div className="space-y-2">
                           <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">
@@ -149,14 +158,13 @@ export default function VerifyPage() {
 
                 <div className="flex flex-col items-center pt-4">
                     <Button 
-                      onClick={() => setIsNavigating(true)}
-                      asChild 
+                      onClick={handleStartAnalysis}
                       className="w-full h-16 bg-gradient-to-r from-[#ff00b8] to-[#d40099] hover:from-[#d40099] hover:to-[#ff00b8] text-white font-black italic text-xl uppercase tracking-tighter rounded-full shadow-[0_10px_30px_-5px_rgba(255,0,184,0.5)] transition-all hover:scale-[1.03]"
                     >
-                        <Link href="/analysis">
+                        <span className="flex items-center justify-center gap-2">
                             Iniciar Análise
-                            <ArrowRight className="ml-3 h-6 w-6 stroke-[3]" />
-                        </Link>
+                            <ArrowRight className="h-6 w-6 stroke-[3]" />
+                        </span>
                     </Button>
                 </div>
             </div>
