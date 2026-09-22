@@ -12,6 +12,7 @@ import Header from '@/components/header';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n';
+import { LoadingSpinnerAvatar } from '@/components/loading-spinner-avatar';
 
 const accountIdSchema = z.object({
   accountId: z.string()
@@ -26,6 +27,7 @@ export default function VerifyPage() {
   const { t } = useLanguage();
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const form = useForm<AccountIdForm>({
     resolver: zodResolver(accountIdSchema),
@@ -34,23 +36,31 @@ export default function VerifyPage() {
 
   const handleVerify = (values: AccountIdForm) => {
     if (isVerified || isVerifying) return;
-
     setIsVerifying(true);
-
-    // Simulação imediata de verificação
+    // Simulação rápida para evitar lag perceptível
     setTimeout(() => {
       setIsVerified(true);
       setIsVerifying(false);
-    }, 1500); 
+    }, 1200); 
   };
+
+  if (isNavigating) {
+    return (
+      <div className="fixed inset-0 bg-black flex items-center justify-center z-[9999]">
+        <div className="flex flex-col items-center gap-6">
+          <LoadingSpinnerAvatar size="lg" />
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 animate-pulse">
+            Iniciando Protocolo de Análise...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-full flex-col bg-[#050505] text-white selection:bg-[#ff00b8]/30 overflow-x-hidden relative">
-      {/* Camadas de Fundo Cyberpunk */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#ff00b8]/5 blur-[120px] rounded-full" />
-        <div className="absolute -left-20 top-1/4 w-[300px] h-[600px] bg-[#ff00b8]/5 -rotate-45 blur-[100px]" />
-        <div className="absolute -right-20 top-1/4 w-[300px] h-[600px] bg-[#ff00b8]/5 rotate-45 blur-[100px]" />
         <div className="absolute inset-0 opacity-[0.03]" 
           style={{ backgroundImage: 'linear-gradient(#ff00b8 1px, transparent 1px), linear-gradient(90deg, #ff00b8 1px, transparent 1px)', backgroundSize: '50px 50px' }} 
         />
@@ -72,15 +82,6 @@ export default function VerifyPage() {
 
           {!isVerified ? (
             <Card className="bg-[#0f0f0f]/80 border-[#ff00b8]/20 backdrop-blur-xl rounded-[2rem] shadow-[0_0_50px_-15px_rgba(255,0,184,0.3)] border-t-[#ff00b8]/40 relative overflow-hidden group animate-in zoom-in-95 duration-500">
-              <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
-                <div className="flex items-center gap-1">
-                   <div className="w-1 h-3 bg-[#ff00b8]" />
-                   <div className="w-1 h-3 bg-[#ff00b8]" />
-                   <div className="w-1 h-3 bg-[#ff00b8]" />
-                   <span className="text-[8px] font-bold ml-1">01</span>
-                </div>
-              </div>
-
               <CardContent className="p-8 space-y-6">
                 <div className="flex items-center gap-3 mb-2">
                     <div className="bg-[#ff00b8]/20 p-2 rounded-lg border border-[#ff00b8]/30">
@@ -97,15 +98,12 @@ export default function VerifyPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <div className="relative group">
-                                <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#ff00b8] opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                                <Input 
-                                  placeholder="Insira o ID do jogador aqui" 
-                                  {...field} 
-                                  className="h-16 bg-black/40 border-zinc-800 rounded-xl focus-visible:ring-[#ff00b8] focus-visible:border-[#ff00b8] text-center font-mono tracking-[0.2em] text-xl font-black placeholder:font-sans placeholder:tracking-normal placeholder:text-zinc-700 placeholder:text-sm border-2 transition-all" 
-                                  disabled={isVerifying}
-                                />
-                            </div>
+                            <Input 
+                              placeholder="Insira o ID do jogador aqui" 
+                              {...field} 
+                              className="h-16 bg-black/40 border-zinc-800 rounded-xl focus-visible:ring-[#ff00b8] focus-visible:border-[#ff00b8] text-center font-mono tracking-[0.2em] text-xl font-black border-2 transition-all" 
+                              disabled={isVerifying}
+                            />
                           </FormControl>
                           <FormMessage className="text-[#ff00b8] text-[10px] font-black uppercase text-center mt-2" />
                         </FormItem>
@@ -121,7 +119,7 @@ export default function VerifyPage() {
                       {isVerifying ? (
                         <div className="flex items-center gap-3 justify-center w-full">
                           <Loader2 className="animate-spin h-6 w-6" />
-                          <span>Verificando conta...</span>
+                          <span>Verificando...</span>
                         </div>
                       ) : (
                         <div className="flex items-center justify-between w-full px-6">
@@ -145,15 +143,16 @@ export default function VerifyPage() {
                           <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">
                             Conta Encontrada
                           </h2>
-                          <p className="text-zinc-400 font-medium text-sm uppercase tracking-widest">
-                            O sistema localizou sua conta com sucesso.
-                          </p>
                         </div>
                     </CardContent>
                 </Card>
 
                 <div className="flex flex-col items-center pt-4">
-                    <Button asChild className="w-full h-16 bg-gradient-to-r from-[#ff00b8] to-[#d40099] hover:from-[#d40099] hover:to-[#ff00b8] text-white font-black italic text-xl uppercase tracking-tighter rounded-full shadow-[0_10px_30px_-5px_rgba(255,0,184,0.5)] transition-all hover:scale-[1.03]">
+                    <Button 
+                      onClick={() => setIsNavigating(true)}
+                      asChild 
+                      className="w-full h-16 bg-gradient-to-r from-[#ff00b8] to-[#d40099] hover:from-[#d40099] hover:to-[#ff00b8] text-white font-black italic text-xl uppercase tracking-tighter rounded-full shadow-[0_10px_30px_-5px_rgba(255,0,184,0.5)] transition-all hover:scale-[1.03]"
+                    >
                         <Link href="/analysis">
                             Iniciar Análise
                             <ArrowRight className="ml-3 h-6 w-6 stroke-[3]" />
@@ -162,18 +161,8 @@ export default function VerifyPage() {
                 </div>
             </div>
           )}
-
-          <div className="pt-8 flex items-center justify-center gap-8 opacity-40">
-             <div className="h-[1px] w-12 bg-zinc-800" />
-             <div className="flex items-center gap-2 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">
-                <ShieldCheck className="h-4 w-4" />
-                Conexão Segura
-             </div>
-             <div className="h-[1px] w-12 bg-zinc-800" />
-          </div>
         </div>
       </main>
-      
       <div className="fixed bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#ff00b8] to-transparent opacity-50 shadow-[0_0_20px_rgba(255,0,184,0.8)]" />
     </div>
   );

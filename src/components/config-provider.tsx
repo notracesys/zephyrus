@@ -1,11 +1,10 @@
-
 'use client';
 
 import React, { createContext, useContext, ReactNode, useState, useEffect, Suspense } from 'react';
 import { useDoc, useMemoFirebase, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import { LoadingSpinnerAvatar } from './loading-spinner-avatar';
 
 interface AppConfig {
   siteName: string;
@@ -28,7 +27,7 @@ const DEFAULT_CONFIG: AppConfig = {
   ctaTextColor: 'black',
   checkoutUrlPt: 'https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6',
   checkoutUrlEnEs: 'https://chk.eduzz.com/aziwk6nz?currency=USD',
-  bypassUrlPt: 'https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6', // Fallback se não configurado
+  bypassUrlPt: 'https://app.pushinpay.com.br/service/pay/A1B1A8D6-0667-48B5-94D6-CA3E768395D6',
   bypassUrlEnEs: 'https://chk.eduzz.com/aziwk6nz?currency=USD',
   headerAvatar: '',
   teamAvatar: '',
@@ -43,10 +42,7 @@ function ConfigLoader({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    
-    // 1. Prioridade: Parâmetro na URL (?s=)
     const urlSiteId = searchParams.get('s');
-    // 2. Segunda opção: Memória da sessão (sessionStorage)
     const storedSiteId = sessionStorage.getItem('active_site_id');
 
     if (urlSiteId) {
@@ -69,10 +65,10 @@ function ConfigLoader({ children }: { children: ReactNode }) {
   if (!mounted || isLoading) {
     return (
       <div className="fixed inset-0 bg-black flex items-center justify-center z-[9999]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-6">
+          <LoadingSpinnerAvatar size="md" />
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 animate-pulse">
-            Carregando Sistema...
+            Sincronizando Sistema...
           </p>
         </div>
       </div>
@@ -114,7 +110,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   return (
     <Suspense fallback={
         <div className="fixed inset-0 bg-black flex items-center justify-center z-[9999]">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <div className="h-24 w-24 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
         </div>
     }>
       <ConfigLoader>{children}</ConfigLoader>
