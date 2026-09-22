@@ -62,6 +62,12 @@ function ConfigLoader({ children }: { children: ReactNode }) {
 
   const { data: configData, isLoading } = useDoc<AppConfig>(configRef);
 
+  useEffect(() => {
+    if (configData?.headerAvatar) {
+      localStorage.setItem(`cached_avatar_${siteId}`, configData.headerAvatar);
+    }
+  }, [configData, siteId]);
+
   if (!mounted || isLoading) {
     return (
       <div className="fixed inset-0 bg-black flex items-center justify-center z-[9999]">
