@@ -1,3 +1,4 @@
+
 # UNBAN STRATEGY - Firebase Studio
 
 Este projeto foi configurado para rodar no **Next.js 15** com suporte ao **Cloudflare Workers** via OpenNext.
@@ -23,11 +24,13 @@ Se você tentar dar `git push` e aparecer "Everything up-to-date", significa que
 
 ## Como fazer o Deploy no Cloudflare
 
-Se você configurou o deploy automático via integração de repositório, o passo acima já iniciará o build. Caso queira disparar o deploy manualmente via terminal:
+O deploy é gerenciado pelo OpenNext. Para disparar manualmente:
 
 ```bash
 npm run deploy
 ```
+
+O comando de build (`npm run build`) agora gera automaticamente a pasta `.open-next` necessária para o Cloudflare.
 
 ## Estrutura do Projeto
 - `/src/app`: Páginas, rotas e lógica de navegação.
